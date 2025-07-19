@@ -1,0 +1,15 @@
+/* Theme variables for the clothing store app */
+:root {
+  --color-primary: #e53935; /* Red base */
+  --color-secondary: #ff6f60; /* Light red/coral */
+  --color-accent: #d32f2f; /* Darker red */
+  --color-background: #fff8f7;
+  --color-text: #222;
+  --color-border: #e0e0e0;
+
+  /* Men page gradient (blue) */
+  --men-gradient: linear-gradient(90deg, #1976d2 0%, #64b5f6 100%);
+
+  /* Women page gradient (pink) */
+  --women-gradient: linear-gradient(90deg, #ec407a 0%, #f8bbd0 100%);
+}
