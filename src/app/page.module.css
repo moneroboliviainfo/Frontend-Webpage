@@ -1,0 +1,15 @@
+/* Common styles for homepage links */
+.linkButton {
+  border-radius: 9999px;
+  border: 1px solid #ccc;
+  transition: background-color 0.2s;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: #222;
+  background: #f9f9f9;
+  margin: 0.5rem;
+}
+.linkButton:hover {
+  background: #e0e0e0;
+}
