@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import cartReducer from './cartSlice';
 import clientReducer from './clientSlice';
+import adReducer from './adSlice';
 
 export const store = configureStore({
   reducer: {
     cart: cartReducer,
     client: clientReducer,
+    ads: adReducer,
   },
 });
 
