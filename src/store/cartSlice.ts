@@ -6,6 +6,7 @@ import {
   CartStatus,
   ENCRYPTED_CART_KEY,
 } from '../constants/cart';
+import type { RootState } from './store';
 
 interface CartState {
   cart: CartItem[];
@@ -135,6 +136,9 @@ const cartSlice = createSlice({
       });
   },
 });
+
+export const selectCartQuantity = (state: RootState) =>
+  state.cart.cart.reduce((sum, item) => sum + item.quantity, 0);
 
 export const { cleanCart, setCartFromStorage } = cartSlice.actions;
 export default cartSlice.reducer;

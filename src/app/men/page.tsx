@@ -1,10 +1,16 @@
+import NavBar from '@/components/NavBar';
 import styles from './men.module.css';
 
 export default function MenPage() {
   return (
-    <main className={styles.mainMen}>
-      <h1 className={styles.titleMen}>Men&apos;s Clothing</h1>
-      <p>Shop the latest men&apos;s fashion.</p>
-    </main>
+    <div className="relative min-h-screen bg-black">
+      <NavBar />
+      <div
+        className="w-full"
+        style={{ height: '80vh', background: 'var(--color-secondary)' }}
+      >
+        {/* Slider will go here */}
+      </div>
+    </div>
   );
 }
