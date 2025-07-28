@@ -9,6 +9,7 @@
   --color-white: #fff;
   --color-black: #000;
   --color-transparent: rgba(255, 255, 255, 0);
+  --color-gray-background: #f3f4f6; /* Light gray background */
 
   /* Men page gradient (blue) */
   --men-gradient: linear-gradient(90deg, #1976d2 0%, #64b5f6 100%);

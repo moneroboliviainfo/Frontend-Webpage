@@ -134,3 +134,7 @@ const clientSlice = createSlice({
 
 export const { logout } = clientSlice.actions;
 export default clientSlice.reducer;
+
+// Selector to get the client from state
+export const selectClient = (state: { client: ClientState }) =>
+  state.client.client;

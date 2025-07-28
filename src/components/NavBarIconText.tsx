@@ -1,23 +1,26 @@
-// This file has been moved to the nav folder and is no longer available here.
 import React from 'react';
 
 interface NavBarIconTextProps {
   icon: React.ReactNode;
-  text: string;
+  text?: string;
   className?: string;
+  onClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 export default function NavBarIconText({
   icon,
   text,
   className = '',
+  onClick = () => {},
 }: NavBarIconTextProps) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center gap-2 ${className}`} onClick={onClick}>
       {icon}
-      <span className="navbar-font hidden md:inline font-medium text-xs">
-        {text}
-      </span>
+      {text && (
+        <span className="navbar-font hidden md:inline font-medium text-xs">
+          {text}
+        </span>
+      )}
     </div>
   );
 }
