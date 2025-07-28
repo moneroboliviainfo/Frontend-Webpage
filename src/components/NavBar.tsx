@@ -1,7 +1,7 @@
 // This file has been moved to the nav folder and is no longer available here.
 'use client';
 import React, { useEffect, useState } from 'react';
-import { FiUser, FiShoppingCart, FiSearch, FiX } from 'react-icons/fi';
+import { FiUser, FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { motion, useAnimation } from 'framer-motion';
 import { useAppSelector } from '../store/hooks';
 import { selectCartQuantity } from '../store/cartSlice';

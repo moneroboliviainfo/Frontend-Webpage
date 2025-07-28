@@ -1,4 +1,4 @@
-import NavBar from '@/components/NavBar';
+import NavBar from '@/components/nav/NavBar';
 import styles from './women.module.css';
 
 export default function WomenPage() {

@@ -1,3 +1,4 @@
+// This file has been moved to the nav folder and is no longer available here.
 import React from 'react';
 import Link from 'next/link';
 
