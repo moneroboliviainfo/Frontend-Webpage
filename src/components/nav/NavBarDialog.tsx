@@ -3,13 +3,7 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectClient, logout } from '../../store/clientSlice';
 import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react';
-import {
-  FaX,
-  FaFacebook,
-  FaInstagram,
-  FaTiktok,
-  FaGoogle,
-} from 'react-icons/fa6';
+import { FaX, FaFacebook, FaInstagram, FaTiktok } from 'react-icons/fa6';
 import NavBarImageButton from './NavBarImageButton';
 import Image from 'next/image';
 
@@ -17,6 +11,9 @@ interface NavBarDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
 }
+
+const iconSize = 26;
+const iconStrokeWidth = 1.8;
 
 const NavBarDialog: React.FC<NavBarDialogProps> = ({ open, setOpen }) => {
   const client = useSelector(selectClient);
@@ -56,7 +53,7 @@ const NavBarDialog: React.FC<NavBarDialogProps> = ({ open, setOpen }) => {
                       >
                         <FaX
                           size={16}
-                          strokeWidth={1.8}
+                          strokeWidth={iconStrokeWidth}
                           className="text-black"
                         />
                       </button>
@@ -116,8 +113,8 @@ const NavBarDialog: React.FC<NavBarDialogProps> = ({ open, setOpen }) => {
                         aria-label="Facebook"
                       >
                         <FaFacebook
-                          size={26}
-                          strokeWidth={1.8}
+                          size={iconSize}
+                          strokeWidth={iconStrokeWidth}
                           className="text-blue-700"
                         />
                       </a>
@@ -128,8 +125,8 @@ const NavBarDialog: React.FC<NavBarDialogProps> = ({ open, setOpen }) => {
                         aria-label="Instagram"
                       >
                         <FaInstagram
-                          size={26}
-                          strokeWidth={1.8}
+                          size={iconSize}
+                          strokeWidth={iconStrokeWidth}
                           className="text-pink-500"
                         />
                       </a>
@@ -140,8 +137,8 @@ const NavBarDialog: React.FC<NavBarDialogProps> = ({ open, setOpen }) => {
                         aria-label="TikTok"
                       >
                         <FaTiktok
-                          size={26}
-                          strokeWidth={1.8}
+                          size={iconSize}
+                          strokeWidth={iconStrokeWidth}
                           className="text-black"
                         />
                       </a>
@@ -189,8 +186,8 @@ const NavBarDialog: React.FC<NavBarDialogProps> = ({ open, setOpen }) => {
                           <Image
                             src="/logos/google-icon.svg"
                             alt="Google"
-                            width={26}
-                            height={26}
+                            width={iconSize}
+                            height={iconSize}
                             style={{ display: 'inline-block' }}
                           />
                         </span>
