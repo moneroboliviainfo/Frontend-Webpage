@@ -14,7 +14,11 @@ export default function NavBarIconText({
   onClick = () => {},
 }: NavBarIconTextProps) {
   return (
-    <div className={`flex items-center gap-2 ${className}`} onClick={onClick}>
+    <div
+      className={`flex items-center gap-2 ${className}`}
+      onClick={onClick}
+      style={{ cursor: 'pointer' }}
+    >
       {icon}
       {text && (
         <span className="navbar-font hidden md:inline font-medium text-xs">

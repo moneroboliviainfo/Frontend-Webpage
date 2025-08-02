@@ -11,7 +11,8 @@ import NavBarDropdown from './NavBarDropdown';
 import { usePathname } from 'next/navigation';
 
 import HamburgerButton from './HamburgerButton';
-import NavBarDialog from './NavBarDialog';
+import HamburgerNavBarDialog from './HamburgerNavBarDialog';
+import SearchNavBarDialog from './SearchNavBarDialog';
 
 const iconsSize = 22;
 const iconsStrokeWidth = 1.8;
@@ -19,7 +20,8 @@ const iconsStrokeWidth = 1.8;
 export default function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [hamburgerOpen, setHamburgerOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const controls = useAnimation();
   const cartLength = useAppSelector(selectCartQuantity);
   // TODO: Replace with real client name from redux
@@ -67,7 +69,7 @@ export default function NavBar() {
         <div className="flex items-center gap-4">
           {/* Hamburger only on mobile */}
           <HamburgerButton
-            onClick={() => setOpen(true)}
+            onClick={() => setHamburgerOpen(true)}
             iconsSize={iconsSize}
             iconsStrokeWidth={iconsStrokeWidth}
           />
@@ -98,12 +100,16 @@ export default function NavBar() {
           <NavBarIconText
             icon={<FiSearch size={iconsSize} strokeWidth={iconsStrokeWidth} />}
             text="BUSCA AQUÍ"
+            onClick={() => setSearchOpen(true)}
           />
           <NavBarIconText
             icon={<FiUser size={iconsSize} strokeWidth={iconsStrokeWidth} />}
             text={clientName ? clientName : 'INICIA SESIÓN'}
           />
-          <div className="relative flex items-center gap-2">
+          <div
+            className="relative flex items-center gap-2"
+            style={{ cursor: 'pointer' }}
+          >
             <FiShoppingCart size={iconsSize} strokeWidth={iconsStrokeWidth} />
             <span className="navbar-font hidden md:inline text-xs">
               CARRITO
@@ -116,7 +122,8 @@ export default function NavBar() {
           </div>
         </div>
       </motion.nav>
-      <NavBarDialog open={open} setOpen={setOpen} />
+      <HamburgerNavBarDialog open={hamburgerOpen} setOpen={setHamburgerOpen} />
+      <SearchNavBarDialog open={searchOpen} setOpen={setSearchOpen} />
     </React.Fragment>
   );
 }
