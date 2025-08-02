@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev": "copy src\\config\\env.qa.ts src\\config\\env.ts && next dev --turbopack",
+    "build": "copy src\\config\\env.prod.ts src\\config\\env.ts && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test-prod": "copy src\\config\\env.prod.ts src\\config\\env.ts && next dev --turbopack"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.2.6",
