@@ -1,12 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch } from '../../store/store';
+import Link from 'next/link';
 import { FiSearch } from 'react-icons/fi';
 
+import type { AppDispatch } from '../../store/store';
 import { fetchMostSearched } from '../../store/clothingSlice';
 import type { RootState } from '../../store/store';
 import NavBarDialog from './NavBarDialog';
-import Link from 'next/link';
 
 const iconSize = 20;
 const iconStrokeWidth = 1.8;
