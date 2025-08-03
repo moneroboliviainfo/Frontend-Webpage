@@ -84,7 +84,7 @@ const SearchNavBarDialog: React.FC<{
                 paddingRight: '1rem', // pr-4
                 paddingTop: '0.5rem', // py-3
                 paddingBottom: '0.5rem', // py-3
-                border: '1px solid #d1d5db', // border-gray-300
+                border: '1px solid var(--color-gray-border)', // border-gray-300
               }}
               autoFocus
             />
@@ -156,10 +156,10 @@ const SearchNavBarDialog: React.FC<{
                         }}
                       >
                         <svg
-                          fill="#ff1414"
+                          fill="var(--color-red-fire)"
                           viewBox="0 0 24 24"
                           xmlns="http://www.w3.org/2000/svg"
-                          stroke="#ff1414"
+                          stroke="var(--color-red-fire)"
                           width={18}
                           height={18}
                           style={{ minWidth: 18, minHeight: 18 }}
