@@ -40,15 +40,26 @@ export default function NavBar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Animate NavBar out when a dialog is open
   useEffect(() => {
-    controls.start({
-      backgroundColor: scrolled
-        ? 'var(--color-white)'
-        : 'var(--color-transparent)',
-      color: scrolled ? 'var(--color-black)' : 'var(--color-white)',
-      transition: { duration: 0.3 },
-    });
-  }, [scrolled, controls]);
+    if (hamburgerOpen || searchOpen) {
+      controls.start({
+        opacity: 0,
+        pointerEvents: 'none',
+        transition: { duration: 0.2 },
+      });
+    } else {
+      controls.start({
+        opacity: 1,
+        backgroundColor: scrolled
+          ? 'var(--color-white)'
+          : 'var(--color-transparent)',
+        color: scrolled ? 'var(--color-black)' : 'var(--color-white)',
+        pointerEvents: 'auto',
+        transition: { duration: 0.3 },
+      });
+    }
+  }, [scrolled, controls, hamburgerOpen, searchOpen]);
 
   const borderBottomStyle =
     scrolled && typeof window !== 'undefined' && window.innerWidth >= 768
@@ -56,10 +67,10 @@ export default function NavBar() {
       : {};
 
   return (
-    <React.Fragment>
+    <div className="fixed top-0 left-0 w-full z-50">
       <motion.nav
         animate={controls}
-        className="fixed top-0 left-0 w-full flex items-center justify-between"
+        className="w-full flex items-center justify-between"
         style={{
           padding: '0.6rem 1rem',
           ...borderBottomStyle,
@@ -124,6 +135,6 @@ export default function NavBar() {
       </motion.nav>
       <HamburgerNavBarDialog open={hamburgerOpen} setOpen={setHamburgerOpen} />
       <SearchNavBarDialog open={searchOpen} setOpen={setSearchOpen} />
-    </React.Fragment>
+    </div>
   );
 }
