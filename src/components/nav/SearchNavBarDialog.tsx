@@ -56,7 +56,6 @@ const SearchNavBarDialog: React.FC<{
       <div
         className="flex flex-col items-center h-[70vh]"
         style={{
-          paddingTop: '3rem',
           background: 'var(--color-white)',
         }}
       >

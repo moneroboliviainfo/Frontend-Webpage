@@ -28,13 +28,13 @@ const NavBarDialog: React.FC<NavBarDialogProps> = ({
           <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10 sm:pl-16">
             <DialogPanel
               transition
-              className="pointer-events-auto relative w-screen max-w-md transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
+              className="pointer-events-auto relative w-screen max-w-[1200px] transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
               style={{ background: 'var(--color-gray-background)' }}
             >
               <div className="flex h-full flex-col overflow-y-auto py-6 shadow-xl">
                 <div className="relative mt-6 flex-1 px-4 sm:px-6">
                   <nav
-                    className="fixed top-0 left-0 w-full flex items-center justify-between border-b border-gray-200"
+                    className="max-w-[1200px] flex items-center justify-between border-b border-gray-200"
                     style={{
                       backdropFilter: 'blur(8px)',
                       padding: '0.6rem 1rem',

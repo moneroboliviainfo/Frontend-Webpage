@@ -22,7 +22,7 @@ const HamburgerNavBarDialog: React.FC<{
       <div
         className="flex flex-col items-center h-[70vh] gap-5"
         style={{
-          paddingTop: '4rem',
+          paddingTop: '1rem',
           background: 'var(--color-white)',
         }}
       >
