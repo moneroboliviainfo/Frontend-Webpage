@@ -2,6 +2,7 @@
 :root {
   --color-primary: #e53935; /* Red base */
   --color-secondary: #ff6f60; /* Light red/coral */
+  --color-tertiary: #5f3d39; /* Light red/coral */
   --color-accent: #d32f2f; /* Darker red */
   --color-background: #fff8f7;
   --color-text: #222;
