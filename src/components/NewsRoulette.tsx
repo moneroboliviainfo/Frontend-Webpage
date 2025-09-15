@@ -11,7 +11,7 @@ const NewsRoulette: React.FC<NewRouletteProps> = ({ messages }) => {
         height: '2.2rem',
         background: 'rgba(250,250,250,0.5)',
         color: '#000',
-        zIndex: 20,
+        zIndex: 1, // Lower z-index so it's behind dialogs
         fontWeight: 600,
         fontSize: '1.1rem',
         borderTop: '1px solid black',

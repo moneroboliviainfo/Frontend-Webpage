@@ -34,11 +34,7 @@ const PageContainer: React.FC = () => {
               direction="horizontal"
               slidesData={isMobile ? verSlides : horSlides}
               autoplayDelay={3500}
-            />
-            <NewsRoulette
-              messages={[
-                '¡Prueba suerte en nuestra ruleta y gana descuentos exclusivos!',
-              ]}
+              showNews={true}
             />
           </div>
         </div>
