@@ -6,22 +6,6 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import './ImageSlider.css';
 
-// Example slides data
-const slides = [
-  {
-    image: '/images/slide1.jpg',
-    label: 'Accessories',
-  },
-  {
-    image: '/images/slide2.jpg',
-    label: 'Shoes',
-  },
-  {
-    image: '/images/slide3.jpg',
-    label: 'Bags',
-  },
-];
-
 interface ImageSliderProps {
   direction?: 'horizontal' | 'vertical';
   slidesData?: { image: string; label: string }[];
@@ -30,7 +14,7 @@ interface ImageSliderProps {
 
 const ImageSlider: React.FC<ImageSliderProps> = ({
   direction = 'horizontal',
-  slidesData = slides,
+  slidesData = [],
   autoplayDelay = 3500,
 }) => {
   return (
