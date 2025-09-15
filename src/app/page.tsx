@@ -1,8 +1,8 @@
 'use client';
+import React, { useEffect, useState } from 'react';
 import CenteredButton from '@/components/CenteredButton';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import NavBar from '@/components/nav/NavBar';
-import React, { useEffect, useState } from 'react';
 
 export default function Home() {
   // Responsive: use vertical slides for mobile, horizontal for desktop
@@ -50,16 +50,16 @@ export default function Home() {
             style={{
               ...(isMobile
                 ? {
-                    borderTop: '0.5rem solid #fff',
-                    borderLeft: '0.5rem solid #fff',
-                    borderRight: '0.5rem solid #fff',
-                    borderBottom: '0.25rem solid #fff',
+                    borderTop: '0.3rem solid #fff',
+                    borderLeft: '0.3rem solid #fff',
+                    borderRight: '0.3rem solid #fff',
+                    borderBottom: '0.15rem solid #fff',
                   }
                 : {
-                    borderTop: '0.5rem solid #fff',
-                    borderLeft: '0.5rem solid #fff',
-                    borderBottom: '0.5rem solid #fff',
-                    borderRight: '0.25rem solid #fff',
+                    borderTop: '0.3rem solid #fff',
+                    borderLeft: '0.3rem solid #fff',
+                    borderBottom: '0.3rem solid #fff',
+                    borderRight: '0.15rem solid #fff',
                   }),
               backgroundImage: "url('/images/portada-hombres.jpg')",
               backgroundSize: 'cover',
@@ -73,23 +73,23 @@ export default function Home() {
             style={{
               ...(isMobile
                 ? {
-                    borderLeft: '0.5rem solid #fff',
-                    borderRight: '0.5rem solid #fff',
-                    borderBottom: '0.5rem solid #fff',
-                    borderTop: '0.25rem solid #fff',
+                    borderLeft: '0.3rem solid #fff',
+                    borderRight: '0.3rem solid #fff',
+                    borderBottom: '0.3rem solid #fff',
+                    borderTop: '0.15rem solid #fff',
                   }
                 : {
-                    borderTop: '0.5rem solid #fff',
-                    borderRight: '0.5rem solid #fff',
-                    borderBottom: '0.5rem solid #fff',
-                    borderLeft: '0.25rem solid #fff',
+                    borderTop: '0.3rem solid #fff',
+                    borderRight: '0.3rem solid #fff',
+                    borderBottom: '0.3rem solid #fff',
+                    borderLeft: '0.15rem solid #fff',
                   }),
               backgroundImage: "url('/images/portada-mujeres.jpg')",
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
           >
-            <CenteredButton text="Para Ellas" url="/mujeres" />
+            <CenteredButton text="Para Ellas" url="/women" />
           </div>
         </div>
       </div>
