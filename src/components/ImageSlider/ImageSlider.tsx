@@ -4,6 +4,7 @@ import Image from 'next/image';
 
 import NewsRoulette from '@/components/NewsRoulette';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Swiper as SwiperType } from 'swiper';
 import { Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -24,7 +25,11 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
 }) => {
   const progressCircle = useRef<SVGSVGElement | null>(null);
   const progressContent = useRef<HTMLSpanElement | null>(null);
-  const onAutoplayTimeLeft = (s: any, time: number, progress: number) => {
+  const onAutoplayTimeLeft = (
+    s: SwiperType,
+    time: number,
+    progress: number
+  ) => {
     if (progressCircle.current) {
       progressCircle.current.style.setProperty(
         '--progress',
