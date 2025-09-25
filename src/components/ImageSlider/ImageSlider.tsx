@@ -1,4 +1,5 @@
 'use client';
+import React, { useRef } from 'react';
 import Image from 'next/image';
 
 import NewsRoulette from '@/components/NewsRoulette';
@@ -21,6 +22,20 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   autoplayDelay = 3500,
   showNews = false,
 }) => {
+  const progressCircle = useRef<SVGSVGElement | null>(null);
+  const progressContent = useRef<HTMLSpanElement | null>(null);
+  const onAutoplayTimeLeft = (s: any, time: number, progress: number) => {
+    if (progressCircle.current) {
+      progressCircle.current.style.setProperty(
+        '--progress',
+        String(1 - progress)
+      );
+    }
+    if (progressContent.current) {
+      progressContent.current.textContent = `${Math.ceil(time / 1000)}s`;
+    }
+  };
+
   return (
     <div className="relative w-full h-full">
       <Swiper
@@ -31,6 +46,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
           type: 'bullets',
         }}
         autoplay={{ delay: autoplayDelay, disableOnInteraction: false }}
+        onAutoplayTimeLeft={onAutoplayTimeLeft}
         loop
         className="w-full h-full"
       >
@@ -56,6 +72,12 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
             </div>
           </SwiperSlide>
         ))}
+        <div className="autoplay-progress" slot="container-end">
+          <svg viewBox="0 0 48 48" ref={progressCircle}>
+            <circle cx="24" cy="24" r="20"></circle>
+          </svg>
+          <span ref={progressContent}></span>
+        </div>
       </Swiper>
       {showNews && (
         <NewsRoulette
