@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import NewsRoulette from '@/components/NewsRoulette';
+import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 
 // Slides for each mode
 const horSlides = [
@@ -40,8 +41,7 @@ const PageContainer: React.FC = () => {
         </div>
       </div>
       <div>
-        <h2>Nueva Colección</h2>
-        <p>Explora las últimas tendencias en moda femenina.</p>
+        <CategorySliderWithImages />
       </div>
     </React.Fragment>
   );
