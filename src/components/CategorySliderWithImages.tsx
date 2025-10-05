@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 
-import Image from 'next/image';
+import CategorySlide from './CategorySlide';
 
 const categories = [
   { name: 'JEANS', image: '/categories/jeans.jpg' },
@@ -42,99 +42,21 @@ export default function CategorySliderWithImages() {
         }}
       >
         {categories.map((category) => (
-          <li
+          <CategorySlide
             key={category.name}
-            className="text-sm cursor-pointer hover:bg-gray-200 transition flex items-center flex-shrink-0"
-            style={{
-              width: slideWidth,
-              height: slideHeight,
-              minWidth: slideWidth,
-              minHeight: slideHeight,
-              maxWidth: slideWidth,
-              maxHeight: slideHeight,
-              position: 'relative',
-              overflow: 'hidden',
-              borderColor: 'white',
-              borderStyle: 'solid',
-              background: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Image
-              src={category.image}
-              alt={category.name}
-              fill
-              className="object-cover"
-              sizes={slideWidth}
-            />
-            <span
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '1.1rem',
-                textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                pointerEvents: 'none',
-                zIndex: 2,
-                textAlign: 'center',
-                width: '90%',
-              }}
-            >
-              {category.name}
-            </span>
-          </li>
-        ))}
-        <li
-          key="all-categories"
-          className="text-sm cursor-pointer hover:bg-gray-200 transition flex items-center flex-shrink-0"
-          style={{
-            width: slideWidth,
-            height: slideHeight,
-            minWidth: slideWidth,
-            minHeight: slideHeight,
-            maxWidth: slideWidth,
-            maxHeight: slideHeight,
-            position: 'relative',
-            overflow: 'hidden',
-            borderColor: 'white',
-            borderStyle: 'solid',
-            background: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Image
-            src="/categories/all-categories.png"
-            alt="VER TODAS LAS CATEGORIAS"
-            fill
-            className="object-cover"
-            sizes={slideWidth}
+            name={category.name}
+            image={category.image}
+            width={slideWidth}
+            height={slideHeight}
           />
-          <span
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '1.1rem',
-              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-              pointerEvents: 'none',
-              zIndex: 2,
-              textAlign: 'center',
-              width: '90%',
-            }}
-          >
-            VER TODAS LAS CATEGORIAS
-          </span>
-        </li>
+        ))}
+        <CategorySlide
+          key="all-categories"
+          name="VER TODAS LAS CATEGORIAS"
+          image="/categories/all-categories.png"
+          width={slideWidth}
+          height={slideHeight}
+        />
       </ul>
     </div>
   );
