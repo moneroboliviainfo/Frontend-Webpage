@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import NewsRoulette from '@/components/NewsRoulette';
 import CategorySliderWithImages from '@/components/CategorySliderWithImages';
+import { FiArrowRight } from 'react-icons/fi';
 
 // Slides for each mode
 const horSlides = [
@@ -42,6 +43,54 @@ const PageContainer: React.FC = () => {
       </div>
       <div>
         <CategorySliderWithImages />
+      </div>
+      <div
+        className="w-full"
+        style={
+          isMobile
+            ? { paddingTop: '0.5rem', paddingBottom: '0.5rem' }
+            : { padding: '2rem 1rem' }
+        }
+      >
+        <div className="flex flex-col md:flex-row items-start md:items-center w-full">
+          {/* Title column */}
+          <div className="flex items-center" style={{ paddingLeft: '0.3rem' }}>
+            <h1
+              className="font-bold flex items-center gap-2 whitespace-nowrap"
+              style={{
+                fontSize: isMobile ? '2rem' : '3rem',
+                fontWeight: 'bold',
+                lineHeight: 1.1,
+              }}
+            >
+              <FiArrowRight
+                style={
+                  isMobile
+                    ? { width: '2.5rem', height: '3rem', fontWeight: 'bold' }
+                    : { width: '4rem', height: '3rem', fontWeight: 'bold' }
+                }
+              />
+              MIRA LOS OUTFITS
+            </h1>
+          </div>
+          {/* Subtitle column */}
+          <div className="flex items-center" style={{ paddingLeft: '0.75rem' }}>
+            <span
+              className="text-base md:text-lg text-gray-700 font-normal mt-2 md:mt-0"
+              style={{ lineHeight: 1.2 }}
+            >
+              Hecha un vistazo a todos los outfits que preparamos para ti.
+              {isMobile ? (
+                'Listos para cada ocasión, inspírate y encuentra tu estilo.'
+              ) : (
+                <>
+                  <br />
+                  Listos para cada ocasión, inspírate y encuentra tu estilo.
+                </>
+              )}
+            </span>
+          </div>
+        </div>
       </div>
     </React.Fragment>
   );
