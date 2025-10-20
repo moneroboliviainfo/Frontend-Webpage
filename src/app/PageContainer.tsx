@@ -1,10 +1,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 
-import ImageSlider from '@/components/ImageSlider/ImageSlider';
-import NewsRoulette from '@/components/NewsRoulette';
-import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 import { FiArrowRight } from 'react-icons/fi';
+import GalleryTile from '@/components/GalleryTile';
+import SectionHeader from '@/components/SectionHeader';
+
+import ImageSlider from '@/components/ImageSlider/ImageSlider';
+import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 
 // Slides for each mode
 const horSlides = [
@@ -17,6 +19,12 @@ const verSlides = [
   { image: '/images/ver-slide-2.png', label: '' },
 ];
 
+const galleryImages = [
+  { src: '/images/ver-slide-1.png', label: 'Outfit 1' },
+  { src: '/images/ver-slide-2.png', label: 'Outfit 2' },
+  { src: '/images/ver-slide-2.png', label: 'Outfit 3' },
+];
+
 const PageContainer: React.FC = () => {
   // Responsive: use vertical slides for mobile, horizontal for desktop
   const [isMobile, setIsMobile] = useState(false);
@@ -26,9 +34,10 @@ const PageContainer: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
   return (
     <React.Fragment>
-      <div className="w-full flex flex-col" style={{ height: '85dvh' }}>
+      <div className="w-full flex flex-col" style={{ height: '85vh' }}>
         {/* Top 85% - Primary color with slider */}
         <div style={{ height: '100%' }} className="relative">
           <div className="absolute inset-0">
@@ -46,51 +55,56 @@ const PageContainer: React.FC = () => {
       </div>
       <div
         className="w-full"
-        style={
-          isMobile
-            ? { paddingTop: '0.5rem', paddingBottom: '0.5rem' }
-            : { padding: '2rem 1rem' }
-        }
+        style={{ backgroundColor: 'white', paddingBottom: '0.17rem' }}
       >
-        <div className="flex flex-col md:flex-row items-start md:items-center w-full">
-          {/* Title column */}
-          <div className="flex items-center" style={{ paddingLeft: '0.3rem' }}>
-            <h1
-              className="font-bold flex items-center gap-2 whitespace-nowrap"
-              style={{
-                fontSize: isMobile ? '2rem' : '3rem',
-                fontWeight: 'bold',
-                lineHeight: 1.1,
-              }}
-            >
-              <FiArrowRight
-                style={
-                  isMobile
-                    ? { width: '2.5rem', height: '3rem', fontWeight: 'bold' }
-                    : { width: '4rem', height: '3rem', fontWeight: 'bold' }
-                }
+        <SectionHeader
+          title="MIRA LOS OUTFITS"
+          subtitle="Hecha un vistazo a todos los outfits que preparamos para ti. Listos para cada ocasión, inspírate y encuentra tu estilo."
+          fontColor="#374151"
+          isMobile={isMobile}
+        />
+        <div className="w-full">
+          <div
+            className={
+              isMobile
+                ? 'grid grid-cols-2 gap-1 w-full'
+                : 'flex flex-row gap-1 w-full'
+            }
+            style={{
+              marginTop: isMobile ? '1rem' : 0,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            {galleryImages.map((img, idx) => (
+              <GalleryTile
+                key={idx}
+                src={img.src}
+                label={img.label}
+                isMobile={isMobile}
+                idx={idx}
+                priority={idx === 0}
               />
-              MIRA LOS OUTFITS
-            </h1>
-          </div>
-          {/* Subtitle column */}
-          <div className="flex items-center" style={{ paddingLeft: '0.75rem' }}>
-            <span
-              className="text-base md:text-lg text-gray-700 font-normal mt-2 md:mt-0"
-              style={{ lineHeight: 1.2 }}
-            >
-              Hecha un vistazo a todos los outfits que preparamos para ti.
-              {isMobile ? (
-                'Listos para cada ocasión, inspírate y encuentra tu estilo.'
-              ) : (
-                <>
-                  <br />
-                  Listos para cada ocasión, inspírate y encuentra tu estilo.
-                </>
-              )}
-            </span>
+            ))}
+
+            {/* Static "Ver todos" tile */}
+            <GalleryTile
+              key="ver-todos"
+              src="/categories/all-categories.png"
+              label="Ver todos"
+              isMobile={isMobile}
+              priority={false}
+            />
           </div>
         </div>
+      </div>
+      <div className="w-full" style={{ backgroundColor: 'black' }}>
+        <SectionHeader
+          title="ROPA PARA HOMBRES"
+          fontColor="white"
+          isMobile={isMobile}
+        />
+        <div className="w-full"></div>
       </div>
     </React.Fragment>
   );
