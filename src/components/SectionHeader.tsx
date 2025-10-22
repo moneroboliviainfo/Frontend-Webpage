@@ -44,16 +44,17 @@ const SectionHeader: React.FC<Props> = ({
       {/* Title column */}
       <div className="flex items-center" style={{ paddingLeft: '0.3rem' }}>
         <h1
-          className="font-bold flex items-center gap-2 whitespace-nowrap"
+          className="font-bold flex items-center gap-2 flex-1 min-w-0"
           style={{
             fontSize: titleFontSize,
             fontWeight: 'bold',
             lineHeight: 1.1,
             color: fontColor,
+            overflowWrap: 'break-word',
           }}
         >
           <FiArrowRight style={{ ...arrowSize, fontWeight: 'bold' }} />
-          {title}
+          <span style={{ display: 'inline' }}>{title}</span>
         </h1>
       </div>
 
