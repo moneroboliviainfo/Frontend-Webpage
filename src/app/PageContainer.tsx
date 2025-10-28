@@ -4,6 +4,21 @@ import React, { useEffect, useState } from 'react';
 import GalleryTile from '@/components/GalleryTile';
 import Image from 'next/image';
 import SectionHeader from '@/components/SectionHeader';
+import { FiMonitor, FiTruck, FiSmile } from 'react-icons/fi';
+
+// Inline QR SVG icon (replaces FiCreditCard). Uses currentColor so it follows surrounding styles.
+const QrIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
+  <svg
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+    style={style}
+    aria-hidden="true"
+    role="img"
+    fill="currentColor"
+  >
+    <path d="M8,21H4a1,1,0,0,1-1-1V16a1,1,0,0,0-2,0v4a3,3,0,0,0,3,3H8a1,1,0,0,0,0-2Zm14-6a1,1,0,0,0-1,1v4a1,1,0,0,1-1,1H16a1,1,0,0,0,0,2h4a3,3,0,0,0,3-3V16A1,1,0,0,0,22,15ZM20,1H16a1,1,0,0,0,0,2h4a1,1,0,0,1,1,1V8a1,1,0,0,0,2,0V4A3,3,0,0,0,20,1ZM2,9A1,1,0,0,0,3,8V4A1,1,0,0,1,4,3H8A1,1,0,0,0,8,1H4A3,3,0,0,0,1,4V8A1,1,0,0,0,2,9Zm8-4H6A1,1,0,0,0,5,6v4a1,1,0,0,0,1,1h4a1,1,0,0,0,1-1V6A1,1,0,0,0,10,5ZM9,9H7V7H9Zm5,2h4a1,1,0,0,0,1-1V6a1,1,0,0,0-1-1H14a1,1,0,0,0-1,1v4A1,1,0,0,0,14,11Zm1-4h2V9H15Zm-5,6H6a1,1,0,0,0-1,1v4a1,1,0,0,0,1,1h4a1,1,0,0,0,1-1V14A1,1,0,0,0,10,13ZM9,17H7V15H9Zm5-1a1,1,0,0,0,1-1,1,1,0,0,0,0-2H14a1,1,0,0,0-1,1v1A1,1,0,0,0,14,16Zm4-3a1,1,0,0,0-1,1v3a1,1,0,0,0,0,2h1a1,1,0,0,0,1-1V14A1,1,0,0,0,18,13Zm-4,4a1,1,0,1,0,1,1A1,1,0,0,0,14,17Z" />
+  </svg>
+);
 
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import CategorySliderWithImages from '@/components/CategorySliderWithImages';
@@ -276,8 +291,58 @@ const PageContainer: React.FC = () => {
       </div>
       <div
         className="w-full"
-        style={{ backgroundColor: 'white', paddingTop: '0.17rem' }}
-      ></div>
+        style={{
+          backgroundColor: 'white',
+          paddingTop: '0.17rem',
+          marginBottom: '1rem',
+        }}
+      >
+        <div className="mx-auto w-full" style={{ padding: '1rem' }}>
+          <div
+            className={
+              isMobile
+                ? 'grid grid-cols-2 gap-4'
+                : 'flex flex-wrap justify-center gap-6 w-full'
+            }
+          >
+            {[
+              { Icon: FiMonitor, label: 'Ordena en línea' },
+              { Icon: FiTruck, label: 'Entregas a todo el país' },
+              { Icon: QrIcon, label: 'Paga con QR' },
+              { Icon: FiSmile, label: 'Clientes Satisfechos' },
+            ].map(({ Icon, label }, i) => (
+              <div
+                key={i}
+                className="flex flex-col items-center rounded-lg"
+                style={{
+                  width: isMobile ? '100%' : '220px',
+                  borderWidth: 1,
+                  padding: '1rem',
+                  borderColor: 'gray',
+                }}
+              >
+                <Icon
+                  style={{
+                    width: 36,
+                    height: 36,
+                    color: '#111',
+                    marginBottom: 8,
+                  }}
+                />
+                <div
+                  style={{
+                    color: '#111',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                  }}
+                >
+                  {label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </React.Fragment>
   );
 };
