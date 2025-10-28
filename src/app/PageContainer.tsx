@@ -7,6 +7,7 @@ import SectionHeader from '@/components/SectionHeader';
 
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import CategorySliderWithImages from '@/components/CategorySliderWithImages';
+import ClothesSlider from '@/components/ClothesSlider';
 
 // Slides for each mode
 const horSlides = [
@@ -104,6 +105,9 @@ const PageContainer: React.FC = () => {
           fontColor="white"
           isMobile={isMobile}
         />
+        <div className="w-full" style={{ paddingBottom: '0.17rem' }}>
+          <ClothesSlider isMobile={isMobile} />
+        </div>
       </div>
       <div className="w-full" style={{ backgroundColor: 'black' }}>
         <SectionHeader title="HOMBRES" fontColor="white" isMobile={isMobile} />
@@ -146,7 +150,7 @@ const PageContainer: React.FC = () => {
 
             {/* Centered overlay (same position in mobile & desktop) */}
             <div
-              className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center text-center"
+              className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center text-center"
               style={{ width: isMobile ? '80%' : '50%' }}
             >
               <h2
