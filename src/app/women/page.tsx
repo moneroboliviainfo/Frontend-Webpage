@@ -4,12 +4,14 @@ export const metadata = {
 };
 import NavBar from '@/components/nav/NavBar';
 import PageContainer from '../PageContainer';
+import Footer from '@/components/Footer';
 
 export default function WomenPage() {
   return (
     <>
       <NavBar />
       <PageContainer />
+      <Footer />
     </>
   );
 }
