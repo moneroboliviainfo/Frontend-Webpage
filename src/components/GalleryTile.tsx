@@ -36,6 +36,7 @@ const GalleryTile: React.FC<Props> = ({
         width: calcWidth,
         marginLeft: isMobile && idx % 2 === 0 ? 0 : undefined,
         marginRight: isMobile && idx % 2 === 1 ? 0 : undefined,
+        cursor: 'pointer',
       }}
     >
       <Image

@@ -99,19 +99,25 @@ const PageContainer: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="w-full" style={{ backgroundColor: 'black' }}>
+      <div
+        className="w-full"
+        style={{ backgroundColor: 'black', paddingTop: '0.17rem' }}
+      >
         <SectionHeader
           title="TE PODRÍA INTERESAR"
           fontColor="white"
           isMobile={isMobile}
         />
-        <div className="w-full" style={{ paddingBottom: '0.17rem' }}>
+        <div className="w-full" style={{ marginTop: '0.17rem' }}>
           <ClothesSlider isMobile={isMobile} />
         </div>
       </div>
-      <div className="w-full" style={{ backgroundColor: 'black' }}>
+      <div
+        className="w-full"
+        style={{ backgroundColor: 'black', paddingTop: '0.17rem' }}
+      >
         <SectionHeader title="HOMBRES" fontColor="white" isMobile={isMobile} />
-        <div className="w-full">
+        <div className="w-full" style={{ marginTop: '0.17rem' }}>
           {/* unified relative wrapper so the overlay sits centered for both mobile and desktop */}
           <div className="relative w-full" style={{ height: '80vh' }}>
             {isMobile ? (
@@ -172,6 +178,7 @@ const PageContainer: React.FC = () => {
                   padding: '0.5rem 2rem 0.5rem 2rem',
                   fontSize: isMobile ? '1rem' : '1.5rem',
                   marginTop: '0.2rem',
+                  cursor: 'pointer',
                 }}
               >
                 Comprar
@@ -180,6 +187,97 @@ const PageContainer: React.FC = () => {
           </div>
         </div>
       </div>
+      <div
+        className="w-full"
+        style={{ backgroundColor: 'white', paddingTop: '0.17rem' }}
+      >
+        <div
+          className="w-full flex items-center justify-center"
+          style={{ minHeight: isMobile ? '40vh' : '30vh' }}
+        >
+          <div
+            className="flex flex-col items-center text-center"
+            style={{
+              gap: '1rem',
+              width: '100%',
+              maxWidth: 860,
+              padding: '0 1rem',
+            }}
+          >
+            {/* Title: same size as SectionHeader */}
+            <h2
+              style={{
+                fontSize: isMobile ? '2rem' : '3rem',
+                fontWeight: 800,
+                margin: 0,
+                color: '#111',
+              }}
+            >
+              SUSCRÍBETE PARA RECIBIR OFERTAS
+            </h2>
+
+            {/* Subtitle: 4x smaller than title */}
+            <p
+              style={{
+                fontSize: isMobile ? '0.85rem' : '1.1rem',
+                margin: 0,
+                color: '#374151',
+                maxWidth: 720,
+                lineHeight: 1.3,
+              }}
+            >
+              Sé la primera en recibir las nuevas colecciones, promociones y
+              mucho más
+            </p>
+
+            {/* Input + Button row */}
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="flex items-center"
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                marginTop: '0.75rem',
+              }}
+            >
+              <input
+                aria-label="Ingresa tu correo"
+                placeholder="Ingresa tu correo"
+                type="email"
+                className="bg-white"
+                style={{
+                  border: '1px solid rgba(0,0,0,0.12)',
+                  borderRadius: 8,
+                  padding: isMobile ? '0.5rem 0.75rem' : '0.6rem 1rem',
+                  width: isMobile ? '65%' : 420,
+                  maxWidth: '100%',
+                  outline: 'none',
+                }}
+              />
+
+              <button
+                type="submit"
+                style={{
+                  marginLeft: 12,
+                  background: '#000',
+                  color: '#fff',
+                  borderRadius: 9999,
+                  padding: isMobile ? '0.5rem 0.9rem' : '0.6rem 1.25rem',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Súscribete
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div
+        className="w-full"
+        style={{ backgroundColor: 'white', paddingTop: '0.17rem' }}
+      ></div>
     </React.Fragment>
   );
 };
