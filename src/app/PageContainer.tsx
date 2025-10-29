@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import GalleryTile from '@/components/GalleryTile';
 import Image from 'next/image';
@@ -23,6 +23,7 @@ const QrIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 import ClothesSlider from '@/components/ClothesSlider';
+import useIsMobile from '@/hooks/useIsMobile';
 
 // Slides for each mode
 const horSlides = [
@@ -43,13 +44,7 @@ const galleryImages = [
 
 const PageContainer: React.FC = () => {
   // Responsive: use vertical slides for mobile, horizontal for desktop
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   return (
     <React.Fragment>

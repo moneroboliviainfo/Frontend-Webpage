@@ -1,7 +1,8 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import CategorySlide from './CategorySlide';
+import useIsMobile from '@/hooks/useIsMobile';
 
 const categories = [
   { name: 'JEANS', image: '/categories/jeans.jpg' },
@@ -12,17 +13,10 @@ const categories = [
 ];
 
 export default function CategorySliderWithImages() {
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
 
   const slideWidth = isMobile ? '40vw' : '16.666vw';
   const slideHeight = isMobile ? '60vw' : '25vw';
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   return (
     <div

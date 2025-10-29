@@ -1,18 +1,11 @@
-'use client';
-import React, { useEffect, useState } from 'react';
 import CenteredButton from '@/components/CenteredButton';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import NavBar from '@/components/nav/NavBar';
+import useIsMobile from '@/hooks/useIsMobile';
 
 export default function Home() {
   // Responsive: use vertical slides for mobile, horizontal for desktop
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   // Slides for each mode
   const horSlides = [
