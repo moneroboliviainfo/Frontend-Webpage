@@ -4,10 +4,12 @@ import Image from 'next/image';
 type Props = {
   src: string;
   name: string;
-  price: string;
+  price: number;
   isMobile?: boolean;
   colors?: string[];
-  isNew: boolean;
+  isNew?: boolean;
+  discount?: number;
+  finalPrice?: number;
 };
 
 const GalleryItem: React.FC<Props> = ({
@@ -17,6 +19,8 @@ const GalleryItem: React.FC<Props> = ({
   isMobile = false,
   colors = [],
   isNew = false,
+  discount = 0,
+  finalPrice,
 }) => {
   const imgWidth = isMobile ? '49vw' : '100%';
 
@@ -24,6 +28,7 @@ const GalleryItem: React.FC<Props> = ({
   // that keeps the image taller than wide (approx height/width ~ 1.4).
   // aspect-ratio accepts width / height, so 5 / 7 gives height ~= 1.4 * width.
   const aspect = '5 / 7';
+  const hasDiscount = discount && discount > 0;
 
   const [hovered, setHovered] = useState<number | null>(null);
 
@@ -38,27 +43,53 @@ const GalleryItem: React.FC<Props> = ({
       }}
     >
       {/* NUEVO badge */}
-      {isNew && (
+      {isNew || hasDiscount ? (
         <div
           aria-hidden={!isNew}
           style={{
             position: 'absolute',
             top: 8,
             right: 8,
-            padding: '2px 4px',
-            borderRadius: 4,
-            border: '1px solid #000',
-            background: '#fff',
-            color: '#000',
-            fontSize: '0.65rem',
-            fontWeight: 700,
             zIndex: 40,
-            lineHeight: 1,
           }}
         >
-          NUEVO
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {isNew && (
+              <div
+                style={{
+                  padding: '2px 4px',
+                  borderRadius: 4,
+                  border: '1px solid #000',
+                  background: '#fff',
+                  color: '#000',
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  lineHeight: 1,
+                }}
+              >
+                NUEVO
+              </div>
+            )}
+            {hasDiscount ? (
+              <div
+                style={{
+                  padding: '2px 4px',
+                  borderRadius: 4,
+                  border: '1px solid #dc2626',
+                  background: '#dc2626',
+                  color: '#fff',
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  textAlign: 'center',
+                }}
+              >
+                -{discount}%
+              </div>
+            ) : null}
+          </div>
         </div>
-      )}
+      ) : null}
       {/* aspect-ratio ensures height is derived from width so it always keeps the same relation */}
       <div className="relative" style={{ width: '100%', aspectRatio: aspect }}>
         <Image src={src} alt={name} fill style={{ objectFit: 'cover' }} />
@@ -73,8 +104,25 @@ const GalleryItem: React.FC<Props> = ({
         <div className="text-sm" style={{ marginTop: '0.5rem' }}>
           {name}
         </div>
-        <div className="text-sm font-bold" style={{ marginTop: '0.2rem' }}>
-          {price}
+        <div style={{ marginTop: '0.2rem' }}>
+          {hasDiscount && typeof finalPrice === 'number' ? (
+            <>
+              <span
+                className="text-sm"
+                style={{ textDecoration: 'line-through', color: '#6b7280' }}
+              >
+                {`Bs. ${price}`}
+              </span>
+              <span
+                className="text-sm font-bold"
+                style={{ marginLeft: 8, color: '#dc2626' }}
+              >
+                {`Bs. ${finalPrice}`}
+              </span>
+            </>
+          ) : (
+            <span className="text-sm font-bold">{`Bs. ${price}`}</span>
+          )}
         </div>
         {/* color swatches row */}
         {colors && colors.length > 0 && (
