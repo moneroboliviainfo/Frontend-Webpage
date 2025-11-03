@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 
 type Props = {
@@ -24,6 +24,8 @@ const GalleryItem: React.FC<Props> = ({
   // that keeps the image taller than wide (approx height/width ~ 1.4).
   // aspect-ratio accepts width / height, so 5 / 7 gives height ~= 1.4 * width.
   const aspect = '5 / 7';
+
+  const [hovered, setHovered] = useState<number | null>(null);
 
   return (
     <div
@@ -85,6 +87,10 @@ const GalleryItem: React.FC<Props> = ({
                 key={c + i}
                 role="button"
                 tabIndex={0}
+                onMouseEnter={() => setHovered(i)}
+                onMouseLeave={() => setHovered(null)}
+                onFocus={() => setHovered(i)}
+                onBlur={() => setHovered(null)}
                 className="flex items-center justify-center"
                 style={{
                   width: '0.8rem',
@@ -92,6 +98,11 @@ const GalleryItem: React.FC<Props> = ({
                   borderRadius: '9999px',
                   background: c,
                   boxSizing: 'border-box',
+                  cursor: 'pointer',
+                  transition: 'opacity 120ms ease, transform 120ms ease',
+                  opacity: hovered === i ? 0.6 : 1,
+                  transform: hovered === i ? 'scale(0.98)' : 'none',
+                  //   border: i === 0 ? '2px solid #000' : '1px solid #eee',
                 }}
               />
             ))}
