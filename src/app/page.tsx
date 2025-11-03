@@ -1,3 +1,4 @@
+'use client';
 import CenteredButton from '@/components/CenteredButton';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import NavBar from '@/components/nav/NavBar';
