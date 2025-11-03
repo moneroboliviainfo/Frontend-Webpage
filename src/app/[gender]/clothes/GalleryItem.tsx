@@ -65,6 +65,7 @@ const GalleryItem: React.FC<Props> = ({
                   fontSize: '0.65rem',
                   fontWeight: 700,
                   lineHeight: 1,
+                  textAlign: 'center',
                 }}
               >
                 NUEVO
@@ -84,7 +85,7 @@ const GalleryItem: React.FC<Props> = ({
                   textAlign: 'center',
                 }}
               >
-                -{discount}%
+                - {discount}%
               </div>
             ) : null}
           </div>
