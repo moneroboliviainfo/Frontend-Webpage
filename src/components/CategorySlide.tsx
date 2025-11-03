@@ -6,6 +6,7 @@ interface CategorySlideProps {
   image: string;
   width: string;
   height: string;
+  onClick?: () => void;
 }
 
 const CategorySlide: React.FC<CategorySlideProps> = ({
@@ -13,9 +14,20 @@ const CategorySlide: React.FC<CategorySlideProps> = ({
   image,
   width,
   height,
+  onClick,
 }) => (
   <li
     className="text-sm cursor-pointer hover:bg-gray-200 transition flex items-center flex-shrink-0"
+    role="button"
+    tabIndex={0}
+    aria-label={`Category ${name}`}
+    onClick={onClick}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onClick?.();
+      }
+    }}
     style={{
       width,
       height,

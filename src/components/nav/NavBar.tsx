@@ -17,7 +17,11 @@ import SearchNavBarDialog from './SearchNavBarDialog';
 const iconsSize = 22;
 const iconsStrokeWidth = 1.8;
 
-export default function NavBar() {
+export default function NavBar({
+  dynamicTransparent = true,
+}: {
+  dynamicTransparent?: boolean;
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [hamburgerOpen, setHamburgerOpen] = useState(false);
@@ -49,20 +53,24 @@ export default function NavBar() {
         transition: { duration: 0.2 },
       });
     } else {
+      const transparent = !scrolled && dynamicTransparent;
       controls.start({
         opacity: 1,
-        backgroundColor: scrolled
-          ? 'var(--color-white)'
-          : 'var(--color-transparent)',
-        color: scrolled ? 'var(--color-black)' : 'var(--color-white)',
+        backgroundColor: transparent
+          ? 'var(--color-transparent)'
+          : 'var(--color-white)',
+        color: !transparent ? 'var(--color-black)' : 'var(--color-white)',
         pointerEvents: 'auto',
         transition: { duration: 0.3 },
       });
     }
-  }, [scrolled, controls, hamburgerOpen, searchOpen]);
+  }, [scrolled, controls, hamburgerOpen, searchOpen, dynamicTransparent]);
 
   const borderBottomStyle =
-    scrolled && typeof window !== 'undefined' && window.innerWidth >= 768
+    scrolled &&
+    dynamicTransparent &&
+    typeof window !== 'undefined' &&
+    window.innerWidth >= 768
       ? { borderBottom: '3px solid var(--color-primary)' }
       : {};
 

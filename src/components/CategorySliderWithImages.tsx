@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 
+import { useRouter } from 'next/navigation';
 import CategorySlide from './CategorySlide';
 import useIsMobile from '@/hooks/useIsMobile';
 
@@ -14,6 +15,7 @@ const categories = [
 
 export default function CategorySliderWithImages() {
   const isMobile = useIsMobile();
+  const router = useRouter();
 
   const slideWidth = isMobile ? '40vw' : '16.666vw';
   const slideHeight = isMobile ? '60vw' : '25vw';
@@ -35,21 +37,30 @@ export default function CategorySliderWithImages() {
           paddingTop: '0.25rem',
         }}
       >
-        {categories.map((category) => (
-          <CategorySlide
-            key={category.name}
-            name={category.name}
-            image={category.image}
-            width={slideWidth}
-            height={slideHeight}
-          />
-        ))}
+        {categories.map((category) => {
+          const slug = category.name.split(' ').join('-').toLowerCase();
+          return (
+            <CategorySlide
+              key={category.name}
+              name={category.name}
+              image={category.image}
+              width={slideWidth}
+              height={slideHeight}
+              onClick={() =>
+                router.push(
+                  `/women/clothes?category=${encodeURIComponent(slug)}`
+                )
+              }
+            />
+          );
+        })}
         <CategorySlide
           key="all-categories"
           name="VER TODAS LAS CATEGORIAS"
           image="/categories/all-categories.png"
           width={slideWidth}
           height={slideHeight}
+          onClick={() => router.push('/women/categories')}
         />
       </ul>
     </div>
