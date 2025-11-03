@@ -7,7 +7,7 @@ type Props = {
   price: string;
   isMobile?: boolean;
   colors?: string[];
-  isNew?: boolean;
+  isNew: boolean;
 };
 
 const GalleryItem: React.FC<Props> = ({
