@@ -1,6 +1,6 @@
 // This file has been moved to the nav folder and is no longer available here.
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FiUser, FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { motion, useAnimation } from 'framer-motion';
 import { useAppSelector } from '@/store/hooks';
@@ -22,6 +22,7 @@ export default function NavBar({
 }: {
   dynamicTransparent?: boolean;
 }) {
+  const navRef = useRef<HTMLDivElement | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [hamburgerOpen, setHamburgerOpen] = useState(false);
@@ -31,6 +32,29 @@ export default function NavBar({
   // TODO: Replace with real client name from redux
   const clientName = null;
   const pathname = usePathname();
+
+  // measure nav height and expose it via CSS variable so other components can
+  // position themselves below the nav without hardcoded values
+  useEffect(() => {
+    const measure = () => {
+      try {
+        const el = navRef.current;
+        const h = el?.getBoundingClientRect().height ?? 0;
+        document.documentElement.style.setProperty(
+          '--nav-height',
+          `${Math.ceil(h)}px`
+        );
+      } catch {}
+    };
+
+    measure();
+    window.addEventListener('resize', measure);
+    const t = setTimeout(measure, 500);
+    return () => {
+      window.removeEventListener('resize', measure);
+      clearTimeout(t);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,7 +99,7 @@ export default function NavBar({
       : {};
 
   return (
-    <div className="fixed top-0 left-0 w-full z-50">
+    <div ref={navRef} className="fixed top-0 left-0 w-full z-50">
       <motion.nav
         animate={controls}
         className="w-full flex items-center justify-between"

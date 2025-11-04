@@ -1,0 +1,45 @@
+/* Clothes page header styles (header + pills) */
+:root {
+  /* defaults in case JS hasn't measured yet */
+  --header-height: 0px;
+}
+
+.clothes-header {
+  position: fixed;
+  top: var(--nav-height, 0px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  z-index: 40;
+  padding-top: 0.75rem; /* mobile default */
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  transform: translateY(0);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+@media (min-width: 768px) {
+  .clothes-header {
+    padding-top: 1rem;
+  }
+}
+
+.clothes-header--hidden {
+  transform: translateY(calc(-1 * var(--header-height, 0px)));
+  box-shadow: none;
+}
+
+.clothes-header__title {
+  padding-left: 1rem;
+  margin: 0;
+}
+
+.clothes-header__spacer {
+  /* spacer should reserve space for both the main NavBar and this header
+     so content sits below both fixed elements */
+  height: calc(var(--nav-height, 0px) + var(--header-height, 0px));
+}
+
+.clothes-header__divider {
+  height: 1px;
+  background-color: black;
+}
