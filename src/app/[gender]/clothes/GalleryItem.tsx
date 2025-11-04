@@ -50,7 +50,7 @@ const GalleryItem: React.FC<Props> = ({
             position: 'absolute',
             top: 8,
             right: 8,
-            zIndex: 40,
+            zIndex: 30,
           }}
         >
           <div style={{ display: 'flex', gap: '0.5rem' }}>
