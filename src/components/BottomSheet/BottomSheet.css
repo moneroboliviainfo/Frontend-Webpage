@@ -1,0 +1,31 @@
+.bottom-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* max height controlled by --bottom-sheet-height set by component */
+  height: var(--bottom-sheet-height, 80vh);
+  background: white;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(0);
+  transition: transform 180ms ease;
+  touch-action: none;
+}
+
+.bottom-sheet__grab {
+  width: 48px;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  margin: 8px auto 4px auto;
+}
+
+.bottom-sheet__content {
+  padding: 0.5rem 0.75rem 1rem 0.75rem;
+  overflow: auto;
+}

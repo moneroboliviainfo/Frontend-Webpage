@@ -15,6 +15,8 @@ interface ImageSliderProps {
   slidesData?: { image: string; label: string }[];
   autoplayDelay?: number;
   showNews?: boolean;
+  // optional callback invoked when the active slide changes
+  onSlide?: ((activeIndex: number) => void) | null;
 }
 
 const ImageSlider: React.FC<ImageSliderProps> = ({
@@ -22,6 +24,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   slidesData = [],
   autoplayDelay = 3500,
   showNews = false,
+  onSlide = null,
 }) => {
   const progressCircle = useRef<SVGSVGElement | null>(null);
   const progressContent = useRef<HTMLSpanElement | null>(null);
@@ -50,8 +53,19 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
           clickable: true,
           type: 'bullets',
         }}
-        autoplay={{ delay: autoplayDelay, disableOnInteraction: false }}
+        autoplay={
+          autoplayDelay === 0
+            ? false
+            : { delay: autoplayDelay, disableOnInteraction: false }
+        }
         onAutoplayTimeLeft={onAutoplayTimeLeft}
+        onSlideChange={(s) => {
+          try {
+            if (onSlide) onSlide(s.activeIndex);
+          } catch {
+            // swallow errors from consumer callback to avoid breaking the slider
+          }
+        }}
         loop
         className="w-full h-full"
       >

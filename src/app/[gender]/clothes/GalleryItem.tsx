@@ -1,10 +1,13 @@
+'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 type Props = {
   src: string;
   name: string;
   price: number;
+  productId?: string | number;
   isMobile?: boolean;
   colors?: string[];
   isNew?: boolean;
@@ -16,6 +19,7 @@ const GalleryItem: React.FC<Props> = ({
   src,
   name,
   price,
+  productId,
   isMobile = false,
   colors = [],
   isNew = false,
@@ -31,9 +35,25 @@ const GalleryItem: React.FC<Props> = ({
   const hasDiscount = discount && discount > 0;
 
   const [hovered, setHovered] = useState<number | null>(null);
+  const router = useRouter();
+  const slugBase = name ? name.replace(/\s+/g, '-').toLowerCase() : '';
+  const slug =
+    productId !== undefined && productId !== null
+      ? `${slugBase}-${productId}`
+      : slugBase;
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      router.push(`/w/${encodeURIComponent(slug)}`);
+    }
+  };
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onClick={() => router.push(`/w/${encodeURIComponent(slug)}`)}
       className="relative overflow-hidden bg-white"
       style={{
         width: imgWidth,
