@@ -64,25 +64,44 @@ function BottomSheet(
       setTranslateY(next);
     };
 
-    const onPointerMove = (e: PointerEvent) => onMove(e.clientY);
-    const onTouchMove = (e: TouchEvent) => onMove(e.touches[0].clientY);
+    const onPointerMove = (e: PointerEvent) => {
+      if (startYRef.current != null) {
+        e.preventDefault();
+        onMove(e.clientY);
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (startYRef.current != null) {
+        e.preventDefault(); // Prevent pull-to-refresh and scrolling
+        onMove(e.touches[0].clientY);
+      }
+    };
 
     const onPointerUp = () => {
       // snap
       const mid = (collapsedTranslate + expandedTranslate) / 2;
       setTranslateY((t) => (t > mid ? collapsedTranslate : expandedTranslate));
       startYRef.current = null;
+      // Re-enable document scrolling
+      document.body.style.overflow = '';
+    };
+
+    const onTouchEnd = () => {
+      onPointerUp();
     };
 
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('pointerup', onPointerUp);
-    window.addEventListener('touchend', onPointerUp);
+    window.addEventListener('touchend', onTouchEnd);
     return () => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('pointerup', onPointerUp);
-      window.removeEventListener('touchend', onPointerUp);
+      window.removeEventListener('touchend', onTouchEnd);
+      // Cleanup: re-enable scrolling if component unmounts during drag
+      document.body.style.overflow = '';
     };
   }, [collapsedTranslate, expandedTranslate]);
 
@@ -110,9 +129,18 @@ function BottomSheet(
     [collapsedTranslate, expandedTranslate]
   );
 
-  const startDrag = (clientY: number) => {
+  const startDrag = (
+    clientY: number,
+    e?: React.TouchEvent | React.PointerEvent
+  ) => {
     startYRef.current = clientY;
     startTranslateRef.current = translateY;
+    // Prevent document scrolling during drag
+    document.body.style.overflow = 'hidden';
+    // Prevent pull-to-refresh on touch events
+    if (e && 'preventDefault' in e) {
+      e.preventDefault();
+    }
   };
 
   return (
@@ -120,8 +148,11 @@ function BottomSheet(
       ref={sheetRef}
       className="bottom-sheet"
       style={{ transform: `translateY(${translateY}px)` }}
-      onPointerDown={(e) => startDrag(e.clientY)}
-      onTouchStart={(e) => startDrag(e.touches[0].clientY)}
+      onPointerDown={(e) => startDrag(e.clientY, e)}
+      onTouchStart={(e) => {
+        e.preventDefault(); // Prevent pull-to-refresh immediately
+        startDrag(e.touches[0].clientY, e);
+      }}
     >
       <div className="bottom-sheet__grab" aria-hidden />
       <div className="bottom-sheet__content">{children}</div>
