@@ -16,13 +16,22 @@ type ProductDetails = {
   discount: number;
   finalPrice: number;
   description: string;
+  slug?: string;
 };
 
 type Props = {
   productDetails: ProductDetails;
+  allProducts?: ProductDetails[]; // Array of all products for swiping
+  currentProductIndex?: number; // Current product index
+  onProductChange?: (index: number) => void; // Callback when product changes
 };
 
-const ProductPageMobile: React.FC<Props> = ({ productDetails }) => {
+const ProductPageMobile: React.FC<Props> = ({
+  productDetails,
+  allProducts = [productDetails],
+  currentProductIndex = 0,
+  onProductChange,
+}) => {
   // Helper function to check if a color has any available sizes
   const isColorAvailable = (colorIndex: number) => {
     return (
@@ -50,15 +59,126 @@ const ProductPageMobile: React.FC<Props> = ({ productDetails }) => {
   } | null>(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
 
+  // Swipe detection states
+  const [startX, setStartX] = useState<number | null>(null);
+  const [startY, setStartY] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isHorizontalSwipe, setIsHorizontalSwipe] = useState<boolean | null>(
+    null
+  );
+  const [translateX, setTranslateX] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Handle swipe start
+  const handleSwipeStart = (clientX: number, clientY: number) => {
+    setStartX(clientX);
+    setStartY(clientY);
+    setIsDragging(true);
+    setIsHorizontalSwipe(null); // Reset direction detection
+  };
+
+  // Handle swipe move
+  const handleSwipeMove = (clientX: number, clientY: number) => {
+    if (!isDragging || startX === null || startY === null) return;
+
+    const diffX = clientX - startX;
+    const diffY = clientY - startY;
+
+    // Determine swipe direction on first significant movement
+    if (
+      isHorizontalSwipe === null &&
+      (Math.abs(diffX) > 10 || Math.abs(diffY) > 10)
+    ) {
+      const isHorizontal = Math.abs(diffX) > Math.abs(diffY);
+      setIsHorizontalSwipe(isHorizontal);
+
+      // If it's a vertical swipe, don't handle horizontal movement
+      if (!isHorizontal) {
+        return;
+      }
+    }
+
+    // Only process horizontal swipes
+    if (isHorizontalSwipe === false) {
+      return;
+    }
+
+    // Only allow swipe if not at boundaries
+    if (
+      (diffX > 0 && currentProductIndex === 0) ||
+      (diffX < 0 && currentProductIndex === allProducts.length - 1)
+    ) {
+      return;
+    }
+
+    setTranslateX(diffX);
+  };
+
+  // Handle swipe end
+  const handleSwipeEnd = () => {
+    if (!isDragging || startX === null) return;
+
+    // Only process swipe if it was determined to be horizontal
+    if (isHorizontalSwipe === true) {
+      const swipeThreshold = 100;
+
+      if (Math.abs(translateX) > swipeThreshold) {
+        const direction = translateX > 0 ? -1 : 1; // Right swipe = -1 (previous), Left swipe = 1 (next)
+        const newIndex = currentProductIndex + direction;
+
+        if (newIndex >= 0 && newIndex < allProducts.length && onProductChange) {
+          // Add a slight delay for smooth transition
+          setTimeout(() => {
+            onProductChange(newIndex);
+            // Reset selections for new product
+            setSelectedColorIndex(0);
+            setSelectedSizeIndex(null);
+            // Collapse bottom sheet
+            bottomSheetRef.current?.collapse();
+          }, 100);
+        }
+      }
+    }
+
+    // Reset swipe state
+    setTranslateX(0);
+    setStartX(null);
+    setStartY(null);
+    setIsDragging(false);
+    setIsHorizontalSwipe(null);
+  };
+
   return (
-    <div className="w-full" style={{ height: '80vh' }}>
+    <div
+      className="w-full"
+      style={{
+        height: '80vh',
+      }}
+      ref={containerRef}
+      onTouchStart={(e) =>
+        handleSwipeStart(e.touches[0].clientX, e.touches[0].clientY)
+      }
+      onTouchMove={(e) =>
+        handleSwipeMove(e.touches[0].clientX, e.touches[0].clientY)
+      }
+      onTouchEnd={handleSwipeEnd}
+      onMouseDown={(e) => handleSwipeStart(e.clientX, e.clientY)}
+      onMouseMove={(e) =>
+        e.buttons === 1 && handleSwipeMove(e.clientX, e.clientY)
+      }
+      onMouseUp={handleSwipeEnd}
+      onMouseLeave={handleSwipeEnd}
+    >
       {/* Top 85% - Primary color with slider */}
       <div style={{ height: '100%' }} className="relative">
         <div
           className="absolute inset-0"
           style={{
-            transition: 'opacity 200ms ease',
             opacity: 1,
+            transform: `translateX(${translateX}px)`,
+            transition: isDragging
+              ? 'none'
+              : 'transform 300ms ease, opacity 200ms ease',
           }}
           id="product-slider-container"
           onClick={() => {
