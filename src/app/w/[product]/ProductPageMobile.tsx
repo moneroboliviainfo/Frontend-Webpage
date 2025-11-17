@@ -71,6 +71,16 @@ const ProductPageMobile: React.FC<Props> = ({
 
   // Handle swipe start
   const handleSwipeStart = (clientX: number, clientY: number) => {
+    // Check if touch is within BottomSheet area
+    const containerHeight =
+      containerRef.current?.offsetHeight || window.innerHeight * 0.8;
+    const bottomSheetStartY = containerHeight * 0.79; // Approximately where BottomSheet starts
+
+    if (clientY > bottomSheetStartY) {
+      // Touch started in BottomSheet area, don't handle horizontal swipes
+      return;
+    }
+
     setStartX(clientX);
     setStartY(clientY);
     setIsDragging(true);
@@ -155,22 +165,25 @@ const ProductPageMobile: React.FC<Props> = ({
         height: '80vh',
       }}
       ref={containerRef}
-      onTouchStart={(e) =>
-        handleSwipeStart(e.touches[0].clientX, e.touches[0].clientY)
-      }
-      onTouchMove={(e) =>
-        handleSwipeMove(e.touches[0].clientX, e.touches[0].clientY)
-      }
-      onTouchEnd={handleSwipeEnd}
-      onMouseDown={(e) => handleSwipeStart(e.clientX, e.clientY)}
-      onMouseMove={(e) =>
-        e.buttons === 1 && handleSwipeMove(e.clientX, e.clientY)
-      }
-      onMouseUp={handleSwipeEnd}
-      onMouseLeave={handleSwipeEnd}
     >
       {/* Top 85% - Primary color with slider */}
-      <div style={{ height: '100%' }} className="relative">
+      <div
+        style={{ height: '100%' }}
+        className="relative"
+        onTouchStart={(e) =>
+          handleSwipeStart(e.touches[0].clientX, e.touches[0].clientY)
+        }
+        onTouchMove={(e) =>
+          handleSwipeMove(e.touches[0].clientX, e.touches[0].clientY)
+        }
+        onTouchEnd={handleSwipeEnd}
+        onMouseDown={(e) => handleSwipeStart(e.clientX, e.clientY)}
+        onMouseMove={(e) =>
+          e.buttons === 1 && handleSwipeMove(e.clientX, e.clientY)
+        }
+        onMouseUp={handleSwipeEnd}
+        onMouseLeave={handleSwipeEnd}
+      >
         <div
           className="absolute inset-0"
           style={{

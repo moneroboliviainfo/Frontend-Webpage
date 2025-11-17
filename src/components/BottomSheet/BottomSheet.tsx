@@ -147,7 +147,7 @@ function BottomSheet(
     <div
       ref={sheetRef}
       className="bottom-sheet"
-      style={{ transform: `translateY(${translateY}px)` }}
+      style={{ transform: `translateY(${translateY}px)`, zIndex: 1 }}
       onPointerDown={(e) => startDrag(e.clientY, e)}
       onTouchStart={(e) => {
         e.preventDefault(); // Prevent pull-to-refresh immediately
