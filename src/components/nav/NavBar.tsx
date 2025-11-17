@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation';
 import HamburgerButton from './HamburgerButton';
 import HamburgerNavBarDialog from './HamburgerNavBarDialog';
 import SearchNavBarDialog from './SearchNavBarDialog';
+import CartNavBarDialog from './CartNavBarDialog';
 
 const iconsSize = 22;
 const iconsStrokeWidth = 1.8;
@@ -27,6 +28,7 @@ export default function NavBar({
   const [showMenu, setShowMenu] = useState(false);
   const [hamburgerOpen, setHamburgerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const controls = useAnimation();
   const cartLength = useAppSelector(selectCartQuantity);
   // TODO: Replace with real client name from redux
@@ -70,7 +72,7 @@ export default function NavBar({
 
   // Animate NavBar out when a dialog is open
   useEffect(() => {
-    if (hamburgerOpen || searchOpen) {
+    if (hamburgerOpen || searchOpen || cartOpen) {
       controls.start({
         opacity: 0,
         pointerEvents: 'none',
@@ -88,7 +90,14 @@ export default function NavBar({
         transition: { duration: 0.3 },
       });
     }
-  }, [scrolled, controls, hamburgerOpen, searchOpen, dynamicTransparent]);
+  }, [
+    scrolled,
+    controls,
+    hamburgerOpen,
+    searchOpen,
+    cartOpen,
+    dynamicTransparent,
+  ]);
 
   const borderBottomStyle =
     scrolled &&
@@ -152,6 +161,7 @@ export default function NavBar({
           <div
             className="relative flex items-center gap-2"
             style={{ cursor: 'pointer' }}
+            onClick={() => setCartOpen(true)}
           >
             <FiShoppingCart size={iconsSize} strokeWidth={iconsStrokeWidth} />
             <span className="navbar-font hidden md:inline text-xs">
@@ -167,6 +177,7 @@ export default function NavBar({
       </motion.nav>
       <HamburgerNavBarDialog open={hamburgerOpen} setOpen={setHamburgerOpen} />
       <SearchNavBarDialog open={searchOpen} setOpen={setSearchOpen} />
+      <CartNavBarDialog open={cartOpen} setOpen={setCartOpen} />
     </div>
   );
 }
