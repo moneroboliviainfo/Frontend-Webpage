@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { selectCartItems } from '@/store/cartSlice';
+import { CartItem } from '@/store/types';
 import Image from 'next/image';
 import NavBarDialog from './NavBarDialog';
 import useIsMobile from '@/hooks/useIsMobile';
@@ -84,6 +85,15 @@ const CartNavBarDialog: React.FC<{
 
   const displayItems = cartItems.length > 0 ? cartItems : mockItems;
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
+  const [removedItems, setRemovedItems] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+  const [undoData, setUndoData] = useState<{
+    itemId: string;
+    item: CartItem;
+    quantity: number;
+  } | null>(null);
+  const [showUndoToast, setShowUndoToast] = useState(false);
   const isMobile = useIsMobile();
 
   // Initialize quantities for cart items
@@ -98,18 +108,73 @@ const CartNavBarDialog: React.FC<{
   }, [cartItems, mockItems]);
 
   const updateQuantity = (itemId: string, delta: number) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [itemId]: Math.max(1, (prev[itemId] || 1) + delta),
-    }));
+    const currentQuantity = quantities[itemId] || 1;
+    const newQuantity = currentQuantity + delta;
+
+    if (newQuantity <= 0) {
+      // Find the item to store for undo
+      const itemToRemove = displayItems.find((item) => item.itemId === itemId);
+      if (itemToRemove) {
+        // Store undo data
+        setUndoData({
+          itemId,
+          item: itemToRemove,
+          quantity: currentQuantity,
+        });
+
+        // Mark item as removed
+        setRemovedItems((prev) => ({ ...prev, [itemId]: true }));
+
+        // Show undo toast
+        setShowUndoToast(true);
+
+        // Auto-hide toast after 5 seconds
+        setTimeout(() => {
+          setShowUndoToast(false);
+          setUndoData(null);
+        }, 5000);
+      }
+    } else {
+      setQuantities((prev) => ({
+        ...prev,
+        [itemId]: newQuantity,
+      }));
+    }
+  };
+
+  const undoRemove = () => {
+    if (undoData) {
+      // Restore the item
+      setRemovedItems((prev) => {
+        const newState = { ...prev };
+        delete newState[undoData.itemId];
+        return newState;
+      });
+
+      // Restore quantity
+      setQuantities((prev) => ({
+        ...prev,
+        [undoData.itemId]: undoData.quantity,
+      }));
+
+      // Hide toast
+      setShowUndoToast(false);
+      setUndoData(null);
+    }
   };
 
   const calculateSubtotal = () => {
-    return displayItems.reduce((total: number, item) => {
-      const quantity = quantities[item.itemId] || item.quantity;
-      return total + item.cost * quantity;
-    }, 0);
+    return displayItems
+      .filter((item) => !removedItems[item.itemId])
+      .reduce((total: number, item) => {
+        const quantity = quantities[item.itemId] || item.quantity;
+        return total + item.cost * quantity;
+      }, 0);
   };
+
+  const visibleItems = displayItems.filter(
+    (item) => !removedItems[item.itemId]
+  );
 
   return (
     <NavBarDialog open={open} setOpen={setOpen}>
@@ -130,12 +195,12 @@ const CartNavBarDialog: React.FC<{
             paddingBottom: displayItems.length > 0 ? '200px' : '0',
           }}
         >
-          {displayItems.length === 0 ? (
+          {visibleItems.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-gray-500 text-lg">Tu carrito está vacío</p>
             </div>
           ) : (
-            displayItems.map((item, index) => {
+            visibleItems.map((item, index) => {
               const quantity = quantities[item.itemId] || item.quantity;
 
               return (
@@ -146,7 +211,7 @@ const CartNavBarDialog: React.FC<{
                     height: '30vh',
                     padding: '1rem 0',
                     borderBottom:
-                      index < displayItems.length - 1
+                      index < visibleItems.length - 1
                         ? '1px solid #f3f4f6'
                         : 'none',
                   }}
@@ -209,7 +274,11 @@ const CartNavBarDialog: React.FC<{
                     </h3>
 
                     {/* Price */}
-                    <div style={{ marginBottom: '0.75rem' }}>
+                    <div
+                      style={{
+                        marginBottom: '0.75rem',
+                      }}
+                    >
                       <span
                         className="font-bold"
                         style={{ fontSize: '1.1rem' }}
@@ -237,26 +306,28 @@ const CartNavBarDialog: React.FC<{
                         style={{ border: '1px solid #e5e7eb' }}
                       >
                         <button
-                          className="px-3 py-2 hover:bg-gray-100"
+                          className="hover:bg-gray-100"
                           onClick={() => updateQuantity(item.itemId, -1)}
-                          disabled={quantity <= 1}
                           style={{
-                            cursor: quantity <= 1 ? 'not-allowed' : 'pointer',
-                            opacity: quantity <= 1 ? 0.5 : 1,
+                            cursor: 'pointer',
+                            padding: '0.5rem 0.75rem',
                           }}
                         >
                           −
                         </button>
                         <span
-                          className="px-4 py-2 font-medium"
+                          className="font-medium"
                           style={{ minWidth: '3rem', textAlign: 'center' }}
                         >
                           {quantity}
                         </span>
                         <button
-                          className="px-3 py-2 hover:bg-gray-100"
+                          className="hover:bg-gray-100"
                           onClick={() => updateQuantity(item.itemId, 1)}
-                          style={{ cursor: 'pointer' }}
+                          style={{
+                            cursor: 'pointer',
+                            padding: '0.5rem 0.75rem',
+                          }}
                         >
                           +
                         </button>
@@ -270,7 +341,7 @@ const CartNavBarDialog: React.FC<{
         </div>
 
         {/* Fixed bottom section */}
-        {displayItems.length > 0 && (
+        {visibleItems.length > 0 && (
           <div
             style={{
               position: isMobile ? 'fixed' : 'absolute',
@@ -321,6 +392,47 @@ const CartNavBarDialog: React.FC<{
           </div>
         )}
       </div>
+
+      {/* Undo Toast */}
+      {showUndoToast && undoData && (
+        <div
+          className="fixed bottom-2 text-white rounded-lg shadow-lg flex items-center justify-between"
+          style={{
+            zIndex: 9999,
+            position: 'fixed',
+            bottom: '3rem',
+            left: '1rem',
+            right: '1rem',
+            padding: '0.75rem 1rem',
+            backgroundColor: '#5ebf9b',
+          }}
+        >
+          {/* Left side: Image and text */}
+          <div className="flex items-center" style={{ gap: '0.75rem' }}>
+            {/* Item image */}
+            <div className="flex-shrink-0">
+              <Image
+                src={undoData.item.src || '/images/placeholder.jpg'}
+                alt={undoData.item.name}
+                width={32}
+                height={32}
+                className="object-cover rounded"
+              />
+            </div>
+
+            {/* Text */}
+            <span className="text-sm">Eliminado</span>
+          </div>
+
+          {/* Right side: Undo button */}
+          <button
+            onClick={undoRemove}
+            className="text-white underline text-sm font-medium hover:text-gray-300 transition-colors"
+          >
+            Deshacer
+          </button>
+        </div>
+      )}
     </NavBarDialog>
   );
 };
