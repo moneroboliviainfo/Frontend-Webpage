@@ -377,6 +377,10 @@ const CartNavBarDialog: React.FC<{
             <button
               type="button"
               className="w-full font-bold"
+              onClick={() => {
+                setOpen(false);
+                window.location.href = '/w/checkout';
+              }}
               style={{
                 backgroundColor: '#000',
                 color: 'white',
