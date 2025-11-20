@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import CheckoutCostSummary from './CheckoutCostSummary';
 
 // Types for country data
 interface Country {
@@ -36,6 +37,7 @@ const CheckoutPage: React.FC = () => {
   const router = useRouter();
   const [selectedCountry, setSelectedCountry] = useState('Bolivia');
   const [showCountryCodeModal, setShowCountryCodeModal] = useState(false);
+  const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [modalType, setModalType] = useState<'countryCode' | 'country'>(
     'countryCode'
   );
@@ -221,9 +223,8 @@ const CheckoutPage: React.FC = () => {
 
   const handleContinue = () => {
     if (validateForm()) {
-      // Form is valid, proceed to next step
-      console.log('Form is valid, proceeding...', formData);
-      // TODO: Navigate to next step or submit form
+      // Form is valid, show delivery modal
+      setShowDeliveryModal(true);
     } else {
       // Scroll to first error
       const firstErrorField = document.querySelector('.error-field');
@@ -920,6 +921,331 @@ const CheckoutPage: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Delivery Method Modal */}
+      {showDeliveryModal && (
+        <div
+          className="fixed inset-0 bg-white z-50 flex flex-col"
+          style={{
+            paddingTop: 'var(--nav-height, 60px)',
+          }}
+        >
+          {/* Modal Top Bar */}
+          <div
+            className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
+            style={{
+              height: 'var(--nav-height, 60px)',
+              borderBottom: '1px solid #e5e7eb',
+              padding: '0 1rem',
+            }}
+          >
+            {/* Back Arrow */}
+            <button
+              onClick={() => setShowDeliveryModal(false)}
+              className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+              style={{
+                width: '40px',
+                height: '40px',
+              }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+
+            {/* Title */}
+            <h2
+              className="font-semibold flex-1"
+              style={{ fontSize: '1.1rem', marginLeft: '1rem' }}
+            >
+              Método de envío
+            </h2>
+
+            {/* Empty space for balance */}
+            <div style={{ width: '40px' }}></div>
+          </div>
+
+          {/* Modal Content */}
+          <div
+            className="flex-1 overflow-y-auto"
+            style={{ padding: '1.5rem', paddingBottom: '8rem' }}
+          >
+            {selectedCountry === 'Bolivia' ? (
+              /* Bolivia Delivery Options */
+              <div>
+                {/* Envío a terminal */}
+                <div
+                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  style={{
+                    padding: '1rem',
+                    border: '1px solid #e5e7eb',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div
+                        className="font-bold"
+                        style={{
+                          fontSize: '1rem',
+                          color: '#374151',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Envío a terminal
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.875rem',
+                          color: '#6b7280',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Recibelo en 24 horas
+                      </div>
+                      <div
+                        className="font-bold"
+                        style={{ fontSize: '1rem', color: '#374151' }}
+                      >
+                        Bs. 30
+                      </div>
+                    </div>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      style={{ color: '#9ca3af' }}
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Envío a domicilio */}
+                <div
+                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  style={{
+                    padding: '1rem',
+                    border: '1px solid #e5e7eb',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div
+                        className="font-bold"
+                        style={{
+                          fontSize: '1rem',
+                          color: '#374151',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Envío a domicilio
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.875rem',
+                          color: '#6b7280',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Recibelo en 48 horas
+                      </div>
+                      <div
+                        className="font-bold"
+                        style={{ fontSize: '1rem', color: '#374151' }}
+                      >
+                        Bs. 50
+                      </div>
+                    </div>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      style={{ color: '#9ca3af' }}
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Envío a provincia */}
+                <div
+                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  style={{
+                    padding: '1rem',
+                    border: '1px solid #e5e7eb',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div
+                        className="font-bold"
+                        style={{
+                          fontSize: '1rem',
+                          color: '#374151',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Envío a provincia
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.875rem',
+                          color: '#6b7280',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Recibelo en 72 horas
+                      </div>
+                      <div
+                        className="font-bold"
+                        style={{ fontSize: '1rem', color: '#374151' }}
+                      >
+                        Bs. 50
+                      </div>
+                    </div>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      style={{ color: '#9ca3af' }}
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Envío por avión */}
+                <div
+                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  style={{
+                    padding: '1rem',
+                    border: '1px solid #e5e7eb',
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div
+                        className="font-bold"
+                        style={{
+                          fontSize: '1rem',
+                          color: '#374151',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Envío por avión
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.875rem',
+                          color: '#6b7280',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Recibelo lo más pronto posible hasta su domicilio
+                      </div>
+                      <div
+                        className="font-bold"
+                        style={{ fontSize: '1rem', color: '#374151' }}
+                      >
+                        Bs. 60
+                      </div>
+                    </div>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      style={{ color: '#9ca3af' }}
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Other Countries DHL Option */
+              <div>
+                <div
+                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  style={{
+                    padding: '1rem',
+                    border: '1px solid #e5e7eb',
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div
+                        className="font-bold"
+                        style={{
+                          fontSize: '1rem',
+                          color: '#374151',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Envío por DHL
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.875rem',
+                          color: '#6b7280',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Tiempo determinado por DHL
+                      </div>
+                      <div
+                        className="font-bold"
+                        style={{ fontSize: '1rem', color: '#374151' }}
+                      >
+                        Costo determinado por DHL cuando lo recibas
+                      </div>
+                    </div>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      style={{ color: '#9ca3af' }}
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Checkout Cost Summary */}
+          <CheckoutCostSummary
+            subtotal={59.98}
+            selectedCountry={selectedCountry}
+            deliveryCost={0}
+          />
         </div>
       )}
     </div>
