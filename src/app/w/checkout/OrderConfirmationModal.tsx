@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface OrderConfirmationModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   selectedDeliveryMethod,
   formData,
 }) => {
+  const router = useRouter();
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [showQRPayment, setShowQRPayment] = useState(false);
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
@@ -57,8 +59,14 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
 
   const handlePayOrder = () => {
     if (hasAcceptedTerms) {
-      setShowQRPayment(true);
-      setTimeLeft(15 * 60); // Reset timer to 15 minutes
+      // Generate a random order ID for development purposes
+      const orderId = Math.random().toString(36).substr(2, 8).toUpperCase();
+      // For development purposes - redirect to order confirmed page
+      // In production, this would show QR and wait for payment
+      router.push(`/w/checkout/order-confirmed?orderId=${orderId}`);
+      // Uncomment below for QR popup functionality:
+      // setShowQRPayment(true);
+      // setTimeLeft(15 * 60); // Reset timer to 15 minutes
     }
   };
 
