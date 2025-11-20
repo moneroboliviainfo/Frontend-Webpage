@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CheckoutCostSummary from './CheckoutCostSummary';
+import OrderConfirmationModal from './OrderConfirmationModal';
 
 // Types for country data
 interface Country {
@@ -38,6 +39,9 @@ const CheckoutPage: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState('Bolivia');
   const [showCountryCodeModal, setShowCountryCodeModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+  const [showOrderConfirmationModal, setShowOrderConfirmationModal] =
+    useState(false);
+  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState('');
   const [modalType, setModalType] = useState<'countryCode' | 'country'>(
     'countryCode'
   );
@@ -232,6 +236,17 @@ const CheckoutPage: React.FC = () => {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
+  };
+
+  const handleDeliveryOptionSelect = (deliveryOption: string) => {
+    setSelectedDeliveryMethod(deliveryOption);
+    setShowDeliveryModal(false);
+    setShowOrderConfirmationModal(true);
+  };
+
+  const handleBackToDelivery = () => {
+    setShowOrderConfirmationModal(false);
+    setShowDeliveryModal(true);
   };
 
   return (
@@ -985,6 +1000,7 @@ const CheckoutPage: React.FC = () => {
                 {/* Envío a terminal */}
                 <div
                   className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleDeliveryOptionSelect('Envío a terminal')}
                   style={{
                     padding: '1rem',
                     border: '1px solid #e5e7eb',
@@ -1036,6 +1052,9 @@ const CheckoutPage: React.FC = () => {
                 {/* Envío a domicilio */}
                 <div
                   className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() =>
+                    handleDeliveryOptionSelect('Envío a domicilio')
+                  }
                   style={{
                     padding: '1rem',
                     border: '1px solid #e5e7eb',
@@ -1087,6 +1106,9 @@ const CheckoutPage: React.FC = () => {
                 {/* Envío a provincia */}
                 <div
                   className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() =>
+                    handleDeliveryOptionSelect('Envío a provincia')
+                  }
                   style={{
                     padding: '1rem',
                     border: '1px solid #e5e7eb',
@@ -1138,6 +1160,7 @@ const CheckoutPage: React.FC = () => {
                 {/* Envío por avión */}
                 <div
                   className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleDeliveryOptionSelect('Envío por avión')}
                   style={{
                     padding: '1rem',
                     border: '1px solid #e5e7eb',
@@ -1190,6 +1213,7 @@ const CheckoutPage: React.FC = () => {
               <div>
                 <div
                   className="border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleDeliveryOptionSelect('Envío por DHL')}
                   style={{
                     padding: '1rem',
                     border: '1px solid #e5e7eb',
@@ -1248,6 +1272,16 @@ const CheckoutPage: React.FC = () => {
           />
         </div>
       )}
+
+      {/* Order Confirmation Modal */}
+      <OrderConfirmationModal
+        isOpen={showOrderConfirmationModal}
+        onClose={() => setShowOrderConfirmationModal(false)}
+        onBackToDelivery={handleBackToDelivery}
+        selectedCountry={selectedCountry}
+        selectedDeliveryMethod={selectedDeliveryMethod}
+        formData={formData}
+      />
     </div>
   );
 };
