@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 
 interface DesktopCartSummaryProps {
   selectedCountry: string;
@@ -106,16 +107,18 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
 
             {/* Item Details */}
             <div className="flex-1">
-              <div
-                className="font-medium"
+              <Link
+                href="/w/pantalón-slim-102"
+                className="font-medium hover:underline"
                 style={{
                   fontSize: '0.875rem',
-                  color: '#111827',
+                  color: '#3b82f6',
                   marginBottom: '0.25rem',
+                  display: 'block',
                 }}
               >
                 {item.name}
-              </div>
+              </Link>
               <div
                 style={{
                   fontSize: '0.75rem',

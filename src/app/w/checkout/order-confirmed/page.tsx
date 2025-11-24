@@ -1,10 +1,12 @@
 'use client';
 import React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import CheckoutCostSummary from '../CheckoutCostSummary';
+import DesktopCartSummary from '../DesktopCartSummary';
+import NavBar from '@/components/nav/NavBar';
 
 const OrderConfirmedPage: React.FC = () => {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || '12345678'; // Fallback to default if no orderId
 
@@ -65,297 +67,436 @@ const OrderConfirmedPage: React.FC = () => {
         paddingTop: 'var(--nav-height, 60px)',
       }}
     >
-      {/* Top Bar - Solid NavBar */}
+      {/* NavBar with white background */}
+      <NavBar dynamicTransparent={false} />
+      {/* Full width black line below navbar */}
       <div
-        className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-40"
+        className="w-full fixed z-40"
         style={{
-          height: 'var(--nav-height, 60px)',
-          borderBottom: '1px solid #e5e7eb',
-          padding: '0 1rem',
+          backgroundColor: 'black',
+          padding: '0.5px',
+          top: 'var(--nav-height, 60px)',
         }}
-      >
-        {/* Back Arrow */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-          style={{
-            width: '40px',
-            height: '40px',
-            marginRight: '1rem',
-          }}
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
+      ></div>
 
-        {/* Title */}
-        <h1
-          className="font-semibold text-center flex-1"
-          style={{ fontSize: '1.1rem' }}
-        >
-          Pedido Confirmado
-        </h1>
-
-        {/* Empty space for balance */}
-        <div style={{ width: '40px' }}></div>
-      </div>
-
-      {/* Main Content */}
+      {/* Desktop Layout */}
       <div
-        className="flex-1 overflow-y-auto"
-        style={{ padding: '2rem', paddingBottom: '8rem' }}
+        className="hidden lg:flex"
+        style={{ minHeight: 'calc(100vh - 60px)' }}
       >
-        {/* Order Confirmation Title */}
-        <div
-          className="text-center"
-          style={{
-            marginBottom: '1.5rem',
-          }}
-        >
-          <h2
-            className="font-bold"
-            style={{
-              fontSize: '1.5rem',
-              color: '#111827',
-              marginBottom: '0.5rem',
-            }}
-          >
-            Confirmamos tu pedido
-          </h2>
-          <div
-            className="font-medium"
-            style={{
-              fontSize: '1.125rem',
-              color: '#6b7280',
-            }}
-          >
-            Pedido: #{orderData.orderNumber}
-          </div>
-        </div>
-
-        {/* Cart Items - Horizontal Scrollable */}
-        <div
-          className="flex gap-4 overflow-x-auto pb-4"
-          style={{
-            marginBottom: '2rem',
-            scrollSnapType: 'x mandatory',
-          }}
-        >
-          {cartItems.map((item) => (
-            <div
-              key={item.id}
-              className="flex-shrink-0"
-              style={{
-                width: '120px',
-                scrollSnapAlign: 'start',
-              }}
-            >
-              {/* Item Image */}
+        {/* Left Content Area - 80% */}
+        <div className="flex-1" style={{ width: '80%' }}>
+          {/* Centered Content */}
+          <div className="flex justify-center" style={{ padding: '2rem' }}>
+            <div style={{ maxWidth: '600px', width: '100%' }}>
+              {/* Order Confirmation Title */}
               <div
-                className="bg-gray-100 rounded-lg flex items-center justify-center"
+                className="text-center"
                 style={{
-                  width: '120px',
-                  height: '120px',
-                  marginBottom: '0.75rem',
+                  marginBottom: '1.5rem',
+                }}
+              >
+                <h2
+                  className="font-bold"
+                  style={{
+                    fontSize: '1.5rem',
+                    color: '#111827',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  Confirmamos tu pedido
+                </h2>
+                <div
+                  className="font-medium"
+                  style={{
+                    fontSize: '1.125rem',
+                    color: '#6b7280',
+                  }}
+                >
+                  Pedido: #{orderData.orderNumber}
+                </div>
+              </div>
+
+              {/* Delivery Method */}
+              <div
+                className="border-b"
+                style={{
+                  paddingBottom: '1.5rem',
+                  marginBottom: '1.5rem',
+                  borderBottom: '1px solid #e5e7eb',
                 }}
               >
                 <div
-                  className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center"
+                  className="font-semibold"
                   style={{
-                    fontSize: '0.75rem',
-                    color: '#6b7280',
-                    textAlign: 'center',
-                    padding: '0.5rem',
+                    fontSize: '1rem',
+                    color: '#111827',
+                    marginBottom: '0.5rem',
                   }}
                 >
-                  {item.name}
+                  {orderData.selectedDeliveryMethod}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                  }}
+                >
+                  {orderData.selectedCountry === 'Bolivia'
+                    ? orderData.selectedDeliveryMethod === 'Envío a terminal'
+                      ? 'Recibelo en 24 horas'
+                      : orderData.selectedDeliveryMethod === 'Envío a domicilio'
+                      ? 'Recibelo en 48 horas'
+                      : orderData.selectedDeliveryMethod === 'Envío a provincia'
+                      ? 'Recibelo en 72 horas'
+                      : 'Recibelo lo más pronto posible hasta su domicilio'
+                    : 'Tiempo determinado por DHL'}
+                </div>
+                <div
+                  className="font-semibold"
+                  style={{
+                    fontSize: '1rem',
+                    color: '#111827',
+                    marginTop: '0.25rem',
+                  }}
+                >
+                  {orderData.selectedCountry === 'Bolivia'
+                    ? orderData.selectedDeliveryMethod === 'Envío a terminal'
+                      ? '27.99 €'
+                      : orderData.selectedDeliveryMethod === 'Envío a domicilio'
+                      ? 'Bs. 50'
+                      : orderData.selectedDeliveryMethod === 'Envío a provincia'
+                      ? 'Bs. 50'
+                      : 'Bs. 60'
+                    : 'Costo determinado por DHL cuando lo recibas'}
                 </div>
               </div>
 
-              {/* Item Details */}
-              <div>
-                {/* Product Name - Link */}
-                <button
-                  className="text-left hover:underline"
+              {/* Delivery Address */}
+              <div
+                className="border-b"
+                style={{
+                  paddingBottom: '1.5rem',
+                  marginBottom: '1.5rem',
+                  borderBottom: '1px solid #e5e7eb',
+                }}
+              >
+                <div
+                  className="font-semibold"
+                  style={{
+                    fontSize: '1rem',
+                    color: '#111827',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  Dirección de entrega
+                </div>
+                <div
                   style={{
                     fontSize: '0.875rem',
-                    color: '#3b82f6',
+                    color: '#6b7280',
+                    whiteSpace: 'pre-line',
+                    lineHeight: '1.5',
+                  }}
+                >
+                  {formatDeliveryAddress()}
+                </div>
+              </div>
+
+              {/* Order Status */}
+              <div
+                style={{
+                  paddingBottom: '1.5rem',
+                  marginBottom: '2rem',
+                }}
+              >
+                <div
+                  className="font-semibold"
+                  style={{
+                    fontSize: '1.125rem',
+                    color: '#111827',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  Estado: En Proceso de Envío
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.875rem',
+                    color: '#10b981',
                     fontWeight: '500',
-                    marginBottom: '0.25rem',
-                    display: 'block',
-                    width: '100%',
                   }}
                 >
-                  {item.name}
-                </button>
-
-                {/* Quantity */}
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  Cantidad: {item.quantity}
-                </div>
-
-                {/* Color */}
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  Color: {item.color}
-                </div>
-
-                {/* Size */}
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#6b7280',
-                  }}
-                >
-                  Talla: {item.size}
+                  Tu pedido está siendo preparado para el envío
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Delivery Method */}
-        <div
-          className="border-b"
-          style={{
-            paddingBottom: '1.5rem',
-            marginBottom: '1.5rem',
-            borderBottom: '1px solid #e5e7eb',
-          }}
-        >
-          <div
-            className="font-semibold"
-            style={{
-              fontSize: '1rem',
-              color: '#111827',
-              marginBottom: '0.5rem',
-            }}
-          >
-            {orderData.selectedDeliveryMethod}
-          </div>
-          <div
-            style={{
-              fontSize: '0.875rem',
-              color: '#6b7280',
-            }}
-          >
-            {orderData.selectedCountry === 'Bolivia'
-              ? orderData.selectedDeliveryMethod === 'Envío a terminal'
-                ? 'Recibelo en 24 horas'
-                : orderData.selectedDeliveryMethod === 'Envío a domicilio'
-                ? 'Recibelo en 48 horas'
-                : orderData.selectedDeliveryMethod === 'Envío a provincia'
-                ? 'Recibelo en 72 horas'
-                : 'Recibelo lo más pronto posible hasta su domicilio'
-              : 'Tiempo determinado por DHL'}
-          </div>
-          <div
-            className="font-semibold"
-            style={{
-              fontSize: '1rem',
-              color: '#111827',
-              marginTop: '0.25rem',
-            }}
-          >
-            {orderData.selectedCountry === 'Bolivia'
-              ? orderData.selectedDeliveryMethod === 'Envío a terminal'
-                ? '27.99 €'
-                : orderData.selectedDeliveryMethod === 'Envío a domicilio'
-                ? 'Bs. 50'
-                : orderData.selectedDeliveryMethod === 'Envío a provincia'
-                ? 'Bs. 50'
-                : 'Bs. 60'
-              : 'Costo determinado por DHL cuando lo recibas'}
           </div>
         </div>
 
-        {/* Delivery Address */}
-        <div
-          className="border-b"
-          style={{
-            paddingBottom: '1.5rem',
-            marginBottom: '1.5rem',
-            borderBottom: '1px solid #e5e7eb',
-          }}
-        >
-          <div
-            className="font-semibold"
-            style={{
-              fontSize: '1rem',
-              color: '#111827',
-              marginBottom: '0.5rem',
-            }}
-          >
-            Dirección de entrega
-          </div>
-          <div
-            style={{
-              fontSize: '0.875rem',
-              color: '#6b7280',
-              whiteSpace: 'pre-line',
-              lineHeight: '1.5',
-            }}
-          >
-            {formatDeliveryAddress()}
-          </div>
-        </div>
-
-        {/* Order Status */}
-        <div
-          style={{
-            paddingBottom: '1.5rem',
-            marginBottom: '2rem',
-          }}
-        >
-          <div
-            className="font-semibold"
-            style={{
-              fontSize: '1.125rem',
-              color: '#111827',
-              marginBottom: '0.5rem',
-            }}
-          >
-            Estado: En Proceso de Envío
-          </div>
-          <div
-            style={{
-              fontSize: '0.875rem',
-              color: '#10b981',
-              fontWeight: '500',
-            }}
-          >
-            Tu pedido está siendo preparado para el envío
-          </div>
+        {/* Right Cart Summary - 20% */}
+        <div style={{ width: '20%' }}>
+          <DesktopCartSummary
+            selectedCountry={orderData.selectedCountry}
+            selectedDeliveryMethod={orderData.selectedDeliveryMethod}
+          />
         </div>
       </div>
 
-      {/* Fixed Bottom Cost Summary */}
-      <CheckoutCostSummary
-        subtotal={59.98}
-        selectedCountry={orderData.selectedCountry}
-        deliveryCost={
-          orderData.selectedDeliveryMethod === 'Envío a terminal' ? 27.99 : 0
-        }
-      />
+      {/* Mobile Layout */}
+      <div className="lg:hidden">
+        {/* Main Content */}
+        <div
+          className="flex-1 overflow-y-auto flex justify-center"
+          style={{ padding: '2rem', paddingBottom: '8rem' }}
+        >
+          <div style={{ maxWidth: '600px', width: '100%' }}>
+            {/* Order Confirmation Title */}
+            <div
+              className="text-center"
+              style={{
+                marginBottom: '1.5rem',
+              }}
+            >
+              <h2
+                className="font-bold"
+                style={{
+                  fontSize: '1.5rem',
+                  color: '#111827',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                Confirmamos tu pedido
+              </h2>
+              <div
+                className="font-medium"
+                style={{
+                  fontSize: '1.125rem',
+                  color: '#6b7280',
+                }}
+              >
+                Pedido: #{orderData.orderNumber}
+              </div>
+            </div>
+
+            {/* Cart Items - Horizontal Scrollable */}
+            <div
+              className="flex gap-4 overflow-x-auto pb-4"
+              style={{
+                marginBottom: '2rem',
+                scrollSnapType: 'x mandatory',
+              }}
+            >
+              {cartItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex-shrink-0"
+                  style={{
+                    width: '120px',
+                    scrollSnapAlign: 'start',
+                  }}
+                >
+                  {/* Item Image */}
+                  <div
+                    className="bg-gray-100 rounded-lg flex items-center justify-center"
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      marginBottom: '0.75rem',
+                    }}
+                  >
+                    <div
+                      className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center"
+                      style={{
+                        fontSize: '0.75rem',
+                        color: '#6b7280',
+                        textAlign: 'center',
+                        padding: '0.5rem',
+                      }}
+                    >
+                      {item.name}
+                    </div>
+                  </div>
+
+                  {/* Item Details */}
+                  <div>
+                    {/* Product Name - Link */}
+                    <Link
+                      href="/w/pantalón-slim-102"
+                      className="text-left hover:underline"
+                      style={{
+                        fontSize: '0.875rem',
+                        color: '#3b82f6',
+                        fontWeight: '500',
+                        marginBottom: '0.25rem',
+                        display: 'block',
+                        width: '100%',
+                      }}
+                    >
+                      {item.name}
+                    </Link>
+
+                    {/* Quantity */}
+                    <div
+                      style={{
+                        fontSize: '0.75rem',
+                        color: '#6b7280',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      Cantidad: {item.quantity}
+                    </div>
+
+                    {/* Color */}
+                    <div
+                      style={{
+                        fontSize: '0.75rem',
+                        color: '#6b7280',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      Color: {item.color}
+                    </div>
+
+                    {/* Size */}
+                    <div
+                      style={{
+                        fontSize: '0.75rem',
+                        color: '#6b7280',
+                      }}
+                    >
+                      Talla: {item.size}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Delivery Method */}
+            <div
+              className="border-b"
+              style={{
+                paddingBottom: '1.5rem',
+                marginBottom: '1.5rem',
+                borderBottom: '1px solid #e5e7eb',
+              }}
+            >
+              <div
+                className="font-semibold"
+                style={{
+                  fontSize: '1rem',
+                  color: '#111827',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                {orderData.selectedDeliveryMethod}
+              </div>
+              <div
+                style={{
+                  fontSize: '0.875rem',
+                  color: '#6b7280',
+                }}
+              >
+                {orderData.selectedCountry === 'Bolivia'
+                  ? orderData.selectedDeliveryMethod === 'Envío a terminal'
+                    ? 'Recibelo en 24 horas'
+                    : orderData.selectedDeliveryMethod === 'Envío a domicilio'
+                    ? 'Recibelo en 48 horas'
+                    : orderData.selectedDeliveryMethod === 'Envío a provincia'
+                    ? 'Recibelo en 72 horas'
+                    : 'Recibelo lo más pronto posible hasta su domicilio'
+                  : 'Tiempo determinado por DHL'}
+              </div>
+              <div
+                className="font-semibold"
+                style={{
+                  fontSize: '1rem',
+                  color: '#111827',
+                  marginTop: '0.25rem',
+                }}
+              >
+                {orderData.selectedCountry === 'Bolivia'
+                  ? orderData.selectedDeliveryMethod === 'Envío a terminal'
+                    ? '27.99 €'
+                    : orderData.selectedDeliveryMethod === 'Envío a domicilio'
+                    ? 'Bs. 50'
+                    : orderData.selectedDeliveryMethod === 'Envío a provincia'
+                    ? 'Bs. 50'
+                    : 'Bs. 60'
+                  : 'Costo determinado por DHL cuando lo recibas'}
+              </div>
+            </div>
+
+            {/* Delivery Address */}
+            <div
+              className="border-b"
+              style={{
+                paddingBottom: '1.5rem',
+                marginBottom: '1.5rem',
+                borderBottom: '1px solid #e5e7eb',
+              }}
+            >
+              <div
+                className="font-semibold"
+                style={{
+                  fontSize: '1rem',
+                  color: '#111827',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                Dirección de entrega
+              </div>
+              <div
+                style={{
+                  fontSize: '0.875rem',
+                  color: '#6b7280',
+                  whiteSpace: 'pre-line',
+                  lineHeight: '1.5',
+                }}
+              >
+                {formatDeliveryAddress()}
+              </div>
+            </div>
+
+            {/* Order Status */}
+            <div
+              style={{
+                paddingBottom: '1.5rem',
+                marginBottom: '2rem',
+              }}
+            >
+              <div
+                className="font-semibold"
+                style={{
+                  fontSize: '1.125rem',
+                  color: '#111827',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                Estado: En Proceso de Envío
+              </div>
+              <div
+                style={{
+                  fontSize: '0.875rem',
+                  color: '#10b981',
+                  fontWeight: '500',
+                }}
+              >
+                Tu pedido está siendo preparado para el envío
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Bottom Cost Summary for Mobile */}
+        <CheckoutCostSummary
+          subtotal={59.98}
+          selectedCountry={orderData.selectedCountry}
+          deliveryCost={
+            orderData.selectedDeliveryMethod === 'Envío a terminal' ? 27.99 : 0
+          }
+        />
+      </div>
     </div>
   );
 };
