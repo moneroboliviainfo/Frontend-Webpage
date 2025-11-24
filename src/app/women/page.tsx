@@ -10,7 +10,7 @@ export default function WomenPage() {
   return (
     <>
       <NavBar />
-      <PageContainer />
+      <PageContainer gender="women" />
       <Footer />
     </>
   );

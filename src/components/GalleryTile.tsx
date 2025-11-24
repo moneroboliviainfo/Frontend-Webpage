@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { FiArrowRight } from 'react-icons/fi';
 
 type Props = {
@@ -12,6 +13,9 @@ type Props = {
   height?: string;
   width?: string;
   fontSize?: string;
+  // navigation
+  href?: string;
+  onClick?: () => void;
 };
 
 const GalleryTile: React.FC<Props> = ({
@@ -23,12 +27,14 @@ const GalleryTile: React.FC<Props> = ({
   height,
   width,
   fontSize,
+  href,
+  onClick,
 }) => {
   const calcHeight = height ?? (isMobile ? '37vh' : '56vh');
   const calcWidth = width ?? (isMobile ? '49.5vw' : '27vw');
   const calcFont = fontSize ?? (isMobile ? '4.5vw' : '2vh');
 
-  return (
+  const content = (
     <div
       className="relative overflow-hidden"
       style={{
@@ -38,6 +44,7 @@ const GalleryTile: React.FC<Props> = ({
         marginRight: isMobile && idx % 2 === 1 ? 0 : undefined,
         cursor: 'pointer',
       }}
+      onClick={onClick}
     >
       <Image
         src={src}
@@ -80,6 +87,14 @@ const GalleryTile: React.FC<Props> = ({
       </div>
     </div>
   );
+
+  // If href is provided, wrap with Link
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+
+  // Otherwise return the content as-is
+  return content;
 };
 
 export default GalleryTile;

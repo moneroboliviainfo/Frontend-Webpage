@@ -1,16 +1,18 @@
+export const metadata = {
+  title: 'Hombres | Monero',
+  description: 'Descubre la colección para hombres en Monero.',
+};
+
 import NavBar from '@/components/nav/NavBar';
-import styles from './men.module.css';
+import PageContainer from '../PageContainer';
+import Footer from '@/components/Footer';
 
 export default function MenPage() {
   return (
-    <div className="relative min-h-screen bg-black">
+    <>
       <NavBar />
-      <div
-        className="w-full"
-        style={{ height: '80vh', background: 'var(--color-secondary)' }}
-      >
-        {/* Slider will go here */}
-      </div>
-    </div>
+      <PageContainer gender="men" />
+      <Footer />
+    </>
   );
 }

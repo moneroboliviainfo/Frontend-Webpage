@@ -42,9 +42,16 @@ const galleryImages = [
   { src: '/images/ver-slide-2.png', label: 'Outfit 3' },
 ];
 
-const PageContainer: React.FC = () => {
+type PageContainerProps = {
+  gender?: string;
+};
+
+const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   // Responsive: use vertical slides for mobile, horizontal for desktop
   const isMobile = useIsMobile();
+
+  // Determine the outfits URL based on gender
+  const outfitsUrl = `/w/outfits/${gender}`;
 
   return (
     <React.Fragment>
@@ -105,6 +112,7 @@ const PageContainer: React.FC = () => {
               label="Ver todos"
               isMobile={isMobile}
               priority={false}
+              href={outfitsUrl}
             />
           </div>
         </div>
