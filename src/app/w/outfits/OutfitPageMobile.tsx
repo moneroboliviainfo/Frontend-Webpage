@@ -1,13 +1,19 @@
 'use client';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BottomSheet from '@/components/BottomSheet/BottomSheet';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 type OutfitDetails = {
   multimedia: Array<{ image: string; label: string }>;
   outfitId: number;
   name: string;
-  items: Array<{ name: string; price: number }>;
+  items: Array<{
+    name: string;
+    price: number;
+    sizes?: Array<{ size: string; availability: number }>;
+  }>;
   totalPrice: number;
   description: string;
   slug?: string;
@@ -20,6 +26,277 @@ type Props = {
   onOutfitChange?: (index: number) => void; // Callback when outfit changes
 };
 
+// OutfitItemsCarousel component
+type OutfitItemsCarouselProps = {
+  items: Array<{
+    name: string;
+    price: number;
+    sizes?: Array<{ size: string; availability: number }>;
+  }>;
+  showSizePopup: number | null;
+  setShowSizePopup: (value: number | null) => void;
+};
+
+const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
+  items,
+  showSizePopup,
+  setShowSizePopup,
+}) => {
+  const router = useRouter();
+  const slideWidth = '34vw';
+  const slideHeight = '50vw';
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [sizeSelected, setSizeSelected] = useState<{
+    [key: number]: boolean;
+  }>({});
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    const x = e.touches[0].pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  return (
+    <div className="w-full relative">
+      <div
+        ref={containerRef}
+        className="w-full overflow-x-auto overflow-y-hidden"
+        style={{
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+          cursor: isDragging ? 'grabbing' : 'grab',
+          userSelect: 'none',
+        }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <ul
+          className="flex gap-2"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            minWidth: 'fit-content',
+            paddingTop: '0.25rem',
+          }}
+        >
+          {items.map((item, idx) => (
+            <li
+              key={idx}
+              className="flex flex-col"
+              style={{ width: slideWidth, cursor: 'pointer' }}
+              onClick={() => {
+                // Navigate to product page with a generated product ID
+                const productId = 101 + idx; // Generate product ID based on index
+                router.push(`/w/${productId}`);
+              }}
+            >
+              <div
+                style={{ width: slideWidth, height: slideHeight }}
+                className="relative overflow-hidden rounded-lg"
+              >
+                <Image
+                  src={`/clothes/clothe-${(idx % 4) + 1}.png`}
+                  alt={item.name}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="35vw"
+                />
+              </div>
+              <div style={{ paddingLeft: 4, paddingRight: 4 }}>
+                <div
+                  className="text-sm"
+                  style={{
+                    color: '#000',
+                    opacity: 0.95,
+                    marginTop: '0.25rem',
+                    paddingLeft: '0.25rem',
+                    fontWeight: '500',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {item.name}
+                </div>
+                <div
+                  className="text-base font-bold"
+                  style={{
+                    marginTop: 2,
+                    paddingLeft: '0.25rem',
+                    color: '#000',
+                  }}
+                >
+                  Bs. {item.price}
+                </div>
+              </div>
+
+              {/* Size selector - similar to product page */}
+              {item.sizes && item.sizes.length > 0 && (
+                <div
+                  className="flex items-center justify-center"
+                  style={{ paddingLeft: '0.3rem', paddingRight: '0.3rem' }}
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowSizePopup(idx);
+                    }}
+                    disabled={sizeSelected[idx]}
+                    className="px-3 py-1 text-xs font-medium w-100"
+                    style={{
+                      backgroundColor: sizeSelected[idx] ? '#6B7280' : '#000',
+                      color: '#fff',
+                      borderRadius: 4,
+                      border: 'none',
+                      cursor: sizeSelected[idx] ? 'default' : 'pointer',
+                      opacity: sizeSelected[idx] ? 0.7 : 1,
+                      padding: '0.25rem 0.5rem',
+                    }}
+                  >
+                    {sizeSelected[idx] ? 'En Carrito' : 'Talla'}
+                  </button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Size Selection Popup */}
+      {showSizePopup !== null && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onClick={() => setShowSizePopup(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 8,
+              padding: '20px',
+              maxWidth: '300px',
+              width: '80vw',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                margin: '0 0 16px 0',
+                fontSize: '18px',
+                fontWeight: '600',
+                textAlign: 'center',
+              }}
+            >
+              Selecciona tu talla
+            </h3>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '8px',
+              }}
+            >
+              {items[showSizePopup]?.sizes?.map((sizeObj) => {
+                const isAvailable = sizeObj.availability > 0;
+                return (
+                  <button
+                    key={sizeObj.size}
+                    onClick={() => {
+                      if (isAvailable) {
+                        setSizeSelected((prev) => ({
+                          ...prev,
+                          [showSizePopup]: true,
+                        }));
+                        setShowSizePopup(null);
+                      }
+                    }}
+                    disabled={!isAvailable}
+                    style={{
+                      padding: '12px',
+                      border: `1px solid ${
+                        isAvailable ? '#e5e7eb' : '#d1d5db'
+                      }`,
+                      borderRadius: 4,
+                      backgroundColor: isAvailable ? '#fff' : '#f3f4f6',
+                      color: isAvailable ? '#000' : '#9ca3af',
+                      cursor: isAvailable ? 'pointer' : 'not-allowed',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      opacity: isAvailable ? 1 : 0.6,
+                    }}
+                  >
+                    {sizeObj.size}
+                    {isAvailable && (
+                      <div
+                        style={{
+                          fontSize: '10px',
+                          color: '#6B7280',
+                          marginTop: '2px',
+                        }}
+                      >
+                        Disponible: {sizeObj.availability}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 const OutfitPageMobile: React.FC<Props> = ({
   outfitDetails,
   allOutfits = [outfitDetails],
@@ -31,6 +308,14 @@ const OutfitPageMobile: React.FC<Props> = ({
     collapse: () => void;
   } | null>(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [showSizePopup, setShowSizePopup] = useState<number | null>(null);
+
+  // Auto-close size popup when bottom sheet collapses
+  useEffect(() => {
+    if (!sheetExpanded && showSizePopup !== null) {
+      setShowSizePopup(null);
+    }
+  }, [sheetExpanded, showSizePopup]);
 
   // Swipe detection states (same as ProductPageMobile)
   const [startX, setStartX] = useState<number | null>(null);
@@ -188,7 +473,7 @@ const OutfitPageMobile: React.FC<Props> = ({
       <BottomSheet
         ref={bottomSheetRef}
         initialHeightVh={21}
-        expandedHeightVh={40}
+        expandedHeightVh={55}
         onExpandedChange={(expanded) => {
           setSheetExpanded(expanded);
           const el = document.getElementById('outfit-slider-container');
@@ -202,28 +487,77 @@ const OutfitPageMobile: React.FC<Props> = ({
         <div
           className="w-full"
           style={{
-            height: sheetExpanded ? '31vh' : '20vh',
+            height: sheetExpanded ? '38vh' : '20vh',
             paddingTop: '0.1rem',
             paddingLeft: '0.7rem',
             paddingRight: '0.7rem',
             background: 'white',
           }}
         >
-          {/* Different content for outfits - blank for now */}
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-lg font-semibold mb-2">
-                {outfitDetails.name}
-              </h2>
-              <p className="text-gray-500 text-sm mb-4">
-                Outfit content coming soon...
-              </p>
-              <div className="text-xs text-gray-400">
-                <p>Outfit ID: {outfitDetails.outfitId}</p>
-                <p>Items: {outfitDetails.items.length}</p>
-                <p>Total: Bs. {outfitDetails.totalPrice}</p>
+          {/* First row: outfit name left, number of clothes right */}
+          <div className="flex justify-between items-center">
+            <h2
+              className="font-semibold"
+              style={{
+                fontSize: '1rem',
+                maxWidth: '50%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                color: '#000',
+              }}
+            >
+              {outfitDetails.name}
+            </h2>
+            <div
+              className="flex items-center cursor-pointer"
+              onClick={() => {
+                if (sheetExpanded) {
+                  bottomSheetRef.current?.collapse();
+                } else {
+                  bottomSheetRef.current?.expand();
+                }
+              }}
+            >
+              <div
+                className="font-bold"
+                style={{
+                  fontSize: '0.9rem',
+                  color: '#000',
+                }}
+              >
+                {outfitDetails.items.length}{' '}
+                {outfitDetails.items.length === 1 ? 'prenda' : 'prendas'}
               </div>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                style={{
+                  marginLeft: '0.25rem',
+                  transform: sheetExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
+                  transition: 'transform 200ms ease',
+                }}
+              >
+                <path
+                  d="M7 10l5 5 5-5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </div>
+          </div>
+
+          {/* Carousel section - always visible */}
+          <div style={{ marginTop: '1rem' }}>
+            <OutfitItemsCarousel
+              items={outfitDetails.items}
+              showSizePopup={showSizePopup}
+              setShowSizePopup={setShowSizePopup}
+            />
           </div>
         </div>
       </BottomSheet>

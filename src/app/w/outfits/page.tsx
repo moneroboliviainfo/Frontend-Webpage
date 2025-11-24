@@ -14,9 +14,36 @@ const outfitDetails = {
   outfitId: 101,
   name: 'Outfit Casual Elegante',
   items: [
-    { name: 'Chaqueta Derby', price: 129 },
-    { name: 'Blusa Elegante', price: 89 },
-    { name: 'Pantalón Slim', price: 79 },
+    {
+      name: 'Chaqueta Derby',
+      price: 129,
+      sizes: [
+        { size: 'S', availability: 3 },
+        { size: 'M', availability: 1 },
+        { size: 'L', availability: 0 },
+        { size: 'XL', availability: 2 },
+      ],
+    },
+    {
+      name: 'Blusa Elegante',
+      price: 89,
+      sizes: [
+        { size: 'XS', availability: 2 },
+        { size: 'S', availability: 4 },
+        { size: 'M', availability: 0 },
+        { size: 'L', availability: 1 },
+      ],
+    },
+    {
+      name: 'Pantalón Slim',
+      price: 79,
+      sizes: [
+        { size: '28', availability: 1 },
+        { size: '30', availability: 3 },
+        { size: '32', availability: 0 },
+        { size: '34', availability: 2 },
+      ],
+    },
   ],
   totalPrice: 297,
   description: 'Combina elegancia y comodidad para cualquier ocasión',
@@ -34,8 +61,27 @@ const allOutfitsData = [
     outfitId: 102,
     name: 'Outfit Deportivo',
     items: [
-      { name: 'Sudadera Oversize', price: 99 },
-      { name: 'Joggers Premium', price: 69 },
+      {
+        name: 'Sudadera Oversize',
+        price: 99,
+        sizes: [
+          { size: 'S', availability: 2 },
+          { size: 'M', availability: 0 },
+          { size: 'L', availability: 4 },
+          { size: 'XL', availability: 3 },
+          { size: 'XXL', availability: 1 },
+        ],
+      },
+      {
+        name: 'Joggers Premium',
+        price: 69,
+        sizes: [
+          { size: 'XS', availability: 1 },
+          { size: 'S', availability: 2 },
+          { size: 'M', availability: 0 },
+          { size: 'L', availability: 3 },
+        ],
+      },
     ],
     totalPrice: 168,
     description: 'Perfecto para un look casual y cómodo',
@@ -50,9 +96,36 @@ const allOutfitsData = [
     outfitId: 103,
     name: 'Outfit Formal',
     items: [
-      { name: 'Blazer Clásico', price: 189 },
-      { name: 'Camisa Formal', price: 79 },
-      { name: 'Pantalón de Vestir', price: 129 },
+      {
+        name: 'Blazer Clásico',
+        price: 189,
+        sizes: [
+          { size: 'S', availability: 1 },
+          { size: 'M', availability: 2 },
+          { size: 'L', availability: 0 },
+          { size: 'XL', availability: 3 },
+        ],
+      },
+      {
+        name: 'Camisa Formal',
+        price: 79,
+        sizes: [
+          { size: '38', availability: 2 },
+          { size: '40', availability: 0 },
+          { size: '42', availability: 1 },
+          { size: '44', availability: 4 },
+        ],
+      },
+      {
+        name: 'Pantalón de Vestir',
+        price: 129,
+        sizes: [
+          { size: '30', availability: 3 },
+          { size: '32', availability: 2 },
+          { size: '34', availability: 0 },
+          { size: '36', availability: 1 },
+        ],
+      },
     ],
     totalPrice: 397,
     description: 'Ideal para ocasiones especiales y eventos formales',
