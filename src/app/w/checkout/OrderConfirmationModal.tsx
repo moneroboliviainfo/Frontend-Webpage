@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import OrderReviewSection from './OrderReviewSection';
 
 interface OrderConfirmationModalProps {
   isOpen: boolean;
@@ -48,14 +49,6 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
       name: 'Black Pants',
     },
   ];
-
-  const formatDeliveryAddress = () => {
-    if (selectedCountry === 'Bolivia') {
-      return `${formData.name}, ${formData.departamento}\n${formData.cityProvince}\n${formData.detailedAddress}\n${formData.phone}\nBolivia`;
-    } else {
-      return `${formData.name}, ${formData.city}\n${formData.streetNumber}\n${formData.postalCode}\n${formData.phone}\n${formData.country}`;
-    }
-  };
 
   const handlePayOrder = () => {
     if (hasAcceptedTerms) {
@@ -202,81 +195,15 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           ))}
         </div>
 
-        {/* Delivery Method */}
-        <div
-          className="border-b"
-          style={{
-            paddingBottom: '1.5rem',
-            marginBottom: '1.5rem',
-            borderBottom: '1px solid #e5e7eb',
-          }}
-        >
-          <div
-            className="font-semibold"
-            style={{
-              fontSize: '1rem',
-              color: '#111827',
-              marginBottom: '0.5rem',
-            }}
-          >
-            {selectedDeliveryMethod}
-          </div>
-          <div
-            style={{
-              fontSize: '0.875rem',
-              color: '#6b7280',
-            }}
-          >
-            {selectedCountry === 'Bolivia'
-              ? selectedDeliveryMethod === 'Envío a terminal'
-                ? 'Recibelo en 24 horas'
-                : selectedDeliveryMethod === 'Envío a domicilio'
-                ? 'Recibelo en 48 horas'
-                : selectedDeliveryMethod === 'Envío a provincia'
-                ? 'Recibelo en 72 horas'
-                : 'Recibelo lo más pronto posible hasta su domicilio'
-              : 'Tiempo determinado por DHL'}
-          </div>
-          <div
-            className="font-semibold"
-            style={{
-              fontSize: '1rem',
-              color: '#111827',
-              marginTop: '0.25rem',
-            }}
-          >
-            {selectedCountry === 'Bolivia'
-              ? selectedDeliveryMethod === 'Envío a terminal'
-                ? '27.99 €'
-                : selectedDeliveryMethod === 'Envío a domicilio'
-                ? 'Bs. 50'
-                : selectedDeliveryMethod === 'Envío a provincia'
-                ? 'Bs. 50'
-                : 'Bs. 60'
-              : 'Costo determinado por DHL cuando lo recibas'}
-          </div>
-        </div>
-
-        {/* Delivery Address */}
-        <div
-          className="border-b"
-          style={{
-            paddingBottom: '1.5rem',
-            marginBottom: '1.5rem',
-            borderBottom: '1px solid #e5e7eb',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '0.875rem',
-              color: '#6b7280',
-              whiteSpace: 'pre-line',
-              lineHeight: '1.5',
-            }}
-          >
-            {formatDeliveryAddress()}
-          </div>
-        </div>
+        {/* Order Review Section - Delivery Method and Address */}
+        <OrderReviewSection
+          selectedDeliveryMethod={selectedDeliveryMethod}
+          selectedCountry={selectedCountry}
+          formData={formData}
+          showConfirmButton={false}
+          showBackButton={false}
+          showSectionTitles={false}
+        />
 
         {/* Payment Method */}
         <div

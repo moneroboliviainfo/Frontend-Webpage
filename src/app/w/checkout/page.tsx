@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CheckoutCostSummary from './CheckoutCostSummary';
 import OrderConfirmationModal from './OrderConfirmationModal';
+import DesktopCartSummary from './DesktopCartSummary';
+import OrderReviewSection from './OrderReviewSection';
+import { DeliveryOptionsSection } from './DeliveryOptionsSection';
 
 // Types for country data
 interface Country {
@@ -50,6 +53,15 @@ const CheckoutPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1); // 1: Detalles, 2: Método de envío, 3: Pago
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+
+  // Step labels - shared between mobile and desktop
+  const stepLabels = {
+    1: 'Detalles del destinatario',
+    2: 'Método de envío',
+    3: 'Pago',
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -227,7 +239,8 @@ const CheckoutPage: React.FC = () => {
 
   const handleContinue = () => {
     if (validateForm()) {
-      // Form is valid, show delivery modal
+      // Form is valid, show delivery modal and update step
+      setCurrentStep(2);
       setShowDeliveryModal(true);
     } else {
       // Scroll to first error
@@ -241,281 +254,799 @@ const CheckoutPage: React.FC = () => {
   const handleDeliveryOptionSelect = (deliveryOption: string) => {
     setSelectedDeliveryMethod(deliveryOption);
     setShowDeliveryModal(false);
+    setCurrentStep(3); // Move to payment step
     setShowOrderConfirmationModal(true);
   };
 
   const handleBackToDelivery = () => {
     setShowOrderConfirmationModal(false);
+    setCurrentStep(2); // Back to delivery step
     setShowDeliveryModal(true);
   };
 
   return (
-    <div
-      className="min-h-screen bg-white"
-      style={{
-        paddingTop: 'var(--nav-height, 60px)',
-      }}
-    >
-      {/* Top Bar */}
-      <div
-        className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-40"
-        style={{
-          height: 'var(--nav-height, 60px)',
-          borderBottom: '1px solid #e5e7eb',
-          padding: '0 1rem',
-        }}
-      >
-        {/* Back Arrow */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+    <div className="min-h-screen bg-white">
+      {/* Store Navbar for Desktop */}
+      <div className="hidden lg:block bg-white">
+        <nav
+          className="w-full flex items-center justify-between"
           style={{
-            width: '40px',
-            height: '40px',
-            marginRight: '1rem',
+            padding: '0.6rem 1rem',
           }}
         >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-
-        {/* Title */}
-        <h1
-          className="font-semibold text-center flex-1"
-          style={{ fontSize: '1.1rem' }}
-        >
-          Información de envío
-        </h1>
-
-        {/* Empty space for balance (no X button) */}
-        <div style={{ width: '40px' }}></div>
+          <div className="flex items-center gap-4">
+            <span className="text-xl md:text-3xl font-extrabold tracking-widest select-none text-black">
+              MONERO
+            </span>
+          </div>
+        </nav>
+        {/* Full width black line */}
+        <div
+          className="w-full"
+          style={{ backgroundColor: 'black', padding: '0.5px' }}
+        ></div>
       </div>
 
-      {/* Form Content */}
-      <div style={{ padding: '2rem' }}>
-        {/* Recipient Details Section */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h2
-            className="font-semibold"
-            style={{
-              fontSize: '1rem',
-              marginBottom: '1.5rem',
-              color: '#374151',
-            }}
-          >
-            Detalles del destinatario
-          </h2>
+      {/* Desktop Layout */}
+      <div
+        className="hidden lg:flex"
+        style={{ minHeight: 'calc(100vh - 60px)' }}
+      >
+        {/* Left Content Area - 80% */}
+        <div className="flex-1" style={{ width: '80%' }}>
+          {/* Centered Content */}
+          <div className="flex justify-center" style={{ padding: '2rem' }}>
+            <div style={{ maxWidth: '600px', width: '100%' }}>
+              {/* Desktop Step Indicator */}
+              <div style={{ marginBottom: '2rem' }}>
+                <div className="flex items-center" style={{ gap: '1rem' }}>
+                  {/* Step 1: Detalles del destinatario */}
+                  <div className="flex items-center">
+                    <span
+                      style={{
+                        color: currentStep >= 1 ? '#000' : '#9ca3af',
+                        fontSize: '0.875rem',
+                        fontWeight: currentStep === 1 ? '600' : '400',
+                      }}
+                    >
+                      {stepLabels[1]}
+                    </span>
+                  </div>
 
-          {/* Name Input */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label
-              className="block font-medium"
-              style={{
-                fontSize: '0.9rem',
-                marginBottom: '0.5rem',
-                color: '#374151',
-              }}
-            >
-              Nombre completo
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.name ? 'error-field border-red-500' : ''
-              }`}
-              style={{
-                padding: '0.75rem',
-                border: errors.name ? '1px solid #ef4444' : '1px solid #d1d5db',
-                fontSize: '1rem',
-              }}
-              placeholder="Ingresa tu nombre completo"
-            />
-            {errors.name && (
-              <p
-                style={{
-                  color: '#ef4444',
-                  fontSize: '0.875rem',
-                  marginTop: '0.25rem',
-                }}
-              >
-                {errors.name}
-              </p>
-            )}
-          </div>
+                  {/* Arrow */}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    style={{ color: '#9ca3af' }}
+                  >
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
 
-          {/* Email Input */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label
-              className="block font-medium"
-              style={{
-                fontSize: '0.9rem',
-                marginBottom: '0.5rem',
-                color: '#374151',
-              }}
-            >
-              Correo electrónico
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.email ? 'error-field border-red-500' : ''
-              }`}
-              style={{
-                padding: '0.75rem',
-                border: errors.email
-                  ? '1px solid #ef4444'
-                  : '1px solid #d1d5db',
-                fontSize: '1rem',
-              }}
-              placeholder="ejemplo@correo.com"
-            />
-            {errors.email && (
-              <p
-                style={{
-                  color: '#ef4444',
-                  fontSize: '0.875rem',
-                  marginTop: '0.25rem',
-                }}
-              >
-                {errors.email}
-              </p>
-            )}
-          </div>
+                  {/* Step 2: Método de envío */}
+                  <div className="flex items-center">
+                    <span
+                      style={{
+                        color: currentStep >= 2 ? '#000' : '#9ca3af',
+                        fontSize: '0.875rem',
+                        fontWeight: currentStep === 2 ? '600' : '400',
+                      }}
+                    >
+                      {stepLabels[2]}
+                    </span>
+                  </div>
 
-          {/* Phone Number Input with Country Code */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label
-              className="block font-medium"
-              style={{
-                fontSize: '0.9rem',
-                marginBottom: '0.5rem',
-                color: '#374151',
-              }}
-            >
-              Número de teléfono
-            </label>
-            <div className="flex" style={{ gap: '0.5rem' }}>
-              {/* Country Code Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setModalType('countryCode');
-                  setShowCountryCodeModal(true);
-                }}
-                className="border rounded-lg flex items-center justify-center hover:bg-gray-50"
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  minWidth: '80px',
-                  fontSize: '1rem',
-                }}
-              >
-                {formData.countryCode}
-              </button>
+                  {/* Arrow */}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    style={{ color: '#9ca3af' }}
+                  >
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
 
-              {/* Phone Input */}
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                className={`flex-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.phone ? 'error-field border-red-500' : ''
-                }`}
-                style={{
-                  padding: '0.75rem',
-                  border: errors.phone
-                    ? '1px solid #ef4444'
-                    : '1px solid #d1d5db',
-                  fontSize: '1rem',
-                }}
-                placeholder="70000000"
-              />
+                  {/* Step 3: Pago */}
+                  <div className="flex items-center">
+                    <span
+                      style={{
+                        color: currentStep >= 3 ? '#000' : '#9ca3af',
+                        fontSize: '0.875rem',
+                        fontWeight: currentStep === 3 ? '600' : '400',
+                      }}
+                    >
+                      {stepLabels[3]}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dynamic Content Based on Current Step */}
+              {currentStep === 1 && (
+                <>
+                  {/* Recipient Details Section */}
+                  <div style={{ marginBottom: '2rem' }}>
+                    <h2
+                      className="font-semibold"
+                      style={{
+                        fontSize: '1.5rem',
+                        marginBottom: '1.5rem',
+                        color: '#374151',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      Llena los datos del destinatario
+                    </h2>
+                    {/* Name Input */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label
+                        className="block font-medium"
+                        style={{
+                          fontSize: '0.9rem',
+                          marginBottom: '0.5rem',
+                          color: '#374151',
+                        }}
+                      >
+                        Nombre completo
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.name ? 'error-field border-red-500' : ''
+                        }`}
+                        style={{
+                          padding: '0.75rem',
+                          border: errors.name
+                            ? '1px solid #ef4444'
+                            : '1px solid #d1d5db',
+                          fontSize: '1rem',
+                        }}
+                        placeholder="Ingresa tu nombre completo"
+                      />
+                      {errors.name && (
+                        <p
+                          style={{
+                            color: '#ef4444',
+                            fontSize: '0.875rem',
+                            marginTop: '0.25rem',
+                          }}
+                        >
+                          {errors.name}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Email Input */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label
+                        className="block font-medium"
+                        style={{
+                          fontSize: '0.9rem',
+                          marginBottom: '0.5rem',
+                          color: '#374151',
+                        }}
+                      >
+                        Correo electrónico
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.email ? 'error-field border-red-500' : ''
+                        }`}
+                        style={{
+                          padding: '0.75rem',
+                          border: errors.email
+                            ? '1px solid #ef4444'
+                            : '1px solid #d1d5db',
+                          fontSize: '1rem',
+                        }}
+                        placeholder="ejemplo@correo.com"
+                      />
+                      {errors.email && (
+                        <p
+                          style={{
+                            color: '#ef4444',
+                            fontSize: '0.875rem',
+                            marginTop: '0.25rem',
+                          }}
+                        >
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Phone Number Input with Country Code */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label
+                        className="block font-medium"
+                        style={{
+                          fontSize: '0.9rem',
+                          marginBottom: '0.5rem',
+                          color: '#374151',
+                        }}
+                      >
+                        Número de teléfono
+                      </label>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {/* Country Code Selector */}
+                        <button
+                          onClick={() => {
+                            setModalType('countryCode');
+                            setShowCountryCodeModal(true);
+                          }}
+                          className="border rounded-lg flex items-center justify-center"
+                          style={{
+                            padding: '0.75rem',
+                            minWidth: '80px',
+                            border: '1px solid #d1d5db',
+                            fontSize: '1rem',
+                            backgroundColor: 'white',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {formData.countryCode}
+                        </button>
+
+                        {/* Phone Number Input */}
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className={`flex-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            errors.phone ? 'error-field border-red-500' : ''
+                          }`}
+                          style={{
+                            padding: '0.75rem',
+                            border: errors.phone
+                              ? '1px solid #ef4444'
+                              : '1px solid #d1d5db',
+                            fontSize: '1rem',
+                          }}
+                          placeholder="70000000"
+                        />
+                      </div>
+                      {errors.phone && (
+                        <p
+                          style={{
+                            color: '#ef4444',
+                            fontSize: '0.875rem',
+                            marginTop: '0.25rem',
+                          }}
+                        >
+                          {errors.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Shipping Address Section */}
+                  <div style={{ marginBottom: '2rem' }}>
+                    <h2
+                      className="font-semibold"
+                      style={{
+                        fontSize: '1rem',
+                        marginBottom: '1.5rem',
+                        color: '#374151',
+                      }}
+                    >
+                      Dirección de entrega
+                    </h2>
+
+                    {/* Country Selection */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label
+                        className="block font-medium"
+                        style={{
+                          fontSize: '0.9rem',
+                          marginBottom: '0.5rem',
+                          color: '#374151',
+                        }}
+                      >
+                        País
+                      </label>
+                      <button
+                        onClick={() => {
+                          setModalType('country');
+                          setShowCountryCodeModal(true);
+                        }}
+                        className="w-full border rounded-lg flex items-center justify-between"
+                        style={{
+                          padding: '0.75rem',
+                          border: '1px solid #d1d5db',
+                          fontSize: '1rem',
+                          backgroundColor: 'white',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <span>{selectedCountry}</span>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          style={{ color: '#6b7280' }}
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Conditional Fields Based on Selected Country */}
+                    {selectedCountry === 'Bolivia' ? (
+                      <>
+                        {/* Department Selection for Bolivia */}
+                        <div style={{ marginBottom: '1rem' }}>
+                          <label
+                            className="block font-medium"
+                            style={{
+                              fontSize: '0.9rem',
+                              marginBottom: '0.5rem',
+                              color: '#374151',
+                            }}
+                          >
+                            Departamento
+                          </label>
+                          <select
+                            name="departamento"
+                            value={formData.departamento}
+                            onChange={handleInputChange}
+                            className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              errors.departamento
+                                ? 'error-field border-red-500'
+                                : ''
+                            }`}
+                            style={{
+                              padding: '0.75rem',
+                              border: errors.departamento
+                                ? '1px solid #ef4444'
+                                : '1px solid #d1d5db',
+                              fontSize: '1rem',
+                            }}
+                          >
+                            <option value="">Selecciona un departamento</option>
+                            <option value="La Paz">La Paz</option>
+                            <option value="Cochabamba">Cochabamba</option>
+                            <option value="Santa Cruz">Santa Cruz</option>
+                            <option value="Oruro">Oruro</option>
+                            <option value="Potosí">Potosí</option>
+                            <option value="Tarija">Tarija</option>
+                            <option value="Sucre">Sucre</option>
+                            <option value="Beni">Beni</option>
+                            <option value="Pando">Pando</option>
+                          </select>
+                          {errors.departamento && (
+                            <p
+                              style={{
+                                color: '#ef4444',
+                                fontSize: '0.875rem',
+                                marginTop: '0.25rem',
+                              }}
+                            >
+                              {errors.departamento}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* City/Province for Bolivia */}
+                        <div style={{ marginBottom: '1rem' }}>
+                          <label
+                            className="block font-medium"
+                            style={{
+                              fontSize: '0.9rem',
+                              marginBottom: '0.5rem',
+                              color: '#374151',
+                            }}
+                          >
+                            Ciudad / Provincia
+                          </label>
+                          <input
+                            type="text"
+                            name="cityProvince"
+                            value={formData.cityProvince}
+                            onChange={handleInputChange}
+                            className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              errors.cityProvince
+                                ? 'error-field border-red-500'
+                                : ''
+                            }`}
+                            style={{
+                              padding: '0.75rem',
+                              border: errors.cityProvince
+                                ? '1px solid #ef4444'
+                                : '1px solid #d1d5db',
+                              fontSize: '1rem',
+                            }}
+                            placeholder="Ej. Santa Cruz, La Paz, Cochabamba"
+                          />
+                          {errors.cityProvince && (
+                            <p
+                              style={{
+                                color: '#ef4444',
+                                fontSize: '0.875rem',
+                                marginTop: '0.25rem',
+                              }}
+                            >
+                              {errors.cityProvince}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Detailed Address for Bolivia */}
+                        <div style={{ marginBottom: '1rem' }}>
+                          <label
+                            className="block font-medium"
+                            style={{
+                              fontSize: '0.9rem',
+                              marginBottom: '0.5rem',
+                              color: '#374151',
+                            }}
+                          >
+                            Dirección detallada
+                          </label>
+                          <textarea
+                            name="detailedAddress"
+                            value={formData.detailedAddress}
+                            onChange={handleInputChange}
+                            rows={3}
+                            className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${
+                              errors.detailedAddress
+                                ? 'error-field border-red-500'
+                                : ''
+                            }`}
+                            style={{
+                              padding: '0.75rem',
+                              border: errors.detailedAddress
+                                ? '1px solid #ef4444'
+                                : '1px solid #d1d5db',
+                              fontSize: '1rem',
+                            }}
+                            placeholder="Calle, número, barrio, referencias adicionales..."
+                          />
+                          {errors.detailedAddress && (
+                            <p
+                              style={{
+                                color: '#ef4444',
+                                fontSize: '0.875rem',
+                                marginTop: '0.25rem',
+                              }}
+                            >
+                              {errors.detailedAddress}
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* City for Other Countries */}
+                        <div style={{ marginBottom: '1rem' }}>
+                          <label
+                            className="block font-medium"
+                            style={{
+                              fontSize: '0.9rem',
+                              marginBottom: '0.5rem',
+                              color: '#374151',
+                            }}
+                          >
+                            Ciudad
+                          </label>
+                          <input
+                            type="text"
+                            name="city"
+                            value={formData.city}
+                            onChange={handleInputChange}
+                            className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              errors.city ? 'error-field border-red-500' : ''
+                            }`}
+                            style={{
+                              padding: '0.75rem',
+                              border: errors.city
+                                ? '1px solid #ef4444'
+                                : '1px solid #d1d5db',
+                              fontSize: '1rem',
+                            }}
+                            placeholder="Ingresa tu ciudad"
+                          />
+                          {errors.city && (
+                            <p
+                              style={{
+                                color: '#ef4444',
+                                fontSize: '0.875rem',
+                                marginTop: '0.25rem',
+                              }}
+                            >
+                              {errors.city}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Street Number and Postal Code */}
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '1rem',
+                            marginBottom: '1rem',
+                          }}
+                        >
+                          <div>
+                            <label
+                              className="block font-medium"
+                              style={{
+                                fontSize: '0.9rem',
+                                marginBottom: '0.5rem',
+                                color: '#374151',
+                              }}
+                            >
+                              Número de calle
+                            </label>
+                            <input
+                              type="text"
+                              name="streetNumber"
+                              value={formData.streetNumber}
+                              onChange={handleInputChange}
+                              className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                errors.streetNumber
+                                  ? 'error-field border-red-500'
+                                  : ''
+                              }`}
+                              style={{
+                                padding: '0.75rem',
+                                border: errors.streetNumber
+                                  ? '1px solid #ef4444'
+                                  : '1px solid #d1d5db',
+                                fontSize: '1rem',
+                              }}
+                              placeholder="123"
+                            />
+                            {errors.streetNumber && (
+                              <p
+                                style={{
+                                  color: '#ef4444',
+                                  fontSize: '0.875rem',
+                                  marginTop: '0.25rem',
+                                }}
+                              >
+                                {errors.streetNumber}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <label
+                              className="block font-medium"
+                              style={{
+                                fontSize: '0.9rem',
+                                marginBottom: '0.5rem',
+                                color: '#374151',
+                              }}
+                            >
+                              Código postal
+                            </label>
+                            <input
+                              type="text"
+                              name="postalCode"
+                              value={formData.postalCode}
+                              onChange={handleInputChange}
+                              className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                errors.postalCode
+                                  ? 'error-field border-red-500'
+                                  : ''
+                              }`}
+                              style={{
+                                padding: '0.75rem',
+                                border: errors.postalCode
+                                  ? '1px solid #ef4444'
+                                  : '1px solid #d1d5db',
+                                fontSize: '1rem',
+                              }}
+                              placeholder="12345"
+                            />
+                            {errors.postalCode && (
+                              <p
+                                style={{
+                                  color: '#ef4444',
+                                  fontSize: '0.875rem',
+                                  marginTop: '0.25rem',
+                                }}
+                              >
+                                {errors.postalCode}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Continue Button */}
+                    <button
+                      onClick={handleContinue}
+                      className="w-full font-bold"
+                      style={{
+                        backgroundColor: '#000',
+                        color: 'white',
+                        padding: '1rem',
+                        borderRadius: '0.375rem',
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        border: 'none',
+                        marginTop: '2rem',
+                      }}
+                    >
+                      Continuar
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {currentStep === 2 && (
+                <>
+                  {/* Delivery Method Section */}
+                  <div style={{ marginBottom: '2rem' }}>
+                    <h2
+                      className="font-semibold"
+                      style={{
+                        fontSize: '1.5rem',
+                        marginBottom: '1.5rem',
+                        color: '#374151',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {stepLabels[2]}
+                    </h2>
+
+                    {/* Delivery Options */}
+                    <DeliveryOptionsSection
+                      selectedCountry={selectedCountry}
+                      onDeliveryOptionSelect={handleDeliveryOptionSelect}
+                      isMobile={false}
+                    />
+
+                    {/* Back Button */}
+                    <div
+                      className="flex justify-center"
+                      style={{ marginTop: '1.5rem' }}
+                    >
+                      <button
+                        onClick={() => setCurrentStep(1)}
+                        className="text-gray-600 hover:text-black transition-colors"
+                        style={{
+                          fontSize: '0.875rem',
+                          textDecoration: 'underline',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        ← Volver a detalles del destinatario
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {currentStep === 3 && (
+                <>
+                  {/* Payment Section */}
+                  <div style={{ marginBottom: '2rem' }}>
+                    <h2
+                      className="font-semibold"
+                      style={{
+                        fontSize: '1.5rem',
+                        marginBottom: '1.5rem',
+                        color: '#374151',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      Por favor revisa tu orden
+                    </h2>
+
+                    <OrderReviewSection
+                      selectedDeliveryMethod={selectedDeliveryMethod}
+                      selectedCountry={selectedCountry}
+                      formData={formData}
+                      onConfirmOrder={() => setShowOrderConfirmationModal(true)}
+                      onBackToDelivery={handleBackToDelivery}
+                      showBackButton={true}
+                      showConfirmButton={true}
+                      showSectionTitles={true}
+                      showPaymentMethod={true}
+                      showTerms={true}
+                      hasAcceptedTerms={hasAcceptedTerms}
+                      onTermsChange={setHasAcceptedTerms}
+                    />
+                  </div>
+                </>
+              )}
             </div>
-            {errors.phone && (
-              <p
-                style={{
-                  color: '#ef4444',
-                  fontSize: '0.875rem',
-                  marginTop: '0.25rem',
-                }}
-              >
-                {errors.phone}
-              </p>
-            )}
           </div>
         </div>
 
-        {/* Delivery Address Section */}
-        <div style={{ marginBottom: '3rem' }}>
-          <h2
-            className="font-semibold"
+        {/* Right Cart Summary - 20% */}
+        <div style={{ width: '20%' }}>
+          <DesktopCartSummary
+            selectedCountry={selectedCountry}
+            selectedDeliveryMethod={selectedDeliveryMethod}
+          />
+        </div>
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="lg:hidden">
+        {/* Mobile Top Bar */}
+        <div
+          className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-40"
+          style={{
+            height: 'var(--nav-height, 60px)',
+            borderBottom: '1px solid #e5e7eb',
+            padding: '0 1rem',
+          }}
+        >
+          {/* Back Arrow */}
+          <button
+            onClick={() => router.back()}
+            className="flex items-center justify-center hover:bg-gray-100 rounded-full"
             style={{
-              fontSize: '1rem',
-              marginBottom: '1.5rem',
-              color: '#374151',
+              width: '40px',
+              height: '40px',
+              marginRight: '1rem',
             }}
           >
-            Dirección de entrega
-          </h2>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
 
-          {/* Country Selection */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label
-              className="block font-medium"
+          {/* Title */}
+          <h1
+            className="font-semibold text-center flex-1"
+            style={{ fontSize: '1.1rem' }}
+          >
+            Información de envío
+          </h1>
+
+          {/* Empty space for balance (no X button) */}
+          <div style={{ width: '40px' }}></div>
+        </div>
+
+        {/* Form Content */}
+        <div style={{ padding: '2rem' }}>
+          {/* Recipient Details Section */}
+          <div style={{ marginBottom: '2rem' }}>
+            <h2
+              className="font-semibold"
               style={{
-                fontSize: '0.9rem',
-                marginBottom: '0.5rem',
+                fontSize: '1rem',
+                marginBottom: '1.5rem',
                 color: '#374151',
               }}
             >
-              País
-            </label>
-            <button
-              type="button"
-              onClick={() => {
-                setModalType('country');
-                setShowCountryCodeModal(true);
-              }}
-              className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left flex items-center justify-between hover:bg-gray-50"
-              style={{
-                padding: '0.75rem',
-                border: '1px solid #d1d5db',
-                fontSize: '1rem',
-                backgroundColor: 'white',
-              }}
-            >
-              <span>{selectedCountry}</span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{ color: '#9ca3af' }}
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-          </div>
+              {stepLabels[1]}
+            </h2>
 
-          {/* Departamento Selection for Bolivia */}
-          {selectedCountry === 'Bolivia' && (
+            {/* Name Input */}
             <div style={{ marginBottom: '1rem' }}>
               <label
                 className="block font-medium"
@@ -525,36 +1056,26 @@ const CheckoutPage: React.FC = () => {
                   color: '#374151',
                 }}
               >
-                Departamento
+                Nombre completo
               </label>
-              <select
-                name="departamento"
-                value={formData.departamento}
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
                 onChange={handleInputChange}
                 className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.departamento ? 'error-field border-red-500' : ''
+                  errors.name ? 'error-field border-red-500' : ''
                 }`}
                 style={{
                   padding: '0.75rem',
-                  border: errors.departamento
+                  border: errors.name
                     ? '1px solid #ef4444'
                     : '1px solid #d1d5db',
                   fontSize: '1rem',
-                  backgroundColor: 'white',
                 }}
-              >
-                <option value="">Selecciona un departamento</option>
-                <option value="La Paz">La Paz</option>
-                <option value="Santa Cruz">Santa Cruz</option>
-                <option value="Cochabamba">Cochabamba</option>
-                <option value="Oruro">Oruro</option>
-                <option value="Potosí">Potosí</option>
-                <option value="Chuquisaca">Chuquisaca</option>
-                <option value="Tarija">Tarija</option>
-                <option value="Beni">Beni</option>
-                <option value="Pando">Pando</option>
-              </select>
-              {errors.departamento && (
+                placeholder="Ingresa tu nombre completo"
+              />
+              {errors.name && (
                 <p
                   style={{
                     color: '#ef4444',
@@ -562,310 +1083,157 @@ const CheckoutPage: React.FC = () => {
                     marginTop: '0.25rem',
                   }}
                 >
-                  {errors.departamento}
+                  {errors.name}
                 </p>
               )}
             </div>
-          )}
 
-          {/* Conditional Fields Based on Country */}
-          {selectedCountry === 'Bolivia' ? (
-            <>
-              {/* City/Province for Bolivia */}
-              <div style={{ marginBottom: '1rem' }}>
-                <label
-                  className="block font-medium"
-                  style={{
-                    fontSize: '0.9rem',
-                    marginBottom: '0.5rem',
-                    color: '#374151',
-                  }}
-                >
-                  Ciudad / Provincia
-                </label>
-                <input
-                  type="text"
-                  name="cityProvince"
-                  value={formData.cityProvince}
-                  onChange={handleInputChange}
-                  className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.cityProvince ? 'error-field border-red-500' : ''
-                  }`}
-                  style={{
-                    padding: '0.75rem',
-                    border: errors.cityProvince
-                      ? '1px solid #ef4444'
-                      : '1px solid #d1d5db',
-                    fontSize: '1rem',
-                  }}
-                  placeholder="Ej. Santa Cruz, La Paz, Cochabamba"
-                />
-                {errors.cityProvince && (
-                  <p
-                    style={{
-                      color: '#ef4444',
-                      fontSize: '0.875rem',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {errors.cityProvince}
-                  </p>
-                )}
-              </div>
-
-              {/* Detailed Address for Bolivia */}
-              <div style={{ marginBottom: '1rem' }}>
-                <label
-                  className="block font-medium"
-                  style={{
-                    fontSize: '0.9rem',
-                    marginBottom: '0.5rem',
-                    color: '#374151',
-                  }}
-                >
-                  Dirección detallada
-                </label>
-                <textarea
-                  name="detailedAddress"
-                  value={formData.detailedAddress}
-                  onChange={handleInputChange}
-                  rows={3}
-                  className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${
-                    errors.detailedAddress ? 'error-field border-red-500' : ''
-                  }`}
-                  style={{
-                    padding: '0.75rem',
-                    border: errors.detailedAddress
-                      ? '1px solid #ef4444'
-                      : '1px solid #d1d5db',
-                    fontSize: '1rem',
-                  }}
-                  placeholder="Calle, número, barrio, referencias adicionales..."
-                />
-                {errors.detailedAddress && (
-                  <p
-                    style={{
-                      color: '#ef4444',
-                      fontSize: '0.875rem',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {errors.detailedAddress}
-                  </p>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              {/* City for Other Countries */}
-              <div style={{ marginBottom: '1rem' }}>
-                <label
-                  className="block font-medium"
-                  style={{
-                    fontSize: '0.9rem',
-                    marginBottom: '0.5rem',
-                    color: '#374151',
-                  }}
-                >
-                  Ciudad
-                </label>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.city ? 'error-field border-red-500' : ''
-                  }`}
-                  style={{
-                    padding: '0.75rem',
-                    border: errors.city
-                      ? '1px solid #ef4444'
-                      : '1px solid #d1d5db',
-                    fontSize: '1rem',
-                  }}
-                  placeholder="Nombre de la ciudad"
-                />
-                {errors.city && (
-                  <p
-                    style={{
-                      color: '#ef4444',
-                      fontSize: '0.875rem',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {errors.city}
-                  </p>
-                )}
-              </div>
-
-              {/* Street and Number for Other Countries */}
-              <div style={{ marginBottom: '1rem' }}>
-                <label
-                  className="block font-medium"
-                  style={{
-                    fontSize: '0.9rem',
-                    marginBottom: '0.5rem',
-                    color: '#374151',
-                  }}
-                >
-                  Calle y número
-                </label>
-                <input
-                  type="text"
-                  name="streetNumber"
-                  value={formData.streetNumber}
-                  onChange={handleInputChange}
-                  className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.streetNumber ? 'error-field border-red-500' : ''
-                  }`}
-                  style={{
-                    padding: '0.75rem',
-                    border: errors.streetNumber
-                      ? '1px solid #ef4444'
-                      : '1px solid #d1d5db',
-                    fontSize: '1rem',
-                  }}
-                  placeholder="Calle Principal 123"
-                />
-                {errors.streetNumber && (
-                  <p
-                    style={{
-                      color: '#ef4444',
-                      fontSize: '0.875rem',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {errors.streetNumber}
-                  </p>
-                )}
-              </div>
-
-              {/* Postal Code for Other Countries */}
-              <div style={{ marginBottom: '1rem' }}>
-                <label
-                  className="block font-medium"
-                  style={{
-                    fontSize: '0.9rem',
-                    marginBottom: '0.5rem',
-                    color: '#374151',
-                  }}
-                >
-                  Código postal
-                </label>
-                <input
-                  type="text"
-                  name="postalCode"
-                  value={formData.postalCode}
-                  onChange={handleInputChange}
-                  className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.postalCode ? 'error-field border-red-500' : ''
-                  }`}
-                  style={{
-                    padding: '0.75rem',
-                    border: errors.postalCode
-                      ? '1px solid #ef4444'
-                      : '1px solid #d1d5db',
-                    fontSize: '1rem',
-                  }}
-                  placeholder="Código postal"
-                />
-                {errors.postalCode && (
-                  <p
-                    style={{
-                      color: '#ef4444',
-                      fontSize: '0.875rem',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {errors.postalCode}
-                  </p>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Continue Button */}
-        <button
-          onClick={handleContinue}
-          className="w-full font-bold"
-          style={{
-            backgroundColor: '#000',
-            color: 'white',
-            padding: '1rem',
-            borderRadius: '0.375rem',
-            fontSize: '1rem',
-            cursor: 'pointer',
-            border: 'none',
-          }}
-        >
-          Continuar
-        </button>
-      </div>
-
-      {/* Country Code Modal */}
-      {showCountryCodeModal && (
-        <div
-          className="fixed inset-0 bg-white z-50 flex flex-col"
-          style={{
-            paddingTop: 'var(--nav-height, 60px)',
-          }}
-        >
-          {/* Modal Top Bar */}
-          <div
-            className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
-            style={{
-              height: 'var(--nav-height, 60px)',
-              borderBottom: '1px solid #e5e7eb',
-              padding: '0 1rem',
-            }}
-          >
-            {/* Empty space for balance */}
-            <div style={{ width: '40px' }}></div>
-
-            {/* Title */}
-            <h2
-              className="font-semibold text-center flex-1"
-              style={{ fontSize: '1.1rem' }}
-            >
-              {modalType === 'countryCode' ? 'Country code' : 'País'}
-            </h2>
-
-            {/* Close Button */}
-            <button
-              onClick={() => {
-                setShowCountryCodeModal(false);
-                setSearchQuery('');
-                setFilteredCountries(countries);
-              }}
-              className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-              style={{
-                width: '40px',
-                height: '40px',
-              }}
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
+            {/* Email Input */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label
+                className="block font-medium"
+                style={{
+                  fontSize: '0.9rem',
+                  marginBottom: '0.5rem',
+                  color: '#374151',
+                }}
               >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            </button>
+                Correo electrónico
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.email ? 'error-field border-red-500' : ''
+                }`}
+                style={{
+                  padding: '0.75rem',
+                  border: errors.email
+                    ? '1px solid #ef4444'
+                    : '1px solid #d1d5db',
+                  fontSize: '1rem',
+                }}
+                placeholder="ejemplo@correo.com"
+              />
+              {errors.email && (
+                <p
+                  style={{
+                    color: '#ef4444',
+                    fontSize: '0.875rem',
+                    marginTop: '0.25rem',
+                  }}
+                >
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
+            {/* Phone Number Input with Country Code */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label
+                className="block font-medium"
+                style={{
+                  fontSize: '0.9rem',
+                  marginBottom: '0.5rem',
+                  color: '#374151',
+                }}
+              >
+                Número de teléfono
+              </label>
+              <div className="flex" style={{ gap: '0.5rem' }}>
+                {/* Country Code Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalType('countryCode');
+                    setShowCountryCodeModal(true);
+                  }}
+                  className="border rounded-lg flex items-center justify-center hover:bg-gray-50"
+                  style={{
+                    padding: '0.75rem 1rem',
+                    border: '1px solid #d1d5db',
+                    minWidth: '80px',
+                    fontSize: '1rem',
+                  }}
+                >
+                  {formData.countryCode}
+                </button>
+
+                {/* Phone Input */}
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className={`flex-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.phone ? 'error-field border-red-500' : ''
+                  }`}
+                  style={{
+                    padding: '0.75rem',
+                    border: errors.phone
+                      ? '1px solid #ef4444'
+                      : '1px solid #d1d5db',
+                    fontSize: '1rem',
+                  }}
+                  placeholder="70000000"
+                />
+              </div>
+              {errors.phone && (
+                <p
+                  style={{
+                    color: '#ef4444',
+                    fontSize: '0.875rem',
+                    marginTop: '0.25rem',
+                  }}
+                >
+                  {errors.phone}
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* Modal Content */}
-          <div className="flex-1 overflow-y-auto" style={{ padding: '2rem' }}>
-            {/* Search Input */}
-            <div className="relative" style={{ marginBottom: '1rem' }}>
-              <div
-                className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                style={{ color: '#9ca3af' }}
+          {/* Delivery Address Section */}
+          <div style={{ marginBottom: '3rem' }}>
+            <h2
+              className="font-semibold"
+              style={{
+                fontSize: '1rem',
+                marginBottom: '1.5rem',
+                color: '#374151',
+              }}
+            >
+              Dirección de entrega
+            </h2>
+
+            {/* Country Selection */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label
+                className="block font-medium"
+                style={{
+                  fontSize: '0.9rem',
+                  marginBottom: '0.5rem',
+                  color: '#374151',
+                }}
               >
+                País
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setModalType('country');
+                  setShowCountryCodeModal(true);
+                }}
+                className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left flex items-center justify-between hover:bg-gray-50"
+                style={{
+                  padding: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  fontSize: '1rem',
+                  backgroundColor: 'white',
+                }}
+              >
+                <span>{selectedCountry}</span>
                 <svg
                   width="20"
                   height="20"
@@ -873,415 +1241,519 @@ const CheckoutPage: React.FC = () => {
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
+                  style={{ color: '#9ca3af' }}
                 >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
+                  <path d="M6 9l6 6 6-6" />
                 </svg>
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchCountries}
-                placeholder="Search"
-                className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                style={{
-                  padding: '0.75rem 0.75rem 0.75rem 3rem',
-                  border: '1px solid #d1d5db',
-                  fontSize: '1rem',
-                  backgroundColor: '#f9fafb',
-                }}
-              />
+              </button>
             </div>
 
-            {/* Countries List */}
-            {isLoadingCountries ? (
-              <div
-                className="flex items-center justify-center"
-                style={{ padding: '2rem' }}
-              >
-                <p style={{ color: '#6b7280' }}>Loading countries...</p>
-              </div>
-            ) : (
-              <div>
-                {filteredCountries.map((country) => (
-                  <button
-                    key={country.code}
-                    onClick={() => handleCountryCodeSelect(country)}
-                    className="w-full text-left hover:bg-gray-50 flex items-center justify-between"
+            {/* Departamento Selection for Bolivia */}
+            {selectedCountry === 'Bolivia' && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label
+                  className="block font-medium"
+                  style={{
+                    fontSize: '0.9rem',
+                    marginBottom: '0.5rem',
+                    color: '#374151',
+                  }}
+                >
+                  Departamento
+                </label>
+                <select
+                  name="departamento"
+                  value={formData.departamento}
+                  onChange={handleInputChange}
+                  className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.departamento ? 'error-field border-red-500' : ''
+                  }`}
+                  style={{
+                    padding: '0.75rem',
+                    border: errors.departamento
+                      ? '1px solid #ef4444'
+                      : '1px solid #d1d5db',
+                    fontSize: '1rem',
+                    backgroundColor: 'white',
+                  }}
+                >
+                  <option value="">Selecciona un departamento</option>
+                  <option value="La Paz">La Paz</option>
+                  <option value="Santa Cruz">Santa Cruz</option>
+                  <option value="Cochabamba">Cochabamba</option>
+                  <option value="Oruro">Oruro</option>
+                  <option value="Potosí">Potosí</option>
+                  <option value="Chuquisaca">Chuquisaca</option>
+                  <option value="Tarija">Tarija</option>
+                  <option value="Beni">Beni</option>
+                  <option value="Pando">Pando</option>
+                </select>
+                {errors.departamento && (
+                  <p
                     style={{
-                      padding: '1rem 0',
-                      borderBottom: '1px solid #f3f4f6',
-                      cursor: 'pointer',
+                      color: '#ef4444',
+                      fontSize: '0.875rem',
+                      marginTop: '0.25rem',
                     }}
                   >
-                    <span style={{ fontSize: '1rem', color: '#374151' }}>
-                      {country.name}
-                    </span>
-                    {modalType === 'countryCode' && (
-                      <span style={{ fontSize: '1rem', color: '#6b7280' }}>
-                        ({country.dialCode})
-                      </span>
-                    )}
-                  </button>
-                ))}
-
-                {filteredCountries.length === 0 && searchQuery && (
-                  <div
-                    className="text-center"
-                    style={{ padding: '2rem', color: '#6b7280' }}
-                  >
-                    No countries found
-                  </div>
+                    {errors.departamento}
+                  </p>
                 )}
               </div>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* Delivery Method Modal */}
-      {showDeliveryModal && (
-        <div
-          className="fixed inset-0 bg-white z-50 flex flex-col"
-          style={{
-            paddingTop: 'var(--nav-height, 60px)',
-          }}
-        >
-          {/* Modal Top Bar */}
-          <div
-            className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
-            style={{
-              height: 'var(--nav-height, 60px)',
-              borderBottom: '1px solid #e5e7eb',
-              padding: '0 1rem',
-            }}
-          >
-            {/* Back Arrow */}
-            <button
-              onClick={() => setShowDeliveryModal(false)}
-              className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-              style={{
-                width: '40px',
-                height: '40px',
-              }}
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </button>
-
-            {/* Title */}
-            <h2
-              className="font-semibold flex-1"
-              style={{ fontSize: '1.1rem', marginLeft: '1rem' }}
-            >
-              Método de envío
-            </h2>
-
-            {/* Empty space for balance */}
-            <div style={{ width: '40px' }}></div>
-          </div>
-
-          {/* Modal Content */}
-          <div
-            className="flex-1 overflow-y-auto"
-            style={{ padding: '1.5rem', paddingBottom: '8rem' }}
-          >
+            {/* Conditional Fields Based on Country */}
             {selectedCountry === 'Bolivia' ? (
-              /* Bolivia Delivery Options */
-              <div>
-                {/* Envío a terminal */}
-                <div
-                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleDeliveryOptionSelect('Envío a terminal')}
-                  style={{
-                    padding: '1rem',
-                    border: '1px solid #e5e7eb',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div
-                        className="font-bold"
-                        style={{
-                          fontSize: '1rem',
-                          color: '#374151',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Envío a terminal
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.875rem',
-                          color: '#6b7280',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Recibelo en 24 horas
-                      </div>
-                      <div
-                        className="font-bold"
-                        style={{ fontSize: '1rem', color: '#374151' }}
-                      >
-                        Bs. 30
-                      </div>
-                    </div>
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      style={{ color: '#9ca3af' }}
+              <>
+                {/* City/Province for Bolivia */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label
+                    className="block font-medium"
+                    style={{
+                      fontSize: '0.9rem',
+                      marginBottom: '0.5rem',
+                      color: '#374151',
+                    }}
+                  >
+                    Ciudad / Provincia
+                  </label>
+                  <input
+                    type="text"
+                    name="cityProvince"
+                    value={formData.cityProvince}
+                    onChange={handleInputChange}
+                    className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.cityProvince ? 'error-field border-red-500' : ''
+                    }`}
+                    style={{
+                      padding: '0.75rem',
+                      border: errors.cityProvince
+                        ? '1px solid #ef4444'
+                        : '1px solid #d1d5db',
+                      fontSize: '1rem',
+                    }}
+                    placeholder="Ej. Santa Cruz, La Paz, Cochabamba"
+                  />
+                  {errors.cityProvince && (
+                    <p
+                      style={{
+                        color: '#ef4444',
+                        fontSize: '0.875rem',
+                        marginTop: '0.25rem',
+                      }}
                     >
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                  </div>
+                      {errors.cityProvince}
+                    </p>
+                  )}
                 </div>
 
-                {/* Envío a domicilio */}
-                <div
-                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  onClick={() =>
-                    handleDeliveryOptionSelect('Envío a domicilio')
-                  }
-                  style={{
-                    padding: '1rem',
-                    border: '1px solid #e5e7eb',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div
-                        className="font-bold"
-                        style={{
-                          fontSize: '1rem',
-                          color: '#374151',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Envío a domicilio
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.875rem',
-                          color: '#6b7280',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Recibelo en 48 horas
-                      </div>
-                      <div
-                        className="font-bold"
-                        style={{ fontSize: '1rem', color: '#374151' }}
-                      >
-                        Bs. 50
-                      </div>
-                    </div>
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      style={{ color: '#9ca3af' }}
+                {/* Detailed Address for Bolivia */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label
+                    className="block font-medium"
+                    style={{
+                      fontSize: '0.9rem',
+                      marginBottom: '0.5rem',
+                      color: '#374151',
+                    }}
+                  >
+                    Dirección detallada
+                  </label>
+                  <textarea
+                    name="detailedAddress"
+                    value={formData.detailedAddress}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${
+                      errors.detailedAddress ? 'error-field border-red-500' : ''
+                    }`}
+                    style={{
+                      padding: '0.75rem',
+                      border: errors.detailedAddress
+                        ? '1px solid #ef4444'
+                        : '1px solid #d1d5db',
+                      fontSize: '1rem',
+                    }}
+                    placeholder="Calle, número, barrio, referencias adicionales..."
+                  />
+                  {errors.detailedAddress && (
+                    <p
+                      style={{
+                        color: '#ef4444',
+                        fontSize: '0.875rem',
+                        marginTop: '0.25rem',
+                      }}
                     >
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                  </div>
+                      {errors.detailedAddress}
+                    </p>
+                  )}
                 </div>
-
-                {/* Envío a provincia */}
-                <div
-                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  onClick={() =>
-                    handleDeliveryOptionSelect('Envío a provincia')
-                  }
-                  style={{
-                    padding: '1rem',
-                    border: '1px solid #e5e7eb',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div
-                        className="font-bold"
-                        style={{
-                          fontSize: '1rem',
-                          color: '#374151',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Envío a provincia
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.875rem',
-                          color: '#6b7280',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Recibelo en 72 horas
-                      </div>
-                      <div
-                        className="font-bold"
-                        style={{ fontSize: '1rem', color: '#374151' }}
-                      >
-                        Bs. 50
-                      </div>
-                    </div>
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      style={{ color: '#9ca3af' }}
-                    >
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Envío por avión */}
-                <div
-                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleDeliveryOptionSelect('Envío por avión')}
-                  style={{
-                    padding: '1rem',
-                    border: '1px solid #e5e7eb',
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div
-                        className="font-bold"
-                        style={{
-                          fontSize: '1rem',
-                          color: '#374151',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Envío por avión
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.875rem',
-                          color: '#6b7280',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Recibelo lo más pronto posible hasta su domicilio
-                      </div>
-                      <div
-                        className="font-bold"
-                        style={{ fontSize: '1rem', color: '#374151' }}
-                      >
-                        Bs. 60
-                      </div>
-                    </div>
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      style={{ color: '#9ca3af' }}
-                    >
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              </>
             ) : (
-              /* Other Countries DHL Option */
-              <div>
-                <div
-                  className="border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleDeliveryOptionSelect('Envío por DHL')}
-                  style={{
-                    padding: '1rem',
-                    border: '1px solid #e5e7eb',
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div
-                        className="font-bold"
-                        style={{
-                          fontSize: '1rem',
-                          color: '#374151',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Envío por DHL
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.875rem',
-                          color: '#6b7280',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Tiempo determinado por DHL
-                      </div>
-                      <div
-                        className="font-bold"
-                        style={{ fontSize: '1rem', color: '#374151' }}
-                      >
-                        Costo determinado por DHL cuando lo recibas
-                      </div>
-                    </div>
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      style={{ color: '#9ca3af' }}
+              <>
+                {/* City for Other Countries */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label
+                    className="block font-medium"
+                    style={{
+                      fontSize: '0.9rem',
+                      marginBottom: '0.5rem',
+                      color: '#374151',
+                    }}
+                  >
+                    Ciudad
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.city ? 'error-field border-red-500' : ''
+                    }`}
+                    style={{
+                      padding: '0.75rem',
+                      border: errors.city
+                        ? '1px solid #ef4444'
+                        : '1px solid #d1d5db',
+                      fontSize: '1rem',
+                    }}
+                    placeholder="Nombre de la ciudad"
+                  />
+                  {errors.city && (
+                    <p
+                      style={{
+                        color: '#ef4444',
+                        fontSize: '0.875rem',
+                        marginTop: '0.25rem',
+                      }}
                     >
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                  </div>
+                      {errors.city}
+                    </p>
+                  )}
                 </div>
-              </div>
+
+                {/* Street and Number for Other Countries */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label
+                    className="block font-medium"
+                    style={{
+                      fontSize: '0.9rem',
+                      marginBottom: '0.5rem',
+                      color: '#374151',
+                    }}
+                  >
+                    Calle y número
+                  </label>
+                  <input
+                    type="text"
+                    name="streetNumber"
+                    value={formData.streetNumber}
+                    onChange={handleInputChange}
+                    className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.streetNumber ? 'error-field border-red-500' : ''
+                    }`}
+                    style={{
+                      padding: '0.75rem',
+                      border: errors.streetNumber
+                        ? '1px solid #ef4444'
+                        : '1px solid #d1d5db',
+                      fontSize: '1rem',
+                    }}
+                    placeholder="Calle Principal 123"
+                  />
+                  {errors.streetNumber && (
+                    <p
+                      style={{
+                        color: '#ef4444',
+                        fontSize: '0.875rem',
+                        marginTop: '0.25rem',
+                      }}
+                    >
+                      {errors.streetNumber}
+                    </p>
+                  )}
+                </div>
+
+                {/* Postal Code for Other Countries */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label
+                    className="block font-medium"
+                    style={{
+                      fontSize: '0.9rem',
+                      marginBottom: '0.5rem',
+                      color: '#374151',
+                    }}
+                  >
+                    Código postal
+                  </label>
+                  <input
+                    type="text"
+                    name="postalCode"
+                    value={formData.postalCode}
+                    onChange={handleInputChange}
+                    className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.postalCode ? 'error-field border-red-500' : ''
+                    }`}
+                    style={{
+                      padding: '0.75rem',
+                      border: errors.postalCode
+                        ? '1px solid #ef4444'
+                        : '1px solid #d1d5db',
+                      fontSize: '1rem',
+                    }}
+                    placeholder="Código postal"
+                  />
+                  {errors.postalCode && (
+                    <p
+                      style={{
+                        color: '#ef4444',
+                        fontSize: '0.875rem',
+                        marginTop: '0.25rem',
+                      }}
+                    >
+                      {errors.postalCode}
+                    </p>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
-          {/* Checkout Cost Summary */}
-          <CheckoutCostSummary
-            subtotal={59.98}
-            selectedCountry={selectedCountry}
-            deliveryCost={0}
-          />
+          {/* Continue Button */}
+          <button
+            onClick={handleContinue}
+            className="w-full font-bold"
+            style={{
+              backgroundColor: '#000',
+              color: 'white',
+              padding: '1rem',
+              borderRadius: '0.375rem',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              border: 'none',
+            }}
+          >
+            Continuar
+          </button>
         </div>
-      )}
 
-      {/* Order Confirmation Modal */}
-      <OrderConfirmationModal
-        isOpen={showOrderConfirmationModal}
-        onClose={() => setShowOrderConfirmationModal(false)}
-        onBackToDelivery={handleBackToDelivery}
-        selectedCountry={selectedCountry}
-        selectedDeliveryMethod={selectedDeliveryMethod}
-        formData={formData}
-      />
+        {/* Country Code Modal */}
+        {showCountryCodeModal && (
+          <div
+            className="fixed inset-0 bg-white z-50 flex flex-col"
+            style={{
+              paddingTop: 'var(--nav-height, 60px)',
+            }}
+          >
+            {/* Modal Top Bar */}
+            <div
+              className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
+              style={{
+                height: 'var(--nav-height, 60px)',
+                borderBottom: '1px solid #e5e7eb',
+                padding: '0 1rem',
+              }}
+            >
+              {/* Empty space for balance */}
+              <div style={{ width: '40px' }}></div>
+
+              {/* Title */}
+              <h2
+                className="font-semibold text-center flex-1"
+                style={{ fontSize: '1.1rem' }}
+              >
+                {modalType === 'countryCode' ? 'Country code' : 'País'}
+              </h2>
+
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  setShowCountryCodeModal(false);
+                  setSearchQuery('');
+                  setFilteredCountries(countries);
+                }}
+                className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto" style={{ padding: '2rem' }}>
+              {/* Search Input */}
+              <div className="relative" style={{ marginBottom: '1rem' }}>
+                <div
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2"
+                  style={{ color: '#9ca3af' }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchCountries}
+                  placeholder="Search"
+                  className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  style={{
+                    padding: '0.75rem 0.75rem 0.75rem 3rem',
+                    border: '1px solid #d1d5db',
+                    fontSize: '1rem',
+                    backgroundColor: '#f9fafb',
+                  }}
+                />
+              </div>
+
+              {/* Countries List */}
+              {isLoadingCountries ? (
+                <div
+                  className="flex items-center justify-center"
+                  style={{ padding: '2rem' }}
+                >
+                  <p style={{ color: '#6b7280' }}>Loading countries...</p>
+                </div>
+              ) : (
+                <div>
+                  {filteredCountries.map((country) => (
+                    <button
+                      key={country.code}
+                      onClick={() => handleCountryCodeSelect(country)}
+                      className="w-full text-left hover:bg-gray-50 flex items-center justify-between"
+                      style={{
+                        padding: '1rem 0',
+                        borderBottom: '1px solid #f3f4f6',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span style={{ fontSize: '1rem', color: '#374151' }}>
+                        {country.name}
+                      </span>
+                      {modalType === 'countryCode' && (
+                        <span style={{ fontSize: '1rem', color: '#6b7280' }}>
+                          ({country.dialCode})
+                        </span>
+                      )}
+                    </button>
+                  ))}
+
+                  {filteredCountries.length === 0 && searchQuery && (
+                    <div
+                      className="text-center"
+                      style={{ padding: '2rem', color: '#6b7280' }}
+                    >
+                      No countries found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Delivery Method Modal */}
+        {showDeliveryModal && (
+          <div
+            className="fixed inset-0 bg-white z-50 flex flex-col"
+            style={{
+              paddingTop: 'var(--nav-height, 60px)',
+            }}
+          >
+            {/* Modal Top Bar */}
+            <div
+              className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
+              style={{
+                height: 'var(--nav-height, 60px)',
+                borderBottom: '1px solid #e5e7eb',
+                padding: '0 1rem',
+              }}
+            >
+              {/* Back Arrow */}
+              <button
+                onClick={() => setShowDeliveryModal(false)}
+                className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+              </button>
+
+              {/* Title */}
+              <h2
+                className="font-semibold flex-1"
+                style={{ fontSize: '1.1rem', marginLeft: '1rem' }}
+              >
+                Método de envío
+              </h2>
+
+              {/* Empty space for balance */}
+              <div style={{ width: '40px' }}></div>
+            </div>
+
+            {/* Modal Content */}
+            <div
+              className="flex-1 overflow-y-auto"
+              style={{ padding: '1.5rem', paddingBottom: '8rem' }}
+            >
+              <DeliveryOptionsSection
+                selectedCountry={selectedCountry}
+                onDeliveryOptionSelect={handleDeliveryOptionSelect}
+                isMobile={true}
+              />
+            </div>
+
+            {/* Checkout Cost Summary */}
+            <CheckoutCostSummary
+              subtotal={59.98}
+              selectedCountry={selectedCountry}
+              deliveryCost={0}
+            />
+          </div>
+        )}
+
+        {/* Order Confirmation Modal */}
+        <OrderConfirmationModal
+          isOpen={showOrderConfirmationModal}
+          onClose={() => setShowOrderConfirmationModal(false)}
+          onBackToDelivery={handleBackToDelivery}
+          selectedCountry={selectedCountry}
+          selectedDeliveryMethod={selectedDeliveryMethod}
+          formData={formData}
+        />
+      </div>
     </div>
   );
 };
