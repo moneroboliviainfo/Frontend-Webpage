@@ -391,7 +391,7 @@ const CartNavBarDialog: React.FC<{
                 border: 'none',
               }}
             >
-              TRAMITAR PEDIDO
+              PROCESAR ORDEN
             </button>
           </div>
         )}

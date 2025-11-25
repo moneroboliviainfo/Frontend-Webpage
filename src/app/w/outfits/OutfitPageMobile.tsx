@@ -1,6 +1,7 @@
 'use client';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BottomSheet from '@/components/BottomSheet/BottomSheet';
+import BasketConfirmation from '@/components/BasketConfirmation';
 import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -35,12 +36,24 @@ type OutfitItemsCarouselProps = {
   }>;
   showSizePopup: number | null;
   setShowSizePopup: (value: number | null) => void;
+  setBasketConfirmation: (
+    value: {
+      show: boolean;
+      item: {
+        name: string;
+        price: number;
+        sizes?: Array<{ size: string; availability: number }>;
+      };
+      size: string;
+    } | null
+  ) => void;
 };
 
 const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
   items,
   showSizePopup,
   setShowSizePopup,
+  setBasketConfirmation,
 }) => {
   const router = useRouter();
   const slideWidth = '34vw';
@@ -253,11 +266,22 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                     key={sizeObj.size}
                     onClick={() => {
                       if (isAvailable) {
+                        const selectedItem = items[showSizePopup];
                         setSizeSelected((prev) => ({
                           ...prev,
                           [showSizePopup]: true,
                         }));
+                        setBasketConfirmation({
+                          show: true,
+                          item: selectedItem,
+                          size: sizeObj.size,
+                        });
                         setShowSizePopup(null);
+
+                        // Auto-hide after 5 seconds
+                        setTimeout(() => {
+                          setBasketConfirmation(null);
+                        }, 5000);
                       }
                     }}
                     disabled={!isAvailable}
@@ -309,6 +333,15 @@ const OutfitPageMobile: React.FC<Props> = ({
   } | null>(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const [showSizePopup, setShowSizePopup] = useState<number | null>(null);
+  const [basketConfirmation, setBasketConfirmation] = useState<{
+    show: boolean;
+    item: {
+      name: string;
+      price: number;
+      sizes?: Array<{ size: string; availability: number }>;
+    };
+    size: string;
+  } | null>(null);
 
   // Auto-close size popup when bottom sheet collapses
   useEffect(() => {
@@ -557,10 +590,30 @@ const OutfitPageMobile: React.FC<Props> = ({
               items={outfitDetails.items}
               showSizePopup={showSizePopup}
               setShowSizePopup={setShowSizePopup}
+              setBasketConfirmation={setBasketConfirmation}
             />
           </div>
         </div>
       </BottomSheet>
+
+      {/* Basket Confirmation Popup */}
+      <BasketConfirmation
+        show={basketConfirmation !== null}
+        item={basketConfirmation?.item || { name: '', price: 0 }}
+        size={basketConfirmation?.size || ''}
+        itemIndex={
+          basketConfirmation
+            ? outfitDetails.items.findIndex(
+                (item) => item === basketConfirmation.item
+              )
+            : 0
+        }
+        onClose={() => setBasketConfirmation(null)}
+        onProceedToCheckout={() => {
+          window.location.href = '/w/checkout';
+        }}
+        isMobile={true}
+      />
     </div>
   );
 };
