@@ -1,5 +1,5 @@
 'use client';
-import Footer from '@/components/Footer';
+import BasketConfirmation from '@/components/BasketConfirmation';
 import React, { useState } from 'react';
 import Image from 'next/image';
 
@@ -42,6 +42,15 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
     null
   );
+  const [basketConfirmation, setBasketConfirmation] = useState<{
+    show: boolean;
+    item: {
+      name: string;
+      price: number;
+      sizes?: Array<{ size: string; availability: number }>;
+    };
+    size: string;
+  } | null>(null);
 
   return (
     <>
@@ -432,20 +441,71 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
           <button
             type="button"
             className="w-full font-bold"
+            onClick={() => {
+              if (selectedSizeIndex !== null) {
+                const selectedSize = getCurrentSizes()[selectedSizeIndex];
+                setBasketConfirmation({
+                  show: true,
+                  item: {
+                    name: productDetails.name,
+                    price: productDetails.finalPrice,
+                    sizes: getCurrentSizes(),
+                  },
+                  size: selectedSize.size,
+                });
+
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                  setBasketConfirmation(null);
+                }, 5000);
+              }
+            }}
+            disabled={
+              selectedSizeIndex === null ||
+              !isColorAvailable(selectedColorIndex)
+            }
             style={{
-              backgroundColor: '#000',
+              backgroundColor:
+                selectedSizeIndex !== null &&
+                isColorAvailable(selectedColorIndex)
+                  ? '#000'
+                  : '#9ca3af',
               color: 'white',
               padding: '1rem',
               borderRadius: '0.375rem',
               fontSize: '1rem',
-              cursor: 'pointer',
+              cursor:
+                selectedSizeIndex !== null &&
+                isColorAvailable(selectedColorIndex)
+                  ? 'pointer'
+                  : 'not-allowed',
               border: 'none',
+              opacity:
+                selectedSizeIndex !== null &&
+                isColorAvailable(selectedColorIndex)
+                  ? 1
+                  : 0.6,
             }}
           >
-            AÑADIR AL CARRITO
+            {selectedSizeIndex === null
+              ? 'SELECCIONA TALLA'
+              : 'AÑADIR AL CARRITO'}
           </button>
         </div>
       </div>
+
+      {/* Basket Confirmation Popup */}
+      <BasketConfirmation
+        show={basketConfirmation !== null}
+        item={basketConfirmation?.item || { name: '', price: 0 }}
+        size={basketConfirmation?.size || ''}
+        itemIndex={0}
+        onClose={() => setBasketConfirmation(null)}
+        onProceedToCheckout={() => {
+          window.location.href = '/w/checkout';
+        }}
+        isMobile={false}
+      />
       {/* <Footer /> */}
     </>
   );

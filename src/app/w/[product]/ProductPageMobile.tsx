@@ -1,6 +1,7 @@
 'use client';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BottomSheet from '@/components/BottomSheet/BottomSheet';
+import BasketConfirmation from '@/components/BasketConfirmation';
 import React, { useRef, useState } from 'react';
 
 type ProductDetails = {
@@ -58,6 +59,15 @@ const ProductPageMobile: React.FC<Props> = ({
     collapse: () => void;
   } | null>(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [basketConfirmation, setBasketConfirmation] = useState<{
+    show: boolean;
+    item: {
+      name: string;
+      price: number;
+      sizes?: Array<{ size: string; availability: number }>;
+    };
+    size: string;
+  } | null>(null);
 
   // Swipe detection states
   const [startX, setStartX] = useState<number | null>(null);
@@ -464,6 +474,21 @@ const ProductPageMobile: React.FC<Props> = ({
                       onClick={() => {
                         if (isAvailable) {
                           setSelectedSizeIndex(i);
+                          // Show basket confirmation
+                          setBasketConfirmation({
+                            show: true,
+                            item: {
+                              name: productDetails.name,
+                              price: productDetails.finalPrice,
+                              sizes: getCurrentSizes(),
+                            },
+                            size: sizeData.size,
+                          });
+
+                          // Auto-hide after 5 seconds
+                          setTimeout(() => {
+                            setBasketConfirmation(null);
+                          }, 5000);
                         }
                       }}
                       onKeyDown={(e) => {
@@ -565,6 +590,19 @@ const ProductPageMobile: React.FC<Props> = ({
           </div>
         </div>
       </BottomSheet>
+
+      {/* Basket Confirmation Popup */}
+      <BasketConfirmation
+        show={basketConfirmation !== null}
+        item={basketConfirmation?.item || { name: '', price: 0 }}
+        size={basketConfirmation?.size || ''}
+        itemIndex={0}
+        onClose={() => setBasketConfirmation(null)}
+        onProceedToCheckout={() => {
+          window.location.href = '/w/checkout';
+        }}
+        isMobile={true}
+      />
     </div>
   );
 };
