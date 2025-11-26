@@ -1,7 +1,5 @@
 'use client';
-import PillsList from '@/components/PillsList';
-import useIsMobile from '@/hooks/useIsMobile';
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import ClothesGallery from './ClothesGallery';
 import ClothesPageNavBar from './ClothesPageNavBar';
 
