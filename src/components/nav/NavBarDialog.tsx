@@ -17,7 +17,7 @@ const NavBarDialog: React.FC<NavBarDialogProps> = ({
   children,
 }) => {
   return (
-    <Dialog open={open} onClose={setOpen} className="relative z-10 w-100">
+    <Dialog open={open} onClose={setOpen} className="relative z-50 w-100">
       <DialogBackdrop
         transition
         className="fixed inset-0  transition-opacity duration-500 ease-in-out data-closed:opacity-0"
