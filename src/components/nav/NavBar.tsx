@@ -14,6 +14,7 @@ import HamburgerButton from './HamburgerButton';
 import HamburgerNavBarDialog from './HamburgerNavBarDialog';
 import SearchNavBarDialog from './SearchNavBarDialog';
 import CartNavBarDialog from './CartNavBarDialog';
+import ProfileNavBarDialog from './ProfileNavBarDialog';
 
 const iconsSize = 22;
 const iconsStrokeWidth = 1.8;
@@ -29,6 +30,7 @@ export default function NavBar({
   const [hamburgerOpen, setHamburgerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const controls = useAnimation();
   const cartLength = useAppSelector(selectCartQuantity);
   // TODO: Replace with real client name from redux
@@ -72,7 +74,7 @@ export default function NavBar({
 
   // Animate NavBar out when a dialog is open
   useEffect(() => {
-    if (hamburgerOpen || searchOpen || cartOpen) {
+    if (hamburgerOpen || searchOpen || cartOpen || profileOpen) {
       controls.start({
         opacity: 0,
         pointerEvents: 'none',
@@ -96,6 +98,7 @@ export default function NavBar({
     hamburgerOpen,
     searchOpen,
     cartOpen,
+    profileOpen,
     dynamicTransparent,
   ]);
 
@@ -157,6 +160,7 @@ export default function NavBar({
           <NavBarIconText
             icon={<FiUser size={iconsSize} strokeWidth={iconsStrokeWidth} />}
             text={clientName ? clientName : 'INICIA SESIÓN'}
+            onClick={() => setProfileOpen(true)}
           />
           <div
             className="relative flex items-center gap-2"
@@ -178,6 +182,7 @@ export default function NavBar({
       <HamburgerNavBarDialog open={hamburgerOpen} setOpen={setHamburgerOpen} />
       <SearchNavBarDialog open={searchOpen} setOpen={setSearchOpen} />
       <CartNavBarDialog open={cartOpen} setOpen={setCartOpen} />
+      <ProfileNavBarDialog open={profileOpen} setOpen={setProfileOpen} />
     </div>
   );
 }
