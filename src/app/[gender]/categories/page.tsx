@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 
 import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
+import CategoriesPageNavBar from './CategoriesPageNavBar';
+import CategoriesGallery from './CategoriesGallery';
 import { AD_TYPES } from '@/constants/ads';
 
 type Props = {
@@ -45,10 +47,10 @@ export async function generateMetadata({
     genderLabel = capitalize(genderParam);
   }
 
-  const title = `Categorias - ${genderLabel} | Monero`;
+  const title = `Categorías - ${genderLabel} | Monero`;
   const description =
     first(searchParams?.description) ??
-    `Descubre todas las categorias para ${genderLabel.toLowerCase()} en Monero.`;
+    `Descubre todas las categorías para ${genderLabel.toLowerCase()} en Monero.`;
 
   return {
     title,
@@ -62,15 +64,13 @@ export default function GenderClothesPage({ params, searchParams }: Props) {
     ? searchParams!.category[0]
     : searchParams?.category;
 
-  // For now we render the same PageContainer used elsewhere.
-  // We include the gender/category as data attributes so they are used and
-  // available in the DOM for debugging or styling. Later we can pass them
-  // to PageContainer as props when it accepts them.
+  // Categories page with gallery structure similar to outfits
   return (
     <>
       <NavBar dynamicTransparent={false} />
       <div data-gender={gender} data-category={category ?? ''}>
-        Categorías
+        <CategoriesPageNavBar />
+        <CategoriesGallery />
       </div>
       <Footer />
     </>
