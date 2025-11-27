@@ -15,7 +15,7 @@ interface ClientState {
   error: string | null;
 }
 
-const CLIENT_TOKEN_KEY = 'clientToken';
+const CLIENT_TOKEN_KEY = 'authToken';
 
 export const getClient = createAsyncThunk(
   'client/getClient',
@@ -87,6 +87,10 @@ const clientSlice = createSlice({
         localStorage.removeItem(CLIENT_TOKEN_KEY);
       }
     },
+    setClient(state, action: PayloadAction<Client>) {
+      state.client = action.payload;
+      state.status = 'succeeded';
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -132,7 +136,7 @@ const clientSlice = createSlice({
   },
 });
 
-export const { logout } = clientSlice.actions;
+export const { logout, setClient } = clientSlice.actions;
 export default clientSlice.reducer;
 
 // Selector to get the client from state

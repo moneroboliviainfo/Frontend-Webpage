@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import ReduxProvider from '../store/Provider';
+import AuthProvider from '../components/AuthProvider';
 
 import '@fontsource/poppins';
 import '@fontsource/space-grotesk';
@@ -32,7 +33,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ReduxProvider>{children}</ReduxProvider>
+        <ReduxProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ReduxProvider>
       </body>
     </html>
   );

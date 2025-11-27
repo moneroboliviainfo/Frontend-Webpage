@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fi';
 
 import NavBarDialog from './NavBarDialog';
+import GoogleLoginButton from '../GoogleLoginButton';
 import { selectClient, logout } from '@/store/clientSlice';
 
 interface Order {
@@ -45,6 +46,22 @@ const ProfileNavBarDialog: React.FC<{
     dispatch(logout());
     setOpen(false);
   };
+
+  // If user is not logged in, show only Google login button
+  if (!client) {
+    return (
+      <NavBarDialog open={open} setOpen={setOpen}>
+        <div
+          className="flex items-center justify-center h-[70vh] bg-white"
+          style={{
+            padding: '24px',
+          }}
+        >
+          <GoogleLoginButton />
+        </div>
+      </NavBarDialog>
+    );
+  }
 
   // Mock data - replace with real data from your store/API
   const orders: Order[] = [
