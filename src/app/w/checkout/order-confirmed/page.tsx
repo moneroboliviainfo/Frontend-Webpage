@@ -1,12 +1,12 @@
 'use client';
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import CheckoutCostSummary from '../CheckoutCostSummary';
 import DesktopCartSummary from '../DesktopCartSummary';
 import NavBar from '@/components/nav/NavBar';
 
-const OrderConfirmedPage: React.FC = () => {
+const OrderConfirmedContent: React.FC = () => {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || '12345678'; // Fallback to default if no orderId
 
@@ -498,6 +498,23 @@ const OrderConfirmedPage: React.FC = () => {
         />
       </div>
     </div>
+  );
+};
+
+const OrderConfirmedPage: React.FC = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Cargando confirmación...</p>
+          </div>
+        </div>
+      }
+    >
+      <OrderConfirmedContent />
+    </Suspense>
   );
 };
 
