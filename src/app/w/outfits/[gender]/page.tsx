@@ -5,13 +5,13 @@ import OutfitsPageNavBar from '../OutfitsPageNavBar';
 import OutfitsGallery from '../OutfitsGallery';
 
 type Props = {
-  params: { gender: string };
+  params: Promise<{ gender: string }>;
 };
 
 export async function generateMetadata({
   params,
 }: {
-  params?: { gender?: string };
+  params: Promise<{ gender?: string }>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
   const genderParam = (resolvedParams?.gender ?? '').toString().toLowerCase();
