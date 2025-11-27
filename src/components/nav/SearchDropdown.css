@@ -1,0 +1,212 @@
+/* Search Dropdown Styles */
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.375rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 50;
+  max-height: 15rem;
+  overflow-y: auto;
+  backdrop-filter: blur(8px);
+  animation: dropdown-enter 0.2s ease-out;
+}
+
+.search-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-dropdown::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.search-suggestion {
+  width: 100%;
+  text-align: left;
+  padding: 0.875rem 1.125rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-suggestion:first-child {
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+}
+
+.search-suggestion:last-child {
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+}
+
+.search-suggestion:not(:last-child) {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.search-suggestion:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #1f2937;
+  transform: translateX(4px);
+  padding-left: 1.375rem;
+}
+
+.search-suggestion:active {
+  transform: translateX(2px) scale(0.98);
+  transition: all 0.1s ease;
+}
+
+.search-suggestion::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 0 2px 2px 0;
+  transition: height 0.2s ease;
+}
+
+.search-suggestion:hover::before {
+  height: 60%;
+}
+
+.search-suggestion-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.search-suggestion:hover .search-suggestion-icon {
+  opacity: 0.8;
+}
+
+.search-suggestion-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* Animations */
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Loading state */
+.search-loading-spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 0.75rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty state */
+.search-dropdown-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .search-dropdown {
+    margin-top: 0.25rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 15px -2px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-suggestion {
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .search-suggestion:hover {
+    transform: none;
+    padding-left: 1rem;
+  }
+
+  .search-suggestion::before {
+    display: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .search-dropdown {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .search-suggestion {
+    color: #e5e7eb;
+  }
+
+  .search-suggestion:hover {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    color: #f9fafb;
+  }
+
+  .search-suggestion:not(:last-child) {
+    border-bottom-color: #374151;
+  }
+
+  .search-dropdown::-webkit-scrollbar-track {
+    background: #374151;
+  }
+
+  .search-dropdown::-webkit-scrollbar-thumb {
+    background: #6b7280;
+  }
+
+  .search-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+}

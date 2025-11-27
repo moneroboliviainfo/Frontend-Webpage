@@ -1,12 +1,51 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiTag } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
+import './SearchDropdown.css';
 
 import type { AppDispatch } from '../../store/store';
 import { fetchMostSearched } from '../../store/clothingSlice';
 import type { RootState } from '../../store/store';
 import NavBarDialog from './NavBarDialog';
 import MostSearchedPills from '../MostSearchedPills';
+
+// Types for search API response
+interface SearchProduct {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  enabled: boolean;
+  createdAt: string;
+  subcategory: {
+    id: number;
+    name: string;
+    enabled: boolean;
+    videos: string[];
+    category: {
+      id: number;
+      name: string;
+      gender: 'male' | 'female';
+      displayOrder: number;
+      enabled: boolean;
+      image: string | null;
+    };
+  };
+}
+
+interface SearchResponse {
+  data: SearchProduct[];
+  meta: {
+    total: number;
+    page: number;
+    lastPage: number;
+    limit: number;
+    offset: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
 
 const iconSize = 20;
 const iconStrokeWidth = 1.8;
@@ -16,6 +55,7 @@ const SearchNavBarDialog: React.FC<{
   setOpen: (open: boolean) => void;
 }> = ({ open, setOpen }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const mostSearched = useSelector(
     (state: RootState) => state.clothing.mostSearched
   );
@@ -23,6 +63,154 @@ const SearchNavBarDialog: React.FC<{
   const error = useSelector((state: RootState) => state.clothing.error);
   const inputRef = useRef<HTMLInputElement>(null);
   const [focus, setFocus] = useState(false);
+
+  // Search state
+  const [searchValue, setSearchValue] = useState('');
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Refs for debouncing and cancelling requests
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Function to extract unique suggestions from search response
+  const extractSuggestions = useCallback(
+    (response: SearchResponse): string[] => {
+      const categories = new Set<string>();
+      const subcategories = new Set<string>();
+
+      // Extract categories and subcategories
+      response.data.forEach((product) => {
+        if (product.subcategory?.category?.name) {
+          categories.add(product.subcategory.category.name.toLowerCase());
+        }
+        if (product.subcategory?.name) {
+          subcategories.add(product.subcategory.name.toLowerCase());
+        }
+      });
+
+      // Create mixed array with categories taking priority
+      const mixedSuggestions = new Set<string>();
+
+      // Add categories first (they have priority)
+      categories.forEach((category) => mixedSuggestions.add(category));
+
+      // Add subcategories only if not already present (case-insensitive)
+      subcategories.forEach((subcategory) => {
+        if (!mixedSuggestions.has(subcategory)) {
+          mixedSuggestions.add(subcategory);
+        }
+      });
+
+      // Convert to array, capitalize first letter, and return top 10
+      return Array.from(mixedSuggestions)
+        .map(
+          (suggestion) =>
+            suggestion.charAt(0).toUpperCase() + suggestion.slice(1)
+        )
+        .slice(0, 10);
+    },
+    []
+  );
+
+  // Debounced search function
+  const performSearch = useCallback(
+    async (query: string) => {
+      if (query.length < 3) {
+        setSearchSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+
+      try {
+        setIsSearching(true);
+
+        // Cancel previous request
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+
+        // Create new abort controller
+        abortControllerRef.current = new AbortController();
+
+        const response = await fetch(
+          `https://api.moneroget.com/api/searchs/advanced?search=${encodeURIComponent(
+            query
+          )}`,
+          {
+            signal: abortControllerRef.current.signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Search request failed');
+        }
+
+        const data: SearchResponse = await response.json();
+        const suggestions = extractSuggestions(data);
+
+        setSearchSuggestions(suggestions);
+        setShowSuggestions(suggestions.length > 0);
+      } catch (error) {
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Search error:', error);
+          setSearchSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [extractSuggestions]
+  );
+
+  // Handle input change with debouncing
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchValue(value);
+
+      // Clear previous timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+
+      // Set new timeout for 400ms
+      searchTimeoutRef.current = setTimeout(() => {
+        performSearch(value);
+      }, 400);
+    },
+    [performSearch]
+  );
+
+  // Handle suggestion selection
+  const handleSuggestionSelect = useCallback(
+    (suggestion: string) => {
+      const encodedSearch = encodeURIComponent(suggestion);
+      // Determine gender from current path or default to women
+      const currentGender = window.location.pathname.includes('/men')
+        ? 'men'
+        : 'women';
+      router.push(`/${currentGender}/clothes?search=${encodedSearch}`);
+      setOpen(false);
+    },
+    [router, setOpen]
+  );
+
+  // Handle input blur with delay to allow suggestion clicks
+  const handleInputBlur = useCallback(() => {
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 150);
+  }, []);
+
+  // Handle input focus
+  const handleInputFocus = useCallback(() => {
+    if (searchSuggestions.length > 0) {
+      setShowSuggestions(true);
+    }
+  }, [searchSuggestions.length]);
 
   useEffect(() => {
     // Fetch most searched when dialog opens and data is not already loaded
@@ -46,6 +234,36 @@ const SearchNavBarDialog: React.FC<{
       inputRef.current.focus();
     }
   }, [open, focus]);
+
+  // Cleanup search timeouts and abort controllers on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Reset search state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setSearchValue('');
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      setIsSearching(false);
+
+      // Clear any pending search requests
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    }
+  }, [open]);
 
   // elegir la portada mediante el color para cada producto
   // revisar las tallas
@@ -72,9 +290,24 @@ const SearchNavBarDialog: React.FC<{
                 style={{ marginLeft: '0.8rem' }}
               />
             </span>
+            {isSearching && (
+              <span className="absolute inset-y-0 right-0 flex items-center">
+                <div className="search-loading-spinner"></div>
+              </span>
+            )}
             <input
               ref={inputRef}
               type="text"
+              value={searchValue}
+              onChange={handleSearchChange}
+              onFocus={() => {
+                setFocus(true);
+                handleInputFocus();
+              }}
+              onBlur={() => {
+                setFocus(false);
+                handleInputBlur();
+              }}
               placeholder="Escribe aquí..."
               className="focus:outline-none focus:ring-2 focus:ring-primary text-lg w-full"
               style={{
@@ -87,6 +320,22 @@ const SearchNavBarDialog: React.FC<{
               }}
               autoFocus
             />
+
+            {/* Search Suggestions Dropdown */}
+            {showSuggestions && searchSuggestions.length > 0 && (
+              <div className="search-dropdown">
+                {searchSuggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestionSelect(suggestion)}
+                    className="search-suggestion"
+                  >
+                    <FiTag className="search-suggestion-icon" />
+                    <span className="search-suggestion-text">{suggestion}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <button
             className="rounded-lg text-black font-bold hover:bg-gray-300 transition"
