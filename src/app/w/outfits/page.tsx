@@ -1,7 +1,7 @@
 'use client';
 import NavBar from '@/components/nav/NavBar';
 import useIsMobile from '@/hooks/useIsMobile';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import OutfitPageMobile from './OutfitPageMobile';
 import OutfitPageDesktop from './OutfitPageDesktop';
@@ -137,7 +137,7 @@ const allOutfitsData = [
   },
 ];
 
-const OutfitsPage = () => {
+const OutfitsPageContent = () => {
   const isMobile = useIsMobile();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -197,6 +197,23 @@ const OutfitsPage = () => {
         <OutfitPageDesktop outfitDetails={currentOutfit} />
       )}
     </>
+  );
+};
+
+const OutfitsPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Cargando outfits...</p>
+          </div>
+        </div>
+      }
+    >
+      <OutfitsPageContent />
+    </Suspense>
   );
 };
 
