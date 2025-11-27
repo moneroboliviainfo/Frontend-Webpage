@@ -7,16 +7,16 @@ import CategoriesGallery from './CategoriesGallery';
 import { AD_TYPES } from '@/constants/ads';
 
 type Props = {
-  params: { gender: string };
-  searchParams?: { category?: string | string[] | undefined };
+  params: Promise<{ gender: string }>;
+  searchParams?: Promise<{ category?: string | string[] | undefined }>;
 };
 
 export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params?: { gender?: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
+  params: Promise<{ gender?: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }): Promise<Metadata> {
   const first = (v: string | string[] | undefined) =>
     Array.isArray(v) ? v[0] : v;
@@ -27,8 +27,12 @@ export async function generateMetadata({
       .map((w) => (w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
       .join(' ');
 
+  // Await the params and searchParams
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+
   // determine gender label
-  const genderParam = (params?.gender ?? '').toString().toLowerCase();
+  const genderParam = (resolvedParams?.gender ?? '').toString().toLowerCase();
   let genderLabel = 'Mujeres';
   if (
     genderParam === 'men' ||
@@ -49,7 +53,7 @@ export async function generateMetadata({
 
   const title = `Categorías - ${genderLabel} | Monero`;
   const description =
-    first(searchParams?.description) ??
+    first(resolvedSearchParams?.description) ??
     `Descubre todas las categorías para ${genderLabel.toLowerCase()} en Monero.`;
 
   return {
@@ -58,11 +62,17 @@ export async function generateMetadata({
   };
 }
 
-export default function GenderClothesPage({ params, searchParams }: Props) {
-  const gender = params?.gender ?? AD_TYPES.WOMEN;
-  const category = Array.isArray(searchParams?.category)
-    ? searchParams!.category[0]
-    : searchParams?.category;
+export default async function GenderClothesPage({
+  params,
+  searchParams,
+}: Props) {
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+
+  const gender = resolvedParams?.gender ?? AD_TYPES.WOMEN;
+  const category = Array.isArray(resolvedSearchParams?.category)
+    ? resolvedSearchParams!.category[0]
+    : resolvedSearchParams?.category;
 
   // Categories page with gallery structure similar to outfits
   return (

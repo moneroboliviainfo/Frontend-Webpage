@@ -6,16 +6,16 @@ import { AD_TYPES } from '@/constants/ads';
 import ClothesPageBody from './ClothesPageBody';
 
 type Props = {
-  params: { gender: string };
-  searchParams?: { category?: string | string[] | undefined };
+  params: Promise<{ gender: string }>;
+  searchParams?: Promise<{ category?: string | string[] | undefined }>;
 };
 
 export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params?: { gender?: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
+  params: Promise<{ gender?: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }): Promise<Metadata> {
   // Await dynamic route APIs as required by Next.js
   const resolvedParams = await params;
