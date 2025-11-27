@@ -1,10 +1,10 @@
 'use client';
 import React from 'react';
-
 import GalleryTile from '@/components/GalleryTile';
 import Image from 'next/image';
 import SectionHeader from '@/components/SectionHeader';
 import { FiMonitor, FiTruck, FiSmile } from 'react-icons/fi';
+import { useGenderPageData, useSlidersData } from '@/hooks/useGenderPageData';
 
 // Inline QR SVG icon (replaces FiCreditCard). Uses currentColor so it follows surrounding styles.
 const QrIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
@@ -25,17 +25,6 @@ import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 import ClothesSlider from '@/components/ClothesSlider';
 import useIsMobile from '@/hooks/useIsMobile';
 
-// Slides for each mode
-const horSlides = [
-  { image: '/images/hor-slide-1-white.png', label: '' },
-  { image: '/images/Portadas_web-01-2.jpg', label: '' },
-  { image: '/images/Portadas_web-02-2.jpg', label: '' },
-];
-const verSlides = [
-  { image: '/images/ver-slide-1.png', label: '' },
-  { image: '/images/ver-slide-2.png', label: '' },
-];
-
 const galleryImages = [
   { src: '/images/ver-slide-1.png', label: 'Outfit 1' },
   { src: '/images/ver-slide-2.png', label: 'Outfit 2' },
@@ -50,6 +39,29 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   // Responsive: use vertical slides for mobile, horizontal for desktop
   const isMobile = useIsMobile();
 
+  // Convert gender string to API format
+  const apiGender: 'male' | 'female' = gender === 'men' ? 'male' : 'female';
+
+  // Load data using custom hooks - this triggers the API calls
+  const { priorityDataLoading } = useGenderPageData(apiGender);
+
+  // Get sliders for current viewport
+  const { desktopSliders, mobileSliders } = useSlidersData(apiGender);
+
+  // Use API sliders based on viewport
+  const currentSlides = isMobile ? mobileSliders : desktopSliders;
+
+  // Debug logging
+  console.log('🔍 PageContainer Debug:', {
+    gender,
+    apiGender,
+    isMobile,
+    currentSlides: currentSlides.length,
+    desktopSliders: desktopSliders.length,
+    mobileSliders: mobileSliders.length,
+    priorityDataLoading,
+  });
+
   // Determine the outfits URL based on gender
   const outfitsUrl = `/w/outfits/${gender}`;
 
@@ -59,12 +71,27 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
         {/* Top 85% - Primary color with slider */}
         <div style={{ height: '100%' }} className="relative">
           <div className="absolute inset-0">
-            <ImageSlider
-              direction="horizontal"
-              slidesData={isMobile ? verSlides : horSlides}
-              autoplayDelay={3500}
-              showNews={true}
-            />
+            {currentSlides.length > 0 ? (
+              <ImageSlider
+                direction="horizontal"
+                slidesData={currentSlides}
+                autoplayDelay={3500}
+                showNews={true}
+              />
+            ) : priorityDataLoading ? (
+              // Loading state
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+                  <p className="text-gray-600">Cargando slider...</p>
+                </div>
+              </div>
+            ) : (
+              // No data available
+              <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                <p className="text-gray-500">No hay sliders disponibles</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
