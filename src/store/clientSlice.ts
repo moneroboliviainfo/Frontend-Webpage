@@ -56,7 +56,7 @@ export const updateClient = createAsyncThunk(
 
 export const createClient = createAsyncThunk(
   'client/createClient',
-  async (client: Omit<Client, 'clientId'>, { rejectWithValue }) => {
+  async (client: Omit<Client, 'clientId'>) => {
     const response = await fetch('/api/client', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

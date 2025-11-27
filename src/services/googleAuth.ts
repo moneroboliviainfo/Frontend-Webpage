@@ -1,5 +1,11 @@
 import { API_URL } from '@/config/env';
 import { AUTH_ENDPOINTS, DEFAULT_ROUTES } from '@/constants/auth';
+import type { Client } from '@/store/clientSlice';
+
+interface AuthResponse {
+  token?: string;
+  user?: Client;
+}
 
 /**
  * Service class for handling Google OAuth operations
@@ -21,9 +27,7 @@ export class GoogleAuthService {
    * @param code - Authorization code from Google
    * @returns Promise with token and user data
    */
-  static async exchangeCodeForTokens(
-    code: string
-  ): Promise<{ token?: string; user?: any }> {
+  static async exchangeCodeForTokens(code: string): Promise<AuthResponse> {
     const response = await fetch(
       `${API_URL}${AUTH_ENDPOINTS.GOOGLE_EXCHANGE}`,
       {

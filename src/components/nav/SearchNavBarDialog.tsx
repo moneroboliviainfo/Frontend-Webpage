@@ -29,7 +29,7 @@ const SearchNavBarDialog: React.FC<{
     if (mostSearched.length === 0) {
       dispatch(fetchMostSearched());
     }
-  }, [mostSearched.length]);
+  }, [mostSearched.length, dispatch]);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout | undefined;

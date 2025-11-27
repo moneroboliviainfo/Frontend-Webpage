@@ -1,5 +1,5 @@
 import { API_URL } from '@/config/env';
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 // Types for categories and subcategories
 export interface Category {
