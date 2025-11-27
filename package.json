@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "copy src\\config\\env.qa.ts src\\config\\env.ts && next dev --turbopack",
-    "build": "copy src\\config\\env.prod.ts src\\config\\env.ts && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test-prod": "copy src\\config\\env.prod.ts src\\config\\env.ts && next dev --turbopack"
