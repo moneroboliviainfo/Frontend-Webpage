@@ -3,6 +3,7 @@ import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
 import OutfitsPageNavBar from '../OutfitsPageNavBar';
 import OutfitsGallery from '../OutfitsGallery';
+import { createPageMetadata } from '@/config/metadata';
 
 type Props = {
   params: Promise<{ gender: string }>;
@@ -31,10 +32,21 @@ export async function generateMetadata({
     genderLabel = 'Mujeres';
   }
 
-  return {
-    title: `Obtén el estilo - ${genderLabel} | Monero`,
-    description: `Toma inspiración de los outfits que preparamos para ${genderLabel.toLowerCase()}. Descubre combinaciones únicas en Monero.`,
-  };
+  const title = `Obtén el estilo - ${genderLabel}`;
+  const description = `Toma inspiración de los outfits que preparamos para ${genderLabel.toLowerCase()}. Descubre combinaciones únicas en Monero.`;
+
+  return createPageMetadata({
+    title,
+    description,
+    openGraph: {
+      title: `${title} | Monero`,
+      description,
+    },
+    twitter: {
+      title: `${title} | Monero`,
+      description,
+    },
+  });
 }
 
 export default async function GenderOutfitsPage({ params }: Props) {

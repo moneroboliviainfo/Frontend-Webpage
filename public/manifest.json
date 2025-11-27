@@ -1,0 +1,28 @@
+{
+  "name": "Monero - Tienda de Moda Online",
+  "short_name": "Monero",
+  "description": "Tienda de ropa para hombres y mujeres. Descubre las últimas tendencias de moda.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logos/Logo-Monero.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/logos/Logo-Monero.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["shopping", "lifestyle", "fashion"],
+  "lang": "es",
+  "scope": "/",
+  "screenshots": []
+}

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import ReduxProvider from '../store/Provider';
 import AuthProvider from '../components/AuthProvider';
+import { baseMetadata } from '../config/metadata';
 
 import '@fontsource/poppins';
 import '@fontsource/space-grotesk';
@@ -17,11 +18,7 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export const metadata: Metadata = {
-  title: 'Monero',
-  description:
-    'Monero - Tienda de ropa para hombres y mujeres. Descubre las últimas tendencias de moda, colecciones exclusivas y compra prendas premium en línea.',
-};
+export const metadata: Metadata = baseMetadata;
 
 export default function RootLayout({
   children,
@@ -30,6 +27,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <link rel="icon" href="/favicon.png" type="image/png" />
+        <link
+          rel="shortcut icon"
+          href="/logos/Logo-Monero.png"
+          type="image/png"
+        />
+        <link rel="apple-touch-icon" href="/logos/Logo-Monero.png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

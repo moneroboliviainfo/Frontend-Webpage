@@ -4,6 +4,7 @@ import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
 import { AD_TYPES } from '@/constants/ads';
 import ClothesPageBody from './ClothesPageBody';
+import { createPageMetadata } from '@/config/metadata';
 
 type Props = {
   params: Promise<{ gender: string }>;
@@ -58,15 +59,23 @@ export async function generateMetadata({
     genderLabel = capitalize(genderParam);
   }
 
-  const title = `${categoryLabel} - ${genderLabel} | Monero`;
+  const title = `${categoryLabel} - ${genderLabel}`;
   const description =
     first(resolvedSearchParams?.description) ??
     `Descubre la colección de ${categoryLabel.toLowerCase()} para ${genderLabel.toLowerCase()} en Monero.`;
 
-  return {
+  return createPageMetadata({
     title,
     description,
-  };
+    openGraph: {
+      title: `${title} | Monero`,
+      description,
+    },
+    twitter: {
+      title: `${title} | Monero`,
+      description,
+    },
+  });
 }
 
 export default async function GenderClothesPage({
