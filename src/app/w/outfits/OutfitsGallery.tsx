@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import useIsMobile from '@/hooks/useIsMobile';
-import OutfitsGalleryItem from './OutfitsGalleryItem.tsx';
+import OutfitsGalleryItem from './OutfitsGalleryItem';
 
 const sampleOutfits = [
   {
