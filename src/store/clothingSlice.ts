@@ -27,6 +27,7 @@ export interface Category {
   gender: 'male' | 'female';
   displayOrder: number;
   enabled: boolean;
+  image: string;
   subcategories: Subcategory[];
 }
 

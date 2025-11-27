@@ -1,11 +1,12 @@
 'use client';
-import React from 'react';
-
+import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import CategorySlide from './CategorySlide';
 import useIsMobile from '@/hooks/useIsMobile';
+import type { RootState } from '@/store/store';
 
-const categories = [
+const staticCategories = [
   { name: 'JEANS', image: '/categories/jeans.jpg' },
   { name: 'JACKETS AND TRENCH', image: '/categories/swater.jpg' },
   { name: 'TROUSERS', image: '/categories/trousers.jpg' },
@@ -22,6 +23,30 @@ export default function CategorySliderWithImages({
 }: CategorySliderWithImagesProps) {
   const isMobile = useIsMobile();
   const router = useRouter();
+
+  // Get categories from Redux store
+  const apiCategories = useSelector(
+    (state: RootState) => state.clothing.categories
+  );
+
+  // Filter and sort categories for current gender, show only top 5
+  const categories = useMemo(() => {
+    const genderFilter: 'male' | 'female' =
+      gender === 'men' ? 'male' : 'female';
+
+    // Filter by gender and enabled status, then sort by displayOrder (lowest first)
+    const filteredCategories = apiCategories
+      .filter(
+        (category) => category.gender === genderFilter && category.enabled
+      )
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .slice(0, 5); // Take only top 5 categories
+
+    // Fallback to static categories if no API data
+    return filteredCategories.length > 0
+      ? filteredCategories
+      : staticCategories.slice(0, 5);
+  }, [apiCategories, gender]);
 
   const slideWidth = isMobile ? '40vw' : '16.666vw';
   const slideHeight = isMobile ? '60vw' : '25vw';
@@ -44,18 +69,25 @@ export default function CategorySliderWithImages({
         }}
       >
         {categories.map((category) => {
-          const slug = category.name.split(' ').join('-').toLowerCase();
+          // Handle both API categories (with id) and static categories (without id)
+          const isApiCategory = 'id' in category;
+          const categoryUrl = isApiCategory
+            ? encodeURIComponent(`${category.name}-${category.id}`)
+            : encodeURIComponent(
+                category.name.split(' ').join('-').toLowerCase()
+              );
+
           return (
             <CategorySlide
-              key={category.name}
+              key={
+                isApiCategory ? `api-${category.id}` : `static-${category.name}`
+              }
               name={category.name}
               image={category.image}
               width={slideWidth}
               height={slideHeight}
               onClick={() =>
-                router.push(
-                  `/${gender}/clothes?category=${encodeURIComponent(slug)}`
-                )
+                router.push(`/${gender}/clothes?category=${categoryUrl}`)
               }
             />
           );
