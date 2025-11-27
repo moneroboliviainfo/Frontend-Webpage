@@ -4,7 +4,7 @@ import GalleryTile from '@/components/GalleryTile';
 import Image from 'next/image';
 import SectionHeader from '@/components/SectionHeader';
 import { FiMonitor, FiTruck, FiSmile } from 'react-icons/fi';
-import { useGenderPageData, useSlidersData } from '@/hooks/useGenderPageData';
+import { useSlidersData } from '@/hooks/useGenderPageData';
 
 // Inline QR SVG icon (replaces FiCreditCard). Uses currentColor so it follows surrounding styles.
 const QrIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
@@ -42,10 +42,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   // Convert gender string to API format
   const apiGender: 'male' | 'female' = gender === 'men' ? 'male' : 'female';
 
-  // Load data using custom hooks - this triggers the API calls
-  const { priorityDataLoading } = useGenderPageData(apiGender);
-
-  // Get sliders for current viewport
+  // Get sliders data (no loading logic needed, handled by Suspense)
   const { desktopSliders, mobileSliders } = useSlidersData(apiGender);
 
   // Use API sliders based on viewport
@@ -59,7 +56,6 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
     currentSlides: currentSlides.length,
     desktopSliders: desktopSliders.length,
     mobileSliders: mobileSliders.length,
-    priorityDataLoading,
   });
 
   // Determine the outfits URL based on gender
@@ -78,18 +74,12 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
                 autoplayDelay={3500}
                 showNews={true}
               />
-            ) : priorityDataLoading ? (
-              // Loading state
-              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-                  <p className="text-gray-600">Cargando slider...</p>
-                </div>
-              </div>
             ) : (
               // No data available
               <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                <p className="text-gray-500">No hay sliders disponibles</p>
+                <p className="text-gray-500 text-center">
+                  No hay sliders disponibles para esta sección
+                </p>
               </div>
             )}
           </div>

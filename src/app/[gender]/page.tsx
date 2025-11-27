@@ -3,6 +3,7 @@ import NavBar from '@/components/nav/NavBar';
 import PageContainer from '../PageContainer';
 import Footer from '@/components/Footer';
 import { createPageMetadata } from '@/config/metadata';
+import GenderPageDataLoader from './GenderPageDataLoader';
 
 type Props = {
   params: Promise<{ gender: string }>;
@@ -54,10 +55,10 @@ export default async function GenderPage({ params }: Props) {
   const gender = resolvedParams?.gender ?? 'women';
 
   return (
-    <>
+    <GenderPageDataLoader gender={gender}>
       <NavBar />
       <PageContainer gender={gender} />
       <Footer />
-    </>
+    </GenderPageDataLoader>
   );
 }
