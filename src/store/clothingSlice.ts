@@ -55,7 +55,7 @@ export const fetchCategoriesAndSubcategories = createAsyncThunk(
 export const fetchMostSearched = createAsyncThunk(
   'clothing/fetchMostSearched',
   async () => {
-    const response = await fetch(API_URL + 'mostSearched');
+    const response = await fetch(API_URL + 'searchs');
     if (!response.ok) {
       throw new Error('Failed to fetch most searched items');
     }

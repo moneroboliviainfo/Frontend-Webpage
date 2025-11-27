@@ -25,11 +25,11 @@ const SearchNavBarDialog: React.FC<{
   const [focus, setFocus] = useState(false);
 
   useEffect(() => {
-    // Fetch most searched only if not already loaded
-    if (mostSearched.length === 0) {
+    // Fetch most searched when dialog opens and data is not already loaded
+    if (open && mostSearched.length === 0) {
       dispatch(fetchMostSearched());
     }
-  }, [mostSearched.length, dispatch]);
+  }, [open, mostSearched.length, dispatch]);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout | undefined;
