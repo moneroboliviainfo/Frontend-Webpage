@@ -89,7 +89,7 @@ export default async function GenderClothesPage({
       <NavBar dynamicTransparent={false} />
       <div data-gender={gender} data-category={category ?? ''}>
         <CategoriesPageNavBar />
-        <CategoriesGallery />
+        <CategoriesGallery gender={gender} />
       </div>
       <Footer />
     </>

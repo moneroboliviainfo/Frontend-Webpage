@@ -69,7 +69,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
         </div>
       </div>
       <div>
-        <CategorySliderWithImages />
+        <CategorySliderWithImages gender={gender} />
       </div>
       <div
         className="w-full"

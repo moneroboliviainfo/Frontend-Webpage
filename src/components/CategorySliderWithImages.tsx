@@ -13,7 +13,13 @@ const categories = [
   { name: 'TOPS AND BODYSUITS', image: '/categories/tops.jpg' },
 ];
 
-export default function CategorySliderWithImages() {
+type CategorySliderWithImagesProps = {
+  gender?: string;
+};
+
+export default function CategorySliderWithImages({
+  gender = 'women',
+}: CategorySliderWithImagesProps) {
   const isMobile = useIsMobile();
   const router = useRouter();
 
@@ -48,7 +54,7 @@ export default function CategorySliderWithImages() {
               height={slideHeight}
               onClick={() =>
                 router.push(
-                  `/women/clothes?category=${encodeURIComponent(slug)}`
+                  `/${gender}/clothes?category=${encodeURIComponent(slug)}`
                 )
               }
             />
@@ -60,7 +66,7 @@ export default function CategorySliderWithImages() {
           image="/categories/all-categories.png"
           width={slideWidth}
           height={slideHeight}
-          onClick={() => router.push('/women/categories')}
+          onClick={() => router.push(`/${gender}/categories`)}
         />
       </ul>
     </div>

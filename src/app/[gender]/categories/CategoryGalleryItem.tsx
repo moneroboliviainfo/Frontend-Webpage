@@ -8,6 +8,7 @@ type CategoryGalleryItemProps = {
   src: string;
   name: string;
   isMobile: boolean;
+  gender?: string;
 };
 
 const CategoryGalleryItem: React.FC<CategoryGalleryItemProps> = ({
@@ -15,12 +16,15 @@ const CategoryGalleryItem: React.FC<CategoryGalleryItemProps> = ({
   src,
   name,
   isMobile,
+  gender = 'women',
 }) => {
   const router = useRouter();
 
   const handleClick = () => {
     // Navigate to clothes page with category filter
-    router.push(`/women/clothes?category=${encodeURIComponent(categoryId)}`);
+    router.push(
+      `/${gender}/clothes?category=${encodeURIComponent(categoryId)}`
+    );
   };
 
   return (

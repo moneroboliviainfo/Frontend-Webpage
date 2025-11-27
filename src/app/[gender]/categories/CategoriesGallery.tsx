@@ -3,6 +3,10 @@ import React from 'react';
 import useIsMobile from '@/hooks/useIsMobile';
 import CategoryGalleryItem from './CategoryGalleryItem';
 
+type CategoriesGalleryProps = {
+  gender?: string;
+};
+
 const categories = [
   {
     id: 'jeans',
@@ -86,7 +90,9 @@ const categories = [
   },
 ];
 
-export default function CategoriesGallery() {
+export default function CategoriesGallery({
+  gender = 'women',
+}: CategoriesGalleryProps) {
   const isMobile = useIsMobile();
 
   // grid: 4 columns desktop, 2 columns mobile
@@ -116,6 +122,7 @@ export default function CategoriesGallery() {
                 src={category.image}
                 name={category.name}
                 isMobile={isMobile}
+                gender={gender}
               />
             </div>
           );
