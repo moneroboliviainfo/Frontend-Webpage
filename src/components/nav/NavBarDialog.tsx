@@ -45,7 +45,7 @@ const NavBarDialog: React.FC<NavBarDialogProps> = ({
                     <div className="flex items-center gap-4">
                       <button
                         aria-label="Open menu"
-                        className="block md:hidden"
+                        className="block cursor-pointer"
                         onClick={() => setOpen(false)}
                       >
                         <FaX
