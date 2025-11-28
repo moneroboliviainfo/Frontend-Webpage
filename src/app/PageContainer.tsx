@@ -175,14 +175,22 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
         className="w-full"
         style={{ backgroundColor: 'black', paddingTop: '0.17rem' }}
       >
-        <SectionHeader title="HOMBRES" fontColor="white" isMobile={isMobile} />
+        <SectionHeader
+          title={gender === FRONTEND_GENDERS.MEN ? 'MUJERES' : 'HOMBRES'}
+          fontColor="white"
+          isMobile={isMobile}
+        />
         <div className="w-full" style={{ marginTop: '0.17rem' }}>
           {/* unified relative wrapper so the overlay sits centered for both mobile and desktop */}
           <div className="relative w-full" style={{ height: '80vh' }}>
             {isMobile ? (
               <div className="absolute inset-0">
                 <Image
-                  src="/images/model-man-4.png"
+                  src={
+                    gender === FRONTEND_GENDERS.MEN
+                      ? '/images/model-women-2.png'
+                      : '/images/model-man-4.png'
+                  }
                   alt="Model"
                   fill
                   style={{ objectFit: 'cover' }}
@@ -194,7 +202,11 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
               <div className="absolute inset-0 w-full flex">
                 <div className="relative" style={{ flex: '1 1 0' }}>
                   <Image
-                    src="/images/model-man-4.png"
+                    src={
+                      gender === FRONTEND_GENDERS.MEN
+                        ? '/images/model-women-1.jpg'
+                        : '/images/model-man-4.png'
+                    }
                     alt="Model"
                     fill
                     style={{ objectFit: 'cover' }}
@@ -203,7 +215,11 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
                 </div>
                 <div className="relative" style={{ flex: '1 1 0' }}>
                   <Image
-                    src="/images/model-man3.png"
+                    src={
+                      gender === FRONTEND_GENDERS.MEN
+                        ? '/images/model-women-3.jpg'
+                        : '/images/model-man3.png'
+                    }
                     alt="Model 2"
                     fill
                     style={{ objectFit: 'cover' }}
@@ -225,10 +241,17 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
                   fontWeight: 'bolder',
                 }}
               >
-                Moda Másculina
+                {gender === FRONTEND_GENDERS.MEN
+                  ? 'Moda Femenina'
+                  : 'Moda Másculina'}
               </h2>
               <button
                 type="button"
+                onClick={() =>
+                  (window.location.href = `/${
+                    gender === FRONTEND_GENDERS.MEN ? 'women' : 'men'
+                  }`)
+                }
                 style={{
                   background: '#fff',
                   color: '#000',
