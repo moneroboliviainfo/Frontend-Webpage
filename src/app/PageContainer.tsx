@@ -71,16 +71,6 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   // Use API sliders based on viewport
   const currentSlides = isMobile ? mobileSliders : desktopSliders;
 
-  // Debug logging
-  console.log('🔍 PageContainer Debug:', {
-    gender,
-    apiGender,
-    isMobile,
-    currentSlides: currentSlides.length,
-    desktopSliders: desktopSliders.length,
-    mobileSliders: mobileSliders.length,
-  });
-
   // Determine the outfits URL based on gender
   const outfitsUrl = `/w/outfits/${gender}`;
 

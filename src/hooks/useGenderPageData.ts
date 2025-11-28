@@ -43,23 +43,16 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
   // Error state
   const error = useSelector((state: RootState) => state.clothing.error);
 
-  // Filter data for current gender
+  // Filter data for current gender (outfits are now global, no gender filtering needed)
   const genderSliders = sliders.filter((slider) => slider.gender === gender);
   const genderCategories = categories.filter(
     (category) => category.gender === gender && category.enabled
   );
-  const genderOutfits = outfits.filter((outfit) => outfit.gender === gender);
+  // Outfits are now global - no gender filtering since API doesn't support it
+  const allOutfits = outfits;
 
   // Priority loading effect - only runs once per gender
   useEffect(() => {
-    console.log('🔍 Checking priority data loading for gender:', gender);
-    console.log(
-      '📊 Current sliders:',
-      sliders.length,
-      'Categories:',
-      categories.length
-    );
-
     const needsSliders =
       !sliders.some((s) => s.gender === gender) &&
       !loadingInitiated.current.sliders.has(gender);
@@ -67,21 +60,12 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
       !categories.some((c) => c.gender === gender) &&
       !loadingInitiated.current.categories.has(gender);
 
-    console.log(
-      '🎯 Needs sliders:',
-      needsSliders,
-      'Needs categories:',
-      needsCategories
-    );
-
     if (needsSliders) {
-      console.log('🚀 Dispatching fetchSliders for gender:', gender);
       loadingInitiated.current.sliders.add(gender);
       dispatch(fetchSliders(gender));
     }
 
     if (needsCategories) {
-      console.log('🚀 Dispatching fetchCategories for gender:', gender);
       loadingInitiated.current.categories.add(gender);
       dispatch(fetchCategories(gender));
     }
@@ -105,10 +89,10 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
   }, [dispatch, outfits, slidersLoading, categoriesLoading]);
 
   return {
-    // Filtered data for current gender
+    // Filtered data for current gender (outfits are global)
     sliders: genderSliders,
     categories: genderCategories,
-    outfits: genderOutfits,
+    outfits: allOutfits,
     // Loading states
     priorityDataLoading: slidersLoading || categoriesLoading,
     outfitsLoading,
@@ -117,7 +101,7 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
     error,
     // Helper flags
     hasPriorityData: genderSliders.length > 0 || genderCategories.length > 0,
-    hasOutfits: genderOutfits.length > 0,
+    hasOutfits: allOutfits.length > 0,
   };
 };
 

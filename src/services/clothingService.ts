@@ -22,11 +22,7 @@ export class ClothingApiService {
     const params = gender ? `?gender=${gender}` : '';
     const url = `${this.baseUrl}sliders${params}`;
 
-    console.log('🌐 Fetching sliders from:', url);
-
     const response = await fetch(url);
-
-    console.log('📡 Sliders API response status:', response.status);
 
     if (!response.ok) {
       throw new Error(
@@ -35,7 +31,6 @@ export class ClothingApiService {
     }
 
     const data = await response.json();
-    console.log('📋 Sliders data received:', data);
 
     return data;
   }

@@ -58,11 +58,6 @@ const GenderPageDataLoader: React.FC<GenderPageDataLoaderProps> = ({
 
   // Trigger API calls on mount - only run once per gender
   useEffect(() => {
-    console.log(
-      '🚀 GenderPageDataLoader: Checking API calls for gender:',
-      apiGender
-    );
-
     // Check current state
     const currentHasSliderData = sliders.some(
       (slider) => slider.gender === apiGender
@@ -78,13 +73,11 @@ const GenderPageDataLoader: React.FC<GenderPageDataLoaderProps> = ({
       !dispatchedRef.current.categories.has(apiGender);
 
     if (needSliders) {
-      console.log('📡 Dispatching fetchSliders');
       dispatch(fetchSliders(apiGender));
       dispatchedRef.current.sliders.add(apiGender);
     }
 
     if (needCategories) {
-      console.log('📡 Dispatching fetchCategories');
       dispatch(fetchCategories(apiGender));
       dispatchedRef.current.categories.add(apiGender);
     }
@@ -100,11 +93,10 @@ const GenderPageDataLoader: React.FC<GenderPageDataLoaderProps> = ({
     }
 
     // Load outfits after a short delay (lower priority)
-    if (!dispatchedRef.current.outfits.has(apiGender)) {
+    if (!dispatchedRef.current.outfits.has('all')) {
       const timer = setTimeout(() => {
-        console.log('📡 Dispatching fetchOutfits');
-        dispatch(fetchOutfits(apiGender));
-        dispatchedRef.current.outfits.add(apiGender);
+        dispatch(fetchOutfits());
+        dispatchedRef.current.outfits.add('all');
       }, 300);
 
       return () => clearTimeout(timer);
@@ -143,23 +135,6 @@ const GenderPageDataLoader: React.FC<GenderPageDataLoaderProps> = ({
       setIsTransitioning(true);
     }
   }, [dataIsReady, shouldShowLoading, isTransitioning]);
-
-  console.log('🔍 GenderPageDataLoader State:', {
-    gender: apiGender,
-    hasInitialized,
-    slidersLoading,
-    categoriesLoading,
-    hasSliderData,
-    hasCategoryData,
-    shouldShowLoading,
-    dataIsReady,
-    isTransitioning,
-    dispatched: {
-      sliders: Array.from(dispatchedRef.current.sliders),
-      categories: Array.from(dispatchedRef.current.categories),
-      outfits: Array.from(dispatchedRef.current.outfits),
-    },
-  });
 
   // Show loading screen during loading or transitioning
   if (shouldShowLoading || isTransitioning) {
