@@ -90,20 +90,19 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
   // Lower priority loading effect - load outfits after priority data
   useEffect(() => {
     const needsOutfits =
-      !outfits.some((o) => o.gender === gender) &&
-      !loadingInitiated.current.outfits.has(gender);
+      outfits.length === 0 && !loadingInitiated.current.outfits.has('all');
     const priorityDataLoaded = !slidersLoading && !categoriesLoading;
 
     if (needsOutfits && priorityDataLoaded) {
-      loadingInitiated.current.outfits.add(gender);
+      loadingInitiated.current.outfits.add('all');
 
       const timer = setTimeout(() => {
-        dispatch(fetchOutfits(gender));
+        dispatch(fetchOutfits());
       }, 100);
 
       return () => clearTimeout(timer);
     }
-  }, [dispatch, gender, outfits, slidersLoading, categoriesLoading]);
+  }, [dispatch, outfits, slidersLoading, categoriesLoading]);
 
   return {
     // Filtered data for current gender

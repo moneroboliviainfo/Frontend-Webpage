@@ -62,12 +62,10 @@ export class ClothingApiService {
 
   /**
    * Fetch outfits from the API
-   * @param gender Optional gender filter
    * @returns Promise<Outfit[]>
    */
-  static async fetchOutfits(gender?: 'male' | 'female'): Promise<Outfit[]> {
-    const params = gender ? `?gender=${gender}` : '';
-    const response = await fetch(`${this.baseUrl}outfits${params}`);
+  static async fetchOutfits(): Promise<Outfit[]> {
+    const response = await fetch(`${this.baseUrl}outfits`);
 
     if (!response.ok) {
       throw new Error(

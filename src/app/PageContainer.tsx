@@ -1,11 +1,13 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import GalleryTile from '@/components/GalleryTile';
 import Image from 'next/image';
 import SectionHeader from '@/components/SectionHeader';
 import { FiMonitor, FiTruck, FiSmile } from 'react-icons/fi';
 import { useSlidersData } from '@/hooks/useGenderPageData';
 import { CLOTHING_API_CONSTANTS } from '@/services/clothingService';
+import type { RootState } from '@/store/store';
 
 // Inline QR SVG icon (replaces FiCreditCard). Uses currentColor so it follows surrounding styles.
 const QrIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
@@ -32,12 +34,6 @@ const FRONTEND_GENDERS = {
   WOMEN: 'women' as const,
 } as const;
 
-const galleryImages = [
-  { src: '/images/ver-slide-1.png', label: 'Outfit 1' },
-  { src: '/images/ver-slide-2.png', label: 'Outfit 2' },
-  { src: '/images/ver-slide-2.png', label: 'Outfit 3' },
-];
-
 type PageContainerProps = {
   gender?: string;
 };
@@ -45,6 +41,23 @@ type PageContainerProps = {
 const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   // Responsive: use vertical slides for mobile, horizontal for desktop
   const isMobile = useIsMobile();
+
+  // Get outfits from Redux store
+  const allOutfits = useSelector((state: RootState) => state.clothing.outfits);
+
+  // Get last 3 outfits for gallery
+  const galleryOutfits = useMemo(() => {
+    return allOutfits
+      .slice(-3) // Get last 3 outfits
+      .map((outfit) => ({
+        src: outfit.images[0] || '/images/default-outfit.jpg', // First image from images array or fallback
+        label: outfit.name,
+        href: `/w/outfits?outfit=${encodeURIComponent(
+          `${outfit.name}-${outfit.id}`
+        )}`,
+        id: outfit.id,
+      }));
+  }, [allOutfits]);
 
   // Convert gender string to API format
   const apiGender: 'male' | 'female' =
@@ -121,23 +134,22 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
               alignItems: 'center',
             }}
           >
-            {galleryImages.map((img, idx) => (
+            {galleryOutfits.map((outfit, idx) => (
               <GalleryTile
-                key={idx}
-                src={img.src}
-                label={img.label}
+                key={outfit.id}
+                src={outfit.src}
+                label={outfit.label}
                 isMobile={isMobile}
                 idx={idx}
                 priority={idx === 0}
+                href={outfit.href}
               />
             ))}
 
             {/* Static "Ver todos" tile */}
             <GalleryTile
               key="ver-todos"
-              src={`/categories/all-categories${
-                gender === FRONTEND_GENDERS.MEN ? '-men' : ''
-              }.png`}
+              src={'/categories/all-outfits.jpg'}
               label="Ver todos"
               isMobile={isMobile}
               priority={false}

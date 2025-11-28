@@ -49,13 +49,17 @@ export interface MostSearchedItem {
   searchCount: number;
 }
 
-// Outfit type for future API call
+// Outfit type matching actual API response
 export interface Outfit {
   id: number;
   name: string;
-  gender: 'male' | 'female';
-  items: string[];
-  image: string;
+  images: string[];
+  videos: string[];
+  productColors: {
+    id: number;
+    multimedia: string[];
+    pdfs: string[];
+  }[];
 }
 
 interface ClothingState {
@@ -109,8 +113,8 @@ export const fetchCategories = createAsyncThunk(
 // Async thunk to fetch outfits (lower priority)
 export const fetchOutfits = createAsyncThunk(
   'clothing/fetchOutfits',
-  async (gender?: 'male' | 'female') => {
-    return await ClothingApiService.fetchOutfits(gender);
+  async () => {
+    return await ClothingApiService.fetchOutfits();
   }
 );
 
