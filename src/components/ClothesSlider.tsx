@@ -9,14 +9,14 @@ type Cloth = {
 };
 
 const clothes: Cloth[] = [
-  { src: '/clothes/clothe-1.png', name: 'Chaqueta Derby', price: '$129' },
-  { src: '/clothes/clothe-2.png', name: 'Pantalón Slim', price: '$79' },
-  { src: '/clothes/clothe-3.png', name: 'Suéter Lana', price: '$99' },
-  { src: '/clothes/clothe-4.png', name: 'Blusa Seda', price: '$89' },
-  { src: '/clothes/clothe-1.png', name: 'Chaqueta Derby', price: '$129' },
-  { src: '/clothes/clothe-2.png', name: 'Pantalón Slim', price: '$79' },
-  { src: '/clothes/clothe-3.png', name: 'Suéter Lana', price: '$99' },
-  { src: '/clothes/clothe-4.png', name: 'Blusa Seda', price: '$89' },
+  { src: '/clothes/clothe-1.png', name: 'Chaqueta Derby', price: 'Bs. 450' },
+  { src: '/clothes/clothe-2.png', name: 'Pantalón Slim', price: 'Bs. 350' },
+  { src: '/clothes/clothe-3.png', name: 'Suéter Lana', price: 'Bs. 400' },
+  { src: '/clothes/clothe-4.png', name: 'Blusa Seda', price: 'Bs. 380' },
+  { src: '/clothes/clothe-1.png', name: 'Chaqueta Derby', price: 'Bs. 450' },
+  { src: '/clothes/clothe-2.png', name: 'Pantalón Slim', price: 'Bs. 350' },
+  { src: '/clothes/clothe-3.png', name: 'Suéter Lana', price: 'Bs. 400' },
+  { src: '/clothes/clothe-4.png', name: 'Blusa Seda', price: 'Bs. 380' },
 ];
 
 type Props = {
