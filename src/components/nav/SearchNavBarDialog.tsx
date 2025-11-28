@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiSearch, FiTag } from 'react-icons/fi';
+import { FiSearch, FiTag, FiAlertCircle } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import './SearchDropdown.css';
 
@@ -69,24 +69,36 @@ const SearchNavBarDialog: React.FC<{
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [hasSearchedWithNoResults, setHasSearchedWithNoResults] =
+    useState(false);
 
   // Refs for debouncing and cancelling requests
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Function to get current gender from URL path
+  const getCurrentGender = useCallback((): 'male' | 'female' => {
+    const pathname = window.location.pathname;
+    return pathname.includes('/men') ? 'male' : 'female';
+  }, []);
+
   // Function to extract unique suggestions from search response
   const extractSuggestions = useCallback(
     (response: SearchResponse): string[] => {
+      const currentGender = getCurrentGender();
       const categories = new Set<string>();
       const subcategories = new Set<string>();
 
-      // Extract categories and subcategories
+      // Extract categories and subcategories, filtering by gender
       response.data.forEach((product) => {
-        if (product.subcategory?.category?.name) {
-          categories.add(product.subcategory.category.name.toLowerCase());
-        }
-        if (product.subcategory?.name) {
-          subcategories.add(product.subcategory.name.toLowerCase());
+        // Only include products whose category matches the current page gender
+        if (product.subcategory?.category?.gender === currentGender) {
+          if (product.subcategory.category.name) {
+            categories.add(product.subcategory.category.name.toLowerCase());
+          }
+          if (product.subcategory.name) {
+            subcategories.add(product.subcategory.name.toLowerCase());
+          }
         }
       });
 
@@ -111,7 +123,7 @@ const SearchNavBarDialog: React.FC<{
         )
         .slice(0, 10);
     },
-    []
+    [getCurrentGender]
   );
 
   // Debounced search function
@@ -120,11 +132,13 @@ const SearchNavBarDialog: React.FC<{
       if (query.length < 3) {
         setSearchSuggestions([]);
         setShowSuggestions(false);
+        setHasSearchedWithNoResults(false);
         return;
       }
 
       try {
         setIsSearching(true);
+        setHasSearchedWithNoResults(false);
 
         // Cancel previous request
         if (abortControllerRef.current) {
@@ -152,11 +166,15 @@ const SearchNavBarDialog: React.FC<{
 
         setSearchSuggestions(suggestions);
         setShowSuggestions(suggestions.length > 0);
+
+        // Set no results state if search was performed but no suggestions found
+        setHasSearchedWithNoResults(suggestions.length === 0);
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
           console.error('Search error:', error);
           setSearchSuggestions([]);
           setShowSuggestions(false);
+          setHasSearchedWithNoResults(true);
         }
       } finally {
         setIsSearching(false);
@@ -188,14 +206,12 @@ const SearchNavBarDialog: React.FC<{
   const handleSuggestionSelect = useCallback(
     (suggestion: string) => {
       const encodedSearch = encodeURIComponent(suggestion);
-      // Determine gender from current path or default to women
-      const currentGender = window.location.pathname.includes('/men')
-        ? 'men'
-        : 'women';
+      // Get gender from current path
+      const currentGender = getCurrentGender() === 'male' ? 'men' : 'women';
       router.push(`/${currentGender}/clothes?search=${encodedSearch}`);
       setOpen(false);
     },
-    [router, setOpen]
+    [router, setOpen, getCurrentGender]
   );
 
   // Handle input blur with delay to allow suggestion clicks
@@ -254,6 +270,7 @@ const SearchNavBarDialog: React.FC<{
       setSearchSuggestions([]);
       setShowSuggestions(false);
       setIsSearching(false);
+      setHasSearchedWithNoResults(false);
 
       // Clear any pending search requests
       if (searchTimeoutRef.current) {
@@ -263,9 +280,7 @@ const SearchNavBarDialog: React.FC<{
         abortControllerRef.current.abort();
       }
     }
-  }, [open]);
-
-  // elegir la portada mediante el color para cada producto
+  }, [open]); // elegir la portada mediante el color para cada producto
   // revisar las tallas
   // pasar a Belen lo que necesitamos
 
@@ -350,6 +365,21 @@ const SearchNavBarDialog: React.FC<{
             Cancelar
           </button>
         </div>
+
+        {/* No Results Message - Moved outside input container to prevent layout shifts */}
+        {hasSearchedWithNoResults &&
+          searchValue.length >= 3 &&
+          !isSearching && (
+            <div
+              className="flex items-center gap-2 mx-4 mb-4 px-3 py-2 text-red-600 bg-red-50 border border-red-200 rounded-lg"
+              style={{ width: 'calc(100% - 2rem)' }}
+            >
+              <FiAlertCircle className="text-red-500 flex-shrink-0" size={18} />
+              <span className="text-sm font-medium">
+                No se encontraron resultados para &quot;{searchValue}&quot;
+              </span>
+            </div>
+          )}
         {/* Most Searched section */}
         <div
           className="w-full justify-center items-center gap-1"
