@@ -5,6 +5,7 @@ import Image from 'next/image';
 import SectionHeader from '@/components/SectionHeader';
 import { FiMonitor, FiTruck, FiSmile } from 'react-icons/fi';
 import { useSlidersData } from '@/hooks/useGenderPageData';
+import { CLOTHING_API_CONSTANTS } from '@/services/clothingService';
 
 // Inline QR SVG icon (replaces FiCreditCard). Uses currentColor so it follows surrounding styles.
 const QrIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
@@ -25,6 +26,12 @@ import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 import ClothesSlider from '@/components/ClothesSlider';
 import useIsMobile from '@/hooks/useIsMobile';
 
+// Frontend gender constants to match route parameters
+const FRONTEND_GENDERS = {
+  MEN: 'men' as const,
+  WOMEN: 'women' as const,
+} as const;
+
 const galleryImages = [
   { src: '/images/ver-slide-1.png', label: 'Outfit 1' },
   { src: '/images/ver-slide-2.png', label: 'Outfit 2' },
@@ -40,7 +47,10 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   const isMobile = useIsMobile();
 
   // Convert gender string to API format
-  const apiGender: 'male' | 'female' = gender === 'men' ? 'male' : 'female';
+  const apiGender: 'male' | 'female' =
+    gender === FRONTEND_GENDERS.MEN
+      ? CLOTHING_API_CONSTANTS.GENDERS.MALE
+      : CLOTHING_API_CONSTANTS.GENDERS.FEMALE;
 
   // Get sliders data (no loading logic needed, handled by Suspense)
   const { desktopSliders, mobileSliders } = useSlidersData(apiGender);
@@ -125,7 +135,9 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
             {/* Static "Ver todos" tile */}
             <GalleryTile
               key="ver-todos"
-              src="/categories/all-categories.png"
+              src={`/categories/all-categories${
+                gender === FRONTEND_GENDERS.MEN ? '-men' : ''
+              }.png`}
               label="Ver todos"
               isMobile={isMobile}
               priority={false}

@@ -4,15 +4,14 @@ import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import CategorySlide from './CategorySlide';
 import useIsMobile from '@/hooks/useIsMobile';
+import { CLOTHING_API_CONSTANTS } from '@/services/clothingService';
 import type { RootState } from '@/store/store';
 
-const staticCategories = [
-  { name: 'JEANS', image: '/categories/jeans.jpg' },
-  { name: 'JACKETS AND TRENCH', image: '/categories/swater.jpg' },
-  { name: 'TROUSERS', image: '/categories/trousers.jpg' },
-  { name: 'SWEATERS AND CARDIGANS', image: '/categories/cardigans.jpg' },
-  { name: 'TOPS AND BODYSUITS', image: '/categories/tops.jpg' },
-];
+// Frontend gender constants to match route parameters
+const FRONTEND_GENDERS = {
+  MEN: 'men' as const,
+  WOMEN: 'women' as const,
+} as const;
 
 type CategorySliderWithImagesProps = {
   gender?: string;
@@ -24,32 +23,63 @@ export default function CategorySliderWithImages({
   const isMobile = useIsMobile();
   const router = useRouter();
 
-  // Get categories from Redux store
+  // Get categories and loading/error state from Redux store
   const apiCategories = useSelector(
     (state: RootState) => state.clothing.categories
   );
+  const loading = useSelector((state: RootState) => state.clothing.loading);
+  const error = useSelector((state: RootState) => state.clothing.error);
 
   // Filter and sort categories for current gender, show only top 5
   const categories = useMemo(() => {
-    const genderFilter: 'male' | 'female' =
-      gender === 'men' ? 'male' : 'female';
+    const apiGender: 'male' | 'female' =
+      gender === FRONTEND_GENDERS.MEN
+        ? CLOTHING_API_CONSTANTS.GENDERS.MALE
+        : CLOTHING_API_CONSTANTS.GENDERS.FEMALE;
 
     // Filter by gender and enabled status, then sort by displayOrder (lowest first)
-    const filteredCategories = apiCategories
-      .filter(
-        (category) => category.gender === genderFilter && category.enabled
-      )
+    return apiCategories
+      .filter((category) => category.gender === apiGender && category.enabled)
       .sort((a, b) => a.displayOrder - b.displayOrder)
       .slice(0, 5); // Take only top 5 categories
-
-    // Fallback to static categories if no API data
-    return filteredCategories.length > 0
-      ? filteredCategories
-      : staticCategories.slice(0, 5);
   }, [apiCategories, gender]);
 
   const slideWidth = isMobile ? '40vw' : '16.666vw';
   const slideHeight = isMobile ? '60vw' : '25vw';
+
+  // Show loading state
+  if (loading && categories.length === 0) {
+    return (
+      <div className="w-full flex items-center justify-center py-8">
+        <div className="text-gray-500 text-center">
+          <div className="animate-spin h-6 w-6 border-2 border-gray-400 border-t-blue-500 rounded-full mx-auto mb-2"></div>
+          <p className="text-sm">Cargando categorías...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && categories.length === 0) {
+    return (
+      <div className="w-full flex items-center justify-center py-8">
+        <div className="text-red-500 text-center">
+          <p className="text-sm">Error al cargar las categorías</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no categories available
+  if (categories.length === 0) {
+    return (
+      <div className="w-full flex items-center justify-center py-8">
+        <div className="text-gray-500 text-center">
+          <p className="text-sm">No hay categorías disponibles</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -69,21 +99,15 @@ export default function CategorySliderWithImages({
         }}
       >
         {categories.map((category) => {
-          // Handle both API categories (with id) and static categories (without id)
-          const isApiCategory = 'id' in category;
-          const categoryUrl = isApiCategory
-            ? encodeURIComponent(`${category.name}-${category.id}`)
-            : encodeURIComponent(
-                category.name.split(' ').join('-').toLowerCase()
-              );
+          const categoryUrl = encodeURIComponent(
+            `${category.name}-${category.id}`
+          );
 
           return (
             <CategorySlide
-              key={
-                isApiCategory ? `api-${category.id}` : `static-${category.name}`
-              }
+              key={category.id}
               name={category.name}
-              image={category.image}
+              image={category.image || '/categories/default.jpg'}
               width={slideWidth}
               height={slideHeight}
               onClick={() =>
@@ -95,7 +119,9 @@ export default function CategorySliderWithImages({
         <CategorySlide
           key="all-categories"
           name="VER TODAS LAS CATEGORIAS"
-          image="/categories/all-categories.png"
+          image={`/categories/all-categories${
+            gender === FRONTEND_GENDERS.MEN ? '-men' : ''
+          }.png`}
           width={slideWidth}
           height={slideHeight}
           onClick={() => router.push(`/${gender}/categories`)}
