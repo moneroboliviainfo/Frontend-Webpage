@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiSearch, FiTag, FiAlertCircle } from 'react-icons/fi';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import './SearchDropdown.css';
 
 import type { AppDispatch } from '../../store/store';
@@ -76,11 +76,24 @@ const SearchNavBarDialog: React.FC<{
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Function to get current gender from URL path
+  const pathname = usePathname();
+
+  // Function to get current gender from URL path for suggestion navigation
   const getCurrentGender = useCallback((): 'male' | 'female' => {
-    const pathname = window.location.pathname;
-    return pathname.includes('/men') ? 'male' : 'female';
-  }, []);
+    const p = pathname || window.location.pathname;
+    return p.includes('/men') ? 'male' : 'female';
+  }, [pathname]);
+
+  // Get page gender only when the top-level path is `men` or `women`.
+  // Returns 'male'|'female' or undefined when the page is not a gender route.
+  const getPageGenderOrNull = useCallback((): 'male' | 'female' | undefined => {
+    const p = pathname || window.location.pathname || '';
+    const segments = p.split('/').filter(Boolean);
+    const first = segments[0];
+    if (first === 'men') return 'male';
+    if (first === 'women') return 'female';
+    return undefined;
+  }, [pathname]);
 
   // Function to extract unique suggestions from search response
   const extractSuggestions = useCallback(
@@ -229,11 +242,14 @@ const SearchNavBarDialog: React.FC<{
   }, [searchSuggestions.length]);
 
   useEffect(() => {
-    // Fetch most searched when dialog opens and data is not already loaded
-    if (open && mostSearched.length === 0) {
-      dispatch(fetchMostSearched());
+    // Whenever the dialog is open and the path (which may include gender) changes,
+    // request the most searched list from the backend. This ensures results
+    // reflect navigation between /women and /men routes even when the dialog stays open.
+    if (open) {
+      const pageGender = getPageGenderOrNull();
+      dispatch(fetchMostSearched(pageGender));
     }
-  }, [open, mostSearched.length, dispatch]);
+  }, [open, pathname, dispatch, getPageGenderOrNull]);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout | undefined;

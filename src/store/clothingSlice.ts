@@ -137,12 +137,13 @@ export const fetchCategoriesAndSubcategories = createAsyncThunk(
 // Async thunk to fetch most searched items
 export const fetchMostSearched = createAsyncThunk(
   'clothing/fetchMostSearched',
-  async () => {
-    const response = await fetch(API_URL + 'searchs');
+  async (gender?: 'male' | 'female') => {
+    const url = API_URL + 'searchs' + (gender ? `?type=${gender}` : '');
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error('Failed to fetch most searched items');
     }
-    // Expected response: { mostSearched: MostSearchedItem[] }
+    // Expected response: MostSearchedItem[] or { mostSearched: MostSearchedItem[] }
     return response.json();
   }
 );

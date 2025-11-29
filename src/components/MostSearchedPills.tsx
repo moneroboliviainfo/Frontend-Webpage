@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import { RootState } from '@/store/store';
 
-const MostSearchedPills = () => {
+const MostSearchedPills: React.FC = () => {
   const mostSearched = useSelector(
     (state: RootState) => state.clothing.mostSearched
   );
@@ -25,7 +25,7 @@ const MostSearchedPills = () => {
           overflow: 'hidden',
         }}
       >
-        {mostSearched.map((item) => (
+        {(mostSearched as Array<{ id?: number; name: string }>).map((item) => (
           <Link
             key={item.name}
             href={`/results?search=${encodeURIComponent(item.name)}`}
