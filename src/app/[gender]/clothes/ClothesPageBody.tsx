@@ -9,12 +9,8 @@ type Props = {
 };
 
 const ClothesPageBody: React.FC<Props> = ({ gender, category }) => {
-  return (
-    <>
-      <ClothesPageNavBar gender={gender} category={category} />
-      <ClothesGallery />
-    </>
-  );
+  // ClothesGallery now renders ClothesPageNavBar internally, so only render ClothesGallery here
+  return <ClothesGallery />;
 };
 
 export default ClothesPageBody;

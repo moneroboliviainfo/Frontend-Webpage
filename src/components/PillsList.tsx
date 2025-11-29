@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-// Simple pills list component used only in this file
-const PillsList: React.FC = () => {
-  const pills = [
-    'Ver todo',
-    'Baggy',
-    'Mommy',
-    'Chupin',
-    'Skinny',
-    'Wide',
-    'Low-rise',
+import React from 'react';
+
+type PillsListProps = {
+  subcategories: { id: number; name: string }[];
+  selectedSubcategoryId: number | null;
+  onSelectSubcategory: (id: number | null) => void;
+};
+
+const PillsList: React.FC<PillsListProps> = ({
+  subcategories,
+  selectedSubcategoryId,
+  onSelectSubcategory,
+}) => {
+  const pills: { id: number | null; name: string }[] = [
+    { id: null, name: 'Ver todo' },
+    ...subcategories,
   ];
-  const [selected, setSelected] = useState<string>('Ver todo');
 
   return (
     <div
@@ -32,11 +36,11 @@ const PillsList: React.FC = () => {
           overflow: 'hidden',
         }}
       >
-        {pills.map((p) => {
-          const isSelected = selected === p;
+        {pills.map((pill) => {
+          const isSelected = selectedSubcategoryId === pill.id;
           return (
             <li
-              key={p}
+              key={pill.id !== null ? pill.id : 'all'}
               className="rounded-full text-sm cursor-pointer hover:bg-gray-200 transition flex items-center flex-shrink-0"
               style={{
                 padding: '0.5rem 1rem',
@@ -45,10 +49,11 @@ const PillsList: React.FC = () => {
                 borderWidth: '1px',
                 backgroundColor: isSelected ? 'black' : 'white',
               }}
+              onClick={() => onSelectSubcategory(pill.id)}
             >
               <button
                 type="button"
-                onClick={() => setSelected(p)}
+                onClick={() => onSelectSubcategory(pill.id)}
                 aria-pressed={isSelected}
                 className={`rounded-full text-sm cursor-pointer transition whitespace-nowrap px-4 py-2 font-medium`}
                 style={{
@@ -58,7 +63,7 @@ const PillsList: React.FC = () => {
                   color: isSelected ? 'white' : 'black',
                 }}
               >
-                {p}
+                {pill.name}
               </button>
             </li>
           );

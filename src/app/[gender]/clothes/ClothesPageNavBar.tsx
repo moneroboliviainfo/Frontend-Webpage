@@ -6,17 +6,29 @@ import './clothes.css';
 type Props = {
   gender: string;
   category: string;
+  subcategories: { id: number; name: string }[];
+  selectedSubcategoryId: number | null;
+  onSelectSubcategory: (id: number | null) => void;
 };
 
-const ClothesPageNavBar: React.FC<Props> = ({ gender, category }) => {
+const ClothesPageNavBar: React.FC<Props> = ({
+  gender,
+  category,
+  subcategories,
+  selectedSubcategoryId,
+  onSelectSubcategory,
+}) => {
   const isMobile = useIsMobile();
 
   const formatLabel = (s: string) => {
     if (!s) return s;
-    // replace hyphens/underscores with spaces
-    const spaced = s.toString().replace(/[-_]+/g, ' ').trim();
+    // remove trailing number (category id) with optional space/dash
+    const cleaned = s
+      .replace(/([\s-]?\d+)$|([_]+\d+$)/, '')
+      .replace(/[-_]+/g, ' ')
+      .trim();
     // capitalize only the first character and lowercase the rest
-    return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
   };
 
   const headerRef = useRef<HTMLDivElement | null>(null);
@@ -101,7 +113,11 @@ const ClothesPageNavBar: React.FC<Props> = ({ gender, category }) => {
 
         {/* pills */}
         <div className="w-full">
-          <PillsList />
+          <PillsList
+            subcategories={subcategories}
+            selectedSubcategoryId={selectedSubcategoryId}
+            onSelectSubcategory={onSelectSubcategory}
+          />
         </div>
 
         <div className="w-full clothes-header__divider" aria-hidden="true" />
