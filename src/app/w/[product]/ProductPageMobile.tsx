@@ -17,6 +17,8 @@ type ProductDetails = {
   discount: number;
   finalPrice: number;
   description: string;
+  sizeGuidePdf?: string | null;
+  sizeGuideVideo?: string | null;
   slug?: string;
 };
 
@@ -33,6 +35,7 @@ const ProductPageMobile: React.FC<Props> = ({
   currentProductIndex = 0,
   onProductChange,
 }) => {
+  const [showVideo, setShowVideo] = useState(false);
   // Helper function to check if a color has any available sizes
   const isColorAvailable = (colorIndex: number) => {
     return (
@@ -430,26 +433,54 @@ const ProductPageMobile: React.FC<Props> = ({
               style={{ marginTop: '1rem' }}
             >
               <div className="flex items-center">
-                <span
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (productDetails.sizeGuidePdf) {
+                      window.open(productDetails.sizeGuidePdf, '_blank');
+                    }
+                  }}
+                  disabled={!productDetails.sizeGuidePdf}
+                  aria-disabled={!productDetails.sizeGuidePdf}
                   style={{
                     fontSize: '0.9rem',
-                    color: 'blue',
+                    color: productDetails.sizeGuidePdf ? 'blue' : '#9ca3af',
                     fontWeight: '500',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: 0,
+                    cursor: productDetails.sizeGuidePdf
+                      ? 'pointer'
+                      : 'not-allowed',
+                    opacity: productDetails.sizeGuidePdf ? 1 : 0.6,
                   }}
                 >
                   Guía de tallas {'>'}
-                </span>
+                </button>
               </div>
               <div className="flex items-center">
-                <span
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (productDetails.sizeGuideVideo) setShowVideo(true);
+                  }}
+                  disabled={!productDetails.sizeGuideVideo}
+                  aria-disabled={!productDetails.sizeGuideVideo}
                   style={{
                     fontSize: '14px',
-                    color: 'blue',
+                    color: productDetails.sizeGuideVideo ? 'blue' : '#9ca3af',
                     fontWeight: '500',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: 0,
+                    cursor: productDetails.sizeGuideVideo
+                      ? 'pointer'
+                      : 'not-allowed',
+                    opacity: productDetails.sizeGuideVideo ? 1 : 0.6,
                   }}
                 >
                   Cómo medirme {'>'}
-                </span>
+                </button>
               </div>
             </div>
           )}
@@ -590,6 +621,68 @@ const ProductPageMobile: React.FC<Props> = ({
           </div>
         </div>
       </BottomSheet>
+
+      {/* Video modal (mobile: full screen) */}
+      {showVideo && productDetails.sizeGuideVideo && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowVideo(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 60,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+            }}
+          >
+            <div
+              style={{ position: 'absolute', top: 12, right: 12, zIndex: 20 }}
+            >
+              <button
+                onClick={() => setShowVideo(false)}
+                aria-label="Cerrar video"
+                style={{
+                  background: 'rgba(255,255,255,0.12)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  fontSize: 16,
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <video
+              src={productDetails.sizeGuideVideo}
+              controls
+              autoPlay
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                width: 'auto',
+                height: 'auto',
+                objectFit: 'contain',
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Basket Confirmation Popup */}
       <BasketConfirmation

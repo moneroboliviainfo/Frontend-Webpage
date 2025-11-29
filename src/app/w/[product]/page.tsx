@@ -5,101 +5,206 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import ProductPageMobile from './ProductPageMobile';
 import ProductPageDesktop from './ProductPageDesktop';
+import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
+import { API_URL } from '@/config/env';
 
-const productDetails = {
-  multimedia: [
-    { image: '/images/ver-slide-1.png', label: '' },
-    { image: '/images/ver-slide-2.png', label: '' },
-  ],
-  productId: 101,
-  name: 'Chaqueta Derby',
-  price: 129,
-  colorsWithSizes: [
-    {
-      color: '#111827',
-      sizes: [
-        { size: 'XS', availability: 0 },
-        { size: 'S', availability: 3 },
-        { size: 'M', availability: 5 },
-        { size: 'L', availability: 2 },
-        { size: 'XL', availability: 1 },
-      ],
-    },
-    {
-      color: '#f97316',
-      sizes: [
-        { size: 'XS', availability: 2 },
-        { size: 'S', availability: 0 },
-        { size: 'M', availability: 8 },
-        { size: 'L', availability: 0 },
-        { size: 'XL', availability: 3 },
-      ],
-    },
-    {
-      color: '#e53e3e',
-      sizes: [
-        { size: 'XS', availability: 0 },
-        { size: 'S', availability: 0 },
-        { size: 'M', availability: 0 },
-        { size: 'L', availability: 0 },
-        { size: 'XL', availability: 0 },
-      ],
-    },
-  ],
-  isNew: true,
-  discount: 10,
-  finalPrice: 116,
-  description: 'Model height: 178 cm - Size S',
-  slug: 'chaqueta-derby-101',
+// Local product details shape used by the page components
+type ProductDetails = {
+  multimedia: { image: string; label: string }[];
+  productId: number;
+  name: string;
+  price: number;
+  colorsWithSizes: {
+    color: string;
+    sizes: {
+      size: string;
+      availability: number;
+      id?: number | null;
+      variantId?: number | null;
+    }[];
+  }[];
+  isNew: boolean;
+  discount: number;
+  finalPrice: number;
+  description: string;
+  sizeGuidePdf?: string | null;
+  sizeGuideVideo?: string | null;
+  slug: string;
 };
 
-// Mock additional products for demonstration
-const allProductsData = [
+// Minimal demo products kept for navigation when API data not available
+const allProductsData: ProductDetails[] = [
   {
-    ...productDetails,
+    multimedia: [{ image: '/images/ver-slide-1.png', label: '' }],
+    productId: 101,
+    name: 'Chaqueta Derby',
+    price: 129,
+    colorsWithSizes: [],
+    isNew: true,
+    discount: 10,
+    finalPrice: 116,
+    description: 'Model height: 178 cm - Size S',
     slug: 'chaqueta-derby-101',
   },
   {
-    ...productDetails,
+    multimedia: [
+      { image: '/images/ver-slide-1.png', label: '' },
+      { image: '/images/ver-slide-2.png', label: '' },
+    ],
     productId: 102,
     name: 'Blusa Elegante',
     price: 89,
     finalPrice: 79,
     discount: 11,
+    colorsWithSizes: [],
+    isNew: false,
     description: 'Model height: 175 cm - Size M',
     slug: 'blusa-elegante-102',
+  },
+  {
     multimedia: [
       { image: '/images/ver-slide-1.png', label: '' },
       { image: '/images/ver-slide-2.png', label: '' },
     ],
-  },
-  {
-    ...productDetails,
     productId: 103,
     name: 'Vestido Casual',
     price: 159,
     finalPrice: 139,
     discount: 13,
+    colorsWithSizes: [],
+    isNew: false,
     description: 'Model height: 180 cm - Size L',
     slug: 'vestido-casual-103',
-    multimedia: [
-      { image: '/images/ver-slide-1.png', label: '' },
-      { image: '/images/ver-slide-2.png', label: '' },
-    ],
   },
 ];
+
+// API product shape (partial)
+type ApiProduct = {
+  id: number;
+  name?: string;
+  price?: string | number;
+  discount?: number | { percentage?: number };
+  isNew?: boolean;
+  description?: string;
+  productColors?: Array<{
+    multimedia?: string[];
+    pdfs?: string[];
+    videos?: string[];
+    color?: { code?: string; name?: string };
+    variants?: Array<{ id?: number; size?: { id?: number; name?: string } }>;
+  }>;
+  subcategory?: { videos?: string[] } | null;
+};
+
+function transformApiProduct(
+  api: ApiProduct | null,
+  slugFromUrl = ''
+): ProductDetails | null {
+  if (!api) return null;
+
+  const productId = api.id;
+  const name = api.name || '';
+  const price = Number.parseFloat(String(api.price || 0)) || 0;
+
+  // discount
+  let discount = 0;
+  if (typeof api.discount === 'number') discount = api.discount;
+  else if (
+    api.discount &&
+    typeof api.discount === 'object' &&
+    typeof api.discount.percentage === 'number'
+  ) {
+    discount = api.discount.percentage;
+  }
+
+  const finalPrice = discount
+    ? Math.round(price * (1 - discount / 100) * 100) / 100
+    : price;
+
+  // multimedia from all colors
+  const multimediaUrls: string[] = [];
+  if (Array.isArray(api.productColors)) {
+    api.productColors.forEach((pc) => {
+      if (Array.isArray(pc.multimedia)) {
+        pc.multimedia.forEach((m) => {
+          if (m && !multimediaUrls.includes(m)) multimediaUrls.push(m);
+        });
+      }
+    });
+  }
+  const multimedia = multimediaUrls.map((u) => ({ image: u, label: '' }));
+
+  // size guide pdf: first pdf from first productColor that has pdfs
+  let sizeGuidePdf: string | null = null;
+  if (Array.isArray(api.productColors)) {
+    const withPdfs = api.productColors.find(
+      (pc) => Array.isArray(pc.pdfs) && pc.pdfs.length > 0
+    );
+    if (withPdfs && withPdfs.pdfs && withPdfs.pdfs.length > 0)
+      sizeGuidePdf = withPdfs.pdfs[0] ?? null;
+  }
+
+  // size guide video: prefer subcategory.videos[0], otherwise first productColor with videos
+  let sizeGuideVideo: string | null = null;
+  if (
+    api.subcategory &&
+    Array.isArray(api.subcategory.videos) &&
+    api.subcategory.videos.length > 0
+  ) {
+    sizeGuideVideo = api.subcategory.videos[0] ?? null;
+  }
+  if (!sizeGuideVideo && Array.isArray(api.productColors)) {
+    const withVideos = api.productColors.find(
+      (pc) => Array.isArray(pc.videos) && pc.videos.length > 0
+    );
+    if (withVideos && withVideos.videos && withVideos.videos.length > 0)
+      sizeGuideVideo = withVideos.videos[0] ?? null;
+  }
+
+  // colors with sizes
+  const colorsWithSizes = Array.isArray(api.productColors)
+    ? api.productColors.map((pc) => ({
+        color: pc.color?.code || pc.color?.name || '#000000',
+        sizes: Array.isArray(pc.variants)
+          ? pc.variants.map((v) => ({
+              size: String(v.size?.name || v.size || ''),
+              availability: 0,
+              id: v.size?.id ?? null,
+              variantId: v.id ?? null,
+            }))
+          : [],
+      }))
+    : [];
+
+  const description = api.description || '';
+  const slug =
+    slugFromUrl || `${name.toLowerCase().replace(/\s+/g, '-')}-${productId}`;
+
+  return {
+    multimedia,
+    productId,
+    name,
+    price,
+    colorsWithSizes,
+    isNew: Boolean(api.isNew),
+    discount,
+    finalPrice,
+    description,
+    sizeGuidePdf,
+    sizeGuideVideo,
+    slug,
+  };
+}
 
 const ProductPage = () => {
   const isMobile = useIsMobile();
   const router = useRouter();
   const params = useParams();
 
-  // Get current product slug from URL
   const currentSlug = Array.isArray(params?.product)
     ? params.product[0]
     : params?.product || '';
 
-  // Find current product index based on URL slug
   const getCurrentProductIndex = () => {
     const index = allProductsData.findIndex(
       (product) =>
@@ -112,14 +217,23 @@ const ProductPage = () => {
   const [currentProductIndex, setCurrentProductIndex] = useState(() =>
     getCurrentProductIndex()
   );
-  const currentProduct = allProductsData[currentProductIndex];
+  const [fetchedProduct, setFetchedProduct] = useState<ProductDetails | null>(
+    null
+  );
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // Update URL when product changes
+  let currentProduct: ProductDetails = allProductsData[currentProductIndex];
+  if (fetchedProduct) {
+    const matches =
+      currentSlug.includes(String(fetchedProduct.productId)) ||
+      fetchedProduct.slug === currentSlug;
+    if (matches) currentProduct = fetchedProduct;
+  }
+
   const handleProductChange = (newIndex: number) => {
     const newProduct = allProductsData[newIndex];
     if (newProduct) {
       setCurrentProductIndex(newIndex);
-      // Use the product slug or fallback to a generated slug
       const newSlug =
         newProduct.slug ||
         `${newProduct.name.toLowerCase().replace(/\s+/g, '-')}-${
@@ -129,7 +243,6 @@ const ProductPage = () => {
     }
   };
 
-  // Sync state with URL changes
   useEffect(() => {
     const index = allProductsData.findIndex(
       (product) =>
@@ -140,18 +253,64 @@ const ProductPage = () => {
     setCurrentProductIndex(newIndex);
   }, [currentSlug]);
 
+  useEffect(() => {
+    const match = currentSlug.match(/-(\d+)$/);
+    if (!match) {
+      setFetchedProduct(null);
+      setLoading(false);
+      return;
+    }
+
+    const id = match[1];
+    let mounted = true;
+    // show loader while fetching
+    setLoading(true);
+
+    fetch(`${API_URL}products/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('network');
+        return res.json();
+      })
+      .then((data: ApiProduct) => {
+        if (!mounted) return;
+        const transformed = transformApiProduct(data, currentSlug);
+        setFetchedProduct(transformed);
+      })
+      .catch(() => {
+        if (mounted) setFetchedProduct(null);
+      })
+      .finally(() => {
+        // keep loader visible for an extra 1s after completion
+        if (!mounted) return;
+        const t = setTimeout(() => {
+          if (mounted) setLoading(false);
+        }, 1000);
+        // cleanup timeout on unmount
+        return () => clearTimeout(t);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [currentSlug]);
+
   return (
     <>
-      <NavBar dynamicTransparent={isMobile} />
-      {isMobile ? (
-        <ProductPageMobile
-          productDetails={currentProduct}
-          allProducts={allProductsData}
-          currentProductIndex={currentProductIndex}
-          onProductChange={handleProductChange}
-        />
+      {loading ? (
+        <LoadingScreen message="Cargando producto..." />
       ) : (
-        <ProductPageDesktop productDetails={currentProduct} />
+        <>
+          <NavBar dynamicTransparent={isMobile} />
+          {isMobile ? (
+            <ProductPageMobile
+              productDetails={currentProduct}
+              allProducts={allProductsData}
+              currentProductIndex={currentProductIndex}
+              onProductChange={handleProductChange}
+            />
+          ) : (
+            <ProductPageDesktop productDetails={currentProduct} />
+          )}
+        </>
       )}
     </>
   );

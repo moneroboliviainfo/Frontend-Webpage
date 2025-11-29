@@ -16,6 +16,8 @@ type ProductDetails = {
   discount: number;
   finalPrice: number;
   description: string;
+  sizeGuidePdf?: string | null;
+  sizeGuideVideo?: string | null;
 };
 
 type Props = {
@@ -51,6 +53,7 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
     };
     size: string;
   } | null>(null);
+  const [showVideo, setShowVideo] = useState(false);
 
   return (
     <>
@@ -78,78 +81,146 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
               gap: '0',
             }}
           >
-            {/* Create rows of images with separators */}
-            {Array.from({
-              length: Math.ceil((productDetails.multimedia.length * 2) / 2),
-            }).map((_, rowIndex) => {
-              const leftImageIndex = rowIndex * 2;
-              const rightImageIndex = leftImageIndex + 1;
-              const allImages = [
-                ...productDetails.multimedia,
-                ...productDetails.multimedia,
-              ];
+            {/* Create rows of images with separators (do not duplicate the array) */}
+            {(() => {
+              const images = productDetails.multimedia || [];
+              const rows = Math.ceil(images.length / 2) || 0;
+              return Array.from({ length: rows }).map((_, rowIndex) => {
+                const leftImageIndex = rowIndex * 2;
+                const rightImageIndex = leftImageIndex + 1;
 
-              return (
-                <React.Fragment key={rowIndex}>
-                  {/* Left image */}
-                  {allImages[leftImageIndex] && (
+                return (
+                  <React.Fragment key={rowIndex}>
+                    {/* Left image */}
+                    {images[leftImageIndex] && (
+                      <div
+                        className="relative"
+                        style={{
+                          aspectRatio: '1 / 1.35',
+                          backgroundColor: '#fff',
+                          borderBottom: '1px solid #fff',
+                        }}
+                      >
+                        <Image
+                          src={images[leftImageIndex].image}
+                          alt={
+                            images[leftImageIndex].label ||
+                            `Product image ${leftImageIndex + 1}`
+                          }
+                          fill
+                          className="object-cover"
+                          sizes="33vw"
+                        />
+                      </div>
+                    )}
+
+                    {/* Vertical separator */}
                     <div
-                      className="relative"
                       style={{
-                        aspectRatio: '1 / 1.35',
                         backgroundColor: '#fff',
+                        width: '1px',
                         borderBottom: '1px solid #fff',
                       }}
-                    >
-                      <Image
-                        src={allImages[leftImageIndex].image}
-                        alt={
-                          allImages[leftImageIndex].label ||
-                          `Product image ${leftImageIndex + 1}`
-                        }
-                        fill
-                        className="object-cover"
-                        sizes="33vw"
-                      />
-                    </div>
-                  )}
+                    />
 
-                  {/* Vertical separator */}
-                  <div
-                    style={{
-                      backgroundColor: '#fff',
-                      width: '1px',
-                      borderBottom: '1px solid #fff',
-                    }}
-                  />
-
-                  {/* Right image */}
-                  {allImages[rightImageIndex] && (
-                    <div
-                      className="relative"
-                      style={{
-                        aspectRatio: '1 / 1.35',
-                        backgroundColor: '#fff',
-                        borderBottom: '1px solid #fff',
-                      }}
-                    >
-                      <Image
-                        src={allImages[rightImageIndex].image}
-                        alt={
-                          allImages[rightImageIndex].label ||
-                          `Product image ${rightImageIndex + 1}`
-                        }
-                        fill
-                        className="object-cover"
-                        sizes="33vw"
-                      />
-                    </div>
-                  )}
-                </React.Fragment>
-              );
-            })}
+                    {/* Right image */}
+                    {images[rightImageIndex] && (
+                      <div
+                        className="relative"
+                        style={{
+                          aspectRatio: '1 / 1.35',
+                          backgroundColor: '#fff',
+                          borderBottom: '1px solid #fff',
+                        }}
+                      >
+                        <Image
+                          src={images[rightImageIndex].image}
+                          alt={
+                            images[rightImageIndex].label ||
+                            `Product image ${rightImageIndex + 1}`
+                          }
+                          fill
+                          className="object-cover"
+                          sizes="33vw"
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              });
+            })()}
           </div>
         </div>
+
+        {/* Video modal (desktop: vertical/right modal) */}
+        {showVideo && productDetails.sizeGuideVideo && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.35)',
+              zIndex: 60,
+            }}
+            onClick={() => setShowVideo(false)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'fixed',
+                right: 0,
+                top: '8vh',
+                bottom: '8vh',
+                width: '36%',
+                background: '#fff',
+                boxShadow: '-8px 0 24px rgba(0,0,0,0.12)',
+                display: 'grid',
+                gridTemplateRows: 'auto 1fr',
+                padding: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => setShowVideo(false)}
+                  aria-label="Cerrar video"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    fontSize: 18,
+                    cursor: 'pointer',
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  height: '100%',
+                }}
+              >
+                <video
+                  src={productDetails.sizeGuideVideo}
+                  controls
+                  autoPlay
+                  style={{
+                    maxWidth: '90%',
+                    maxHeight: '90%',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain',
+                    display: 'block',
+                    margin: '0 auto',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Right section: Product Details (34% width) */}
         <div
@@ -412,28 +483,54 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
             style={{ marginBottom: '2rem' }}
           >
             <div className="flex items-center">
-              <span
+              <button
+                type="button"
+                onClick={() => {
+                  if (productDetails.sizeGuidePdf) {
+                    window.open(productDetails.sizeGuidePdf, '_blank');
+                  }
+                }}
+                disabled={!productDetails.sizeGuidePdf}
+                aria-disabled={!productDetails.sizeGuidePdf}
                 style={{
                   fontSize: '0.9rem',
-                  color: 'blue',
+                  color: productDetails.sizeGuidePdf ? 'blue' : '#9ca3af',
                   fontWeight: '500',
-                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  cursor: productDetails.sizeGuidePdf
+                    ? 'pointer'
+                    : 'not-allowed',
+                  opacity: productDetails.sizeGuidePdf ? 1 : 0.6,
                 }}
               >
                 Guía de tallas {'>'}
-              </span>
+              </button>
             </div>
             <div className="flex items-center">
-              <span
+              <button
+                type="button"
+                onClick={() => {
+                  if (productDetails.sizeGuideVideo) setShowVideo(true);
+                }}
+                disabled={!productDetails.sizeGuideVideo}
+                aria-disabled={!productDetails.sizeGuideVideo}
                 style={{
                   fontSize: '14px',
-                  color: 'blue',
+                  color: productDetails.sizeGuideVideo ? 'blue' : '#9ca3af',
                   fontWeight: '500',
-                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  cursor: productDetails.sizeGuideVideo
+                    ? 'pointer'
+                    : 'not-allowed',
+                  opacity: productDetails.sizeGuideVideo ? 1 : 0.6,
                 }}
               >
                 Cómo medirme {'>'}
-              </span>
+              </button>
             </div>
           </div>
 
