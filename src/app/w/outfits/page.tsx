@@ -5,6 +5,40 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import OutfitPageMobile from './OutfitPageMobile';
 import OutfitPageDesktop from './OutfitPageDesktop';
+import { API_URL } from '@/config/env';
+import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
+
+// API response shape (partial)
+type OutfitApi = {
+  id: number;
+  name?: string;
+  images?: string[];
+  videos?: string[];
+  gender?: string;
+  productColors?: Array<{
+    id?: number;
+    multimedia?: string[];
+    pdfs?: string[];
+    color?: { id?: number; name?: string; code?: string };
+  }>;
+};
+
+type TransformedOutfit = {
+  multimedia: { image: string; label: string }[];
+  outfitId: number;
+  name: string;
+  items: Array<{
+    id?: number;
+    name: string;
+    multimedia: { image: string; label: string }[];
+    price: number;
+    discount: number;
+    sizes: Array<{ size: string; availability: number }>;
+  }>;
+  totalPrice: number;
+  description: string;
+  slug: string;
+};
 
 const outfitDetails = {
   multimedia: [
@@ -145,6 +179,12 @@ const OutfitsPageContent = () => {
   // Get current outfit ID from URL query parameter
   const currentOutfitId = searchParams?.get('outfit') || '101';
 
+  // fetched outfit state
+  const [fetchedOutfit, setFetchedOutfit] = useState<TransformedOutfit | null>(
+    null
+  );
+  const [loading, setLoading] = useState<boolean>(false);
+
   // Find current outfit index based on URL parameter (same logic as product page)
   const getCurrentOutfitIndex = () => {
     const index = allOutfitsData.findIndex(
@@ -158,7 +198,9 @@ const OutfitsPageContent = () => {
   const [currentOutfitIndex, setCurrentOutfitIndex] = useState(() =>
     getCurrentOutfitIndex()
   );
-  const currentOutfit = allOutfitsData[currentOutfitIndex];
+  const currentOutfit = fetchedOutfit
+    ? fetchedOutfit
+    : allOutfitsData[currentOutfitIndex];
 
   // Update URL when outfit changes (same logic as product page)
   const handleOutfitChange = (newIndex: number) => {
@@ -183,18 +225,103 @@ const OutfitsPageContent = () => {
     setCurrentOutfitIndex(newIndex);
   }, [currentOutfitId]);
 
+  // Fetch outfit by id parsed from the `outfit` query param (e.g. Semi-Elegante-8)
+  useEffect(() => {
+    const raw = currentOutfitId || '';
+    const match = raw.match(/-(\d+)$/);
+    if (!match) {
+      setFetchedOutfit(null);
+      setLoading(false);
+      return;
+    }
+    const id = match[1];
+    let mounted = true;
+    setLoading(true);
+
+    fetch(`${API_URL}outfits/${id}`, {
+      headers: {
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoidXNlciIsImlhdCI6MTc2NDM4NDM0NywiZXhwIjoxNzY0NDcwNzQ3fQ.wu_PDO874GlaSh6pGFEl-ikFDy2RXeGoKNoTmgEDfio',
+        Referer: 'https://api.moneroget.com/api/docs',
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('network');
+        return res.json();
+      })
+      .then((data: OutfitApi) => {
+        if (!mounted) return;
+        // Transform API response into UI shape
+        const multimedia: Array<{ image: string; label: string }> = [];
+        if (Array.isArray(data.images)) {
+          data.images.forEach((u: string) =>
+            multimedia.push({ image: u, label: '' })
+          );
+        }
+        if (Array.isArray(data.videos)) {
+          data.videos.forEach((u: string) =>
+            multimedia.push({ image: u, label: '' })
+          );
+        }
+
+        const items = Array.isArray(data.productColors)
+          ? data.productColors.map((pc) => ({
+              id: pc.id,
+              name: pc.color?.name || `Item ${pc.id}`,
+              multimedia: Array.isArray(pc.multimedia)
+                ? pc.multimedia.map((m) => ({ image: m, label: '' }))
+                : [],
+              // price/discount/sizes will be filled later; mock minimal values now
+              price: 0,
+              discount: 0,
+              sizes: [],
+            }))
+          : [];
+
+        const transformed: TransformedOutfit = {
+          multimedia,
+          outfitId: data.id,
+          name: data.name || '',
+          items,
+          totalPrice: items.reduce((s: number, it) => s + (it.price || 0), 0),
+          description: '',
+          slug: `${data.name?.toLowerCase().replace(/\s+/g, '-') || 'outfit'}-${
+            data.id
+          }`,
+        };
+
+        setFetchedOutfit(transformed);
+      })
+      .catch(() => {
+        if (mounted) setFetchedOutfit(null);
+      })
+      .finally(() => {
+        if (mounted) setTimeout(() => setLoading(false), 300);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentOutfitId]);
+
   return (
     <>
-      <NavBar dynamicTransparent={isMobile} />
-      {isMobile ? (
-        <OutfitPageMobile
-          outfitDetails={currentOutfit}
-          allOutfits={allOutfitsData}
-          currentOutfitIndex={currentOutfitIndex}
-          onOutfitChange={handleOutfitChange}
-        />
+      {loading ? (
+        <LoadingScreen message="Cargando outfit..." />
       ) : (
-        <OutfitPageDesktop outfitDetails={currentOutfit} />
+        <>
+          <NavBar dynamicTransparent={isMobile} />
+          {isMobile ? (
+            <OutfitPageMobile
+              outfitDetails={currentOutfit}
+              allOutfits={allOutfitsData}
+              currentOutfitIndex={currentOutfitIndex}
+              onOutfitChange={handleOutfitChange}
+            />
+          ) : (
+            <OutfitPageDesktop outfitDetails={currentOutfit} />
+          )}
+        </>
       )}
     </>
   );

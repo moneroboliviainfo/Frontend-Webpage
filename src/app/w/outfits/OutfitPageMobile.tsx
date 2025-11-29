@@ -13,6 +13,7 @@ type OutfitDetails = {
   items: Array<{
     name: string;
     price: number;
+    multimedia?: Array<{ image: string; label: string }>;
     sizes?: Array<{ size: string; availability: number }>;
   }>;
   totalPrice: number;
@@ -32,6 +33,7 @@ type OutfitItemsCarouselProps = {
   items: Array<{
     name: string;
     price: number;
+    multimedia?: Array<{ image: string; label: string }>;
     sizes?: Array<{ size: string; availability: number }>;
   }>;
   showSizePopup: number | null;
@@ -147,13 +149,23 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                 style={{ width: slideWidth, height: slideHeight }}
                 className="relative overflow-hidden rounded-lg"
               >
-                <Image
-                  src={`/clothes/clothe-${(idx % 4) + 1}.png`}
-                  alt={item.name}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  sizes="35vw"
-                />
+                {item.multimedia && item.multimedia.length > 0 ? (
+                  <Image
+                    src={item.multimedia[0].image}
+                    alt={item.name}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="35vw"
+                  />
+                ) : (
+                  <Image
+                    src={`/clothes/clothe-${(idx % 4) + 1}.png`}
+                    alt={item.name}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="35vw"
+                  />
+                )}
               </div>
               <div style={{ paddingLeft: 4, paddingRight: 4 }}>
                 <div

@@ -13,6 +13,7 @@ type OutfitDetails = {
     name: string;
     price: number;
     sizes?: Array<{ size: string; availability: number }>;
+    multimedia?: Array<{ image: string; label?: string }>;
   }>;
   totalPrice: number;
   description: string;
@@ -90,7 +91,12 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                 style={{ aspectRatio: '3/4', width: '100%' }}
               >
                 <Image
-                  src={`/clothes/clothe-${(idx % 4) + 1}.png`}
+                  src={
+                    item.multimedia && item.multimedia.length > 0
+                      ? item.multimedia[0].image ||
+                        `/clothes/clothe-${(idx % 4) + 1}.png`
+                      : `/clothes/clothe-${(idx % 4) + 1}.png`
+                  }
                   alt={item.name}
                   fill
                   style={{ objectFit: 'cover' }}
