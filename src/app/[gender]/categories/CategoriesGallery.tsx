@@ -1,10 +1,9 @@
 'use client';
-import React, { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
 import useIsMobile from '@/hooks/useIsMobile';
 import CategoryGalleryItem from './CategoryGalleryItem';
 import { CLOTHING_API_CONSTANTS } from '@/services/clothingService';
-import type { RootState } from '@/store/store';
+import { API_URL } from '@/config/env';
 
 // Frontend gender constants to match route parameters
 const FRONTEND_GENDERS = {
@@ -21,26 +20,62 @@ export default function CategoriesGallery({
 }: CategoriesGalleryProps) {
   const isMobile = useIsMobile();
 
-  // Get categories from Redux store
-  const allCategories = useSelector(
-    (state: RootState) => state.clothing.categories
-  );
-  const loading = useSelector((state: RootState) => state.clothing.loading);
-  const error = useSelector((state: RootState) => state.clothing.error);
+  type CategoryApi = {
+    id: number;
+    name: string;
+    gender?: string;
+    displayOrder?: number;
+    enabled?: boolean;
+    image?: string | null;
+    subcategories?: Array<{
+      id: number;
+      name: string;
+      enabled?: boolean;
+      videos?: string[];
+    }>;
+  };
 
-  // Convert gender string to API format and filter categories
-  const categories = useMemo(() => {
+  const [categories, setCategories] = useState<CategoryApi[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
     const apiGender: 'male' | 'female' =
       gender === FRONTEND_GENDERS.MEN
         ? CLOTHING_API_CONSTANTS.GENDERS.MALE
         : CLOTHING_API_CONSTANTS.GENDERS.FEMALE;
 
-    return allCategories
-      .filter((category) => category.enabled && category.gender === apiGender)
-      .sort((a, b) => a.displayOrder - b.displayOrder);
-  }, [allCategories, gender]);
+    async function loadCategories() {
+      try {
+        const res = await fetch(`${API_URL}categories`);
+        if (!res.ok) throw new Error('Failed to fetch categories');
+        const data = (await res.json()) as CategoryApi[];
 
-  // Loading state
+        if (!mounted) return;
+
+        const filtered = data
+          .filter((c) => c.enabled && c.gender === apiGender)
+          .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+
+        setCategories(filtered);
+        setLoading(false);
+      } catch (err) {
+        if (!mounted) return;
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(msg || 'Error');
+        setLoading(false);
+      }
+    }
+
+    loadCategories();
+
+    return () => {
+      mounted = false;
+    };
+  }, [gender]);
+
   if (loading) {
     return (
       <section className="w-full flex items-center justify-center py-8">
@@ -52,7 +87,6 @@ export default function CategoriesGallery({
     );
   }
 
-  // Error state
   if (error) {
     return (
       <section className="w-full flex items-center justify-center py-8">
@@ -64,7 +98,6 @@ export default function CategoriesGallery({
     );
   }
 
-  // No categories available
   if (categories.length === 0) {
     return (
       <section className="w-full flex items-center justify-center py-8">
@@ -75,7 +108,6 @@ export default function CategoriesGallery({
     );
   }
 
-  // grid: 4 columns desktop, 2 columns mobile
   return (
     <section
       className="w-full"
@@ -89,24 +121,23 @@ export default function CategoriesGallery({
         className={`w-full grid gap-1 ${
           isMobile ? 'grid-cols-2' : 'grid-cols-4'
         }`}
-        style={{
-          // ensure items use viewport-based sizing per requirement
-          alignItems: 'start',
-        }}
+        style={{ alignItems: 'start' }}
       >
-        {categories.map((category) => {
-          return (
-            <div key={category.id}>
-              <CategoryGalleryItem
-                categoryId={category.id.toString()}
-                src={category.image || '/categories/default.jpg'}
-                name={category.name}
-                isMobile={isMobile}
-                gender={gender}
-              />
-            </div>
-          );
-        })}
+        {categories.map((category) => (
+          <div key={category.id}>
+            <CategoryGalleryItem
+              categoryId={category.id.toString()}
+              src={
+                category.image && String(category.image).trim()
+                  ? category.image
+                  : ''
+              }
+              name={category.name}
+              isMobile={isMobile}
+              gender={gender}
+            />
+          </div>
+        ))}
       </div>
     </section>
   );
