@@ -41,6 +41,11 @@ interface ImageSliderProps {
   showNews?: boolean;
   // optional callback invoked when the active slide changes
   onSlide?: ((activeIndex: number) => void) | null;
+  // optional ref to expose next/prev controls to parent
+  controlsRef?: React.MutableRefObject<{
+    next: () => void;
+    prev: () => void;
+  } | null>;
 }
 
 const ImageSlider: React.FC<ImageSliderProps> = ({
@@ -49,6 +54,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   autoplayDelay = 3500,
   showNews = false,
   onSlide = null,
+  controlsRef = undefined,
 }) => {
   const progressCircle = useRef<SVGSVGElement | null>(null);
   const progressContent = useRef<HTMLSpanElement | null>(null);
@@ -82,6 +88,8 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
 
   // Get current active slide for displaying labels
   const [activeSlide, setActiveSlide] = React.useState(0);
+  // Keep reference to swiper instance to expose controls
+  const swiperRef = React.useRef<SwiperType | null>(null);
 
   // Safely get current slide with bounds checking
   const getCurrentSlide = () => {
@@ -95,6 +103,19 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   return (
     <div className="relative w-full h-full">
       <Swiper
+        onSwiper={(s) => {
+          swiperRef.current = s;
+          if (controlsRef) {
+            try {
+              controlsRef.current = {
+                next: () => s.slideNext(),
+                prev: () => s.slidePrev(),
+              };
+            } catch {
+              // ignore
+            }
+          }
+        }}
         direction={direction}
         modules={[Pagination, Autoplay]}
         pagination={{

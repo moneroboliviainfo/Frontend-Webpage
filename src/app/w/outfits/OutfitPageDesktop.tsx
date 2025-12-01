@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BasketConfirmation from '@/components/BasketConfirmation';
@@ -31,8 +31,68 @@ type Props = {
   onOutfitChange?: (index: number) => void; // Callback when outfit changes
 };
 
+type ArrowSide = 'left' | 'right';
+
+const ArrowButton: React.FC<{
+  side: ArrowSide;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+}> = ({ side, onClick }) => {
+  const posStyle = side === 'left' ? { left: 12 } : { right: 12 };
+  return (
+    <button
+      aria-label={side === 'left' ? 'Anterior' : 'Siguiente'}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick(e);
+      }}
+      style={{
+        position: 'absolute',
+        ...posStyle,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 20,
+        background: 'rgba(255,255,255,0.8)',
+        border: 'none',
+        borderRadius: '9999px',
+        width: 40,
+        height: 40,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+      }}
+    >
+      {side === 'left' ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M15 18l-6-6 6-6"
+            stroke="#000"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M9 6l6 6-6 6"
+            stroke="#000"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+    </button>
+  );
+};
+
 const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
   const router = useRouter();
+  const sliderControlsRef = useRef<{
+    next: () => void;
+    prev: () => void;
+  } | null>(null);
   const [showSizePopup, setShowSizePopup] = useState<number | null>(null);
   const [sizeSelected, setSizeSelected] = useState<{
     [key: string]: boolean;
@@ -58,12 +118,37 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
         style={{ padding: '2rem' }}
       >
         <div style={{ width: '80%', height: '100%' }}>
-          <ImageSlider
-            direction="horizontal"
-            slidesData={outfitDetails.multimedia}
-            autoplayDelay={0}
-            showNews={false}
-          />
+          <div className="relative w-full h-full">
+            <ImageSlider
+              direction="horizontal"
+              slidesData={outfitDetails.multimedia}
+              autoplayDelay={0}
+              showNews={false}
+              controlsRef={sliderControlsRef}
+            />
+
+            {/* Left / Right navigation buttons (only when multiple slides) */}
+            {Array.isArray(outfitDetails.multimedia) &&
+              outfitDetails.multimedia.length > 1 && (
+                <>
+                  <ArrowButton
+                    side="left"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      sliderControlsRef.current?.prev();
+                    }}
+                  />
+
+                  <ArrowButton
+                    side="right"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      sliderControlsRef.current?.next();
+                    }}
+                  />
+                </>
+              )}
+          </div>
         </div>
       </div>
 
