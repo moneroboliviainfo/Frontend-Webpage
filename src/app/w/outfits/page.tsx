@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import OutfitPageMobile from './OutfitPageMobile';
 import OutfitPageDesktop from './OutfitPageDesktop';
 import { API_URL } from '@/config/env';
+import buildProductSlug from '@/utils/buildProductSlug';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 
 // API response shape (partial)
@@ -330,9 +331,7 @@ const OutfitsPageContent = () => {
           items,
           totalPrice: items.reduce((s: number, it) => s + (it.price || 0), 0),
           description: '',
-          slug: `${data.name?.toLowerCase().replace(/\s+/g, '-') || 'outfit'}-${
-            data.id
-          }`,
+          slug: buildProductSlug(data.name || 'outfit', data.id),
         };
 
         setFetchedOutfit(transformed);

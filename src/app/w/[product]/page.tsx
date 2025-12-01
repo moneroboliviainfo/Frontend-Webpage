@@ -3,6 +3,7 @@ import NavBar from '@/components/nav/NavBar';
 import useIsMobile from '@/hooks/useIsMobile';
 import React, { useState, useEffect } from 'react';
 import { calculatePrice, DiscountShape } from '@/utils/price';
+import buildProductSlug from '@/utils/buildProductSlug';
 import { useRouter, useParams } from 'next/navigation';
 import ProductPageMobile from './ProductPageMobile';
 import ProductPageDesktop from './ProductPageDesktop';
@@ -181,8 +182,7 @@ function transformApiProduct(
     : [];
 
   const description = api.description || '';
-  const slug =
-    slugFromUrl || `${name.toLowerCase().replace(/\s+/g, '-')}-${productId}`;
+  const slug = slugFromUrl || buildProductSlug(name, productId);
 
   return {
     multimedia,
@@ -240,9 +240,7 @@ const ProductPage = () => {
       setCurrentProductIndex(newIndex);
       const newSlug =
         newProduct.slug ||
-        `${newProduct.name.toLowerCase().replace(/\s+/g, '-')}-${
-          newProduct.productId
-        }`;
+        buildProductSlug(newProduct.name, newProduct.productId);
       router.replace(`/w/${newSlug}`, { scroll: false });
     }
   };

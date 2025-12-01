@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import buildProductSlug from '@/utils/buildProductSlug';
 import Image from 'next/image';
 
 type Props = {
@@ -36,11 +37,7 @@ const GalleryItem: React.FC<Props> = ({
 
   const [hovered, setHovered] = useState<number | null>(null);
   const router = useRouter();
-  const slugBase = name ? name.replace(/\s+/g, '-').toLowerCase() : '';
-  const slug =
-    productId !== undefined && productId !== null
-      ? `${slugBase}-${productId}`
-      : slugBase;
+  const slug = buildProductSlug(name, productId);
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();

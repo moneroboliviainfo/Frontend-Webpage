@@ -4,14 +4,7 @@ import Image from 'next/image';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BasketConfirmation from '@/components/BasketConfirmation';
 import { useRouter } from 'next/navigation';
-
-// Simple slug helper to build /w/{slug}-{id}
-const slugify = (s: string | undefined | null) =>
-  String(s || '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+import buildProductSlug from '@/utils/buildProductSlug';
 
 type OutfitDetails = {
   multimedia: Array<{ image: string; label: string }>;
@@ -95,7 +88,7 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
               className="flex flex-col cursor-pointer"
               onClick={() => {
                 const id = item.productId ?? item.id ?? 101 + idx;
-                const slug = `${slugify(item.name)}-${id}`;
+                const slug = buildProductSlug(item.name, id);
                 router.push(`/w/${slug}`);
               }}
             >
