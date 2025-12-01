@@ -26,6 +26,7 @@ const QrIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 import ClothesSlider from '@/components/ClothesSlider';
+import useInterestRecommendations from '@/hooks/useInterestRecommendations';
 import useIsMobile from '@/hooks/useIsMobile';
 
 // Frontend gender constants to match route parameters
@@ -80,6 +81,9 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
 
   // Determine the outfits URL based on gender
   const outfitsUrl = `/w/outfits/${gender}`;
+
+  // Recommendations for "Te podría interesar"
+  const { items: interestItems } = useInterestRecommendations(apiGender);
 
   return (
     <React.Fragment>
@@ -169,7 +173,16 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           isMobile={isMobile}
         />
         <div className="w-full" style={{ marginTop: '0.17rem' }}>
-          <ClothesSlider isMobile={isMobile} />
+          {/* Te podría interesar: recommendations based on page gender */}
+          <ClothesSlider
+            isMobile={isMobile}
+            items={interestItems.map((i) => ({
+              id: i.id,
+              name: i.name,
+              price: i.price,
+              image: i.image || '/clothes/clothe-1.png',
+            }))}
+          />
         </div>
       </div>
       <div

@@ -1,6 +1,9 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import buildProductSlug from '../utils/buildProductSlug';
+import type { InterestItem } from '../hooks/useInterestRecommendations';
 
 type Cloth = {
   src: string;
@@ -21,9 +24,30 @@ const clothes: Cloth[] = [
 
 type Props = {
   isMobile?: boolean;
+  items?: (
+    | InterestItem
+    | {
+        src?: string;
+        image?: string;
+        name: string;
+        price: string;
+        id?: string | number;
+      }
+  )[];
 };
 
-export default function ClothesSlider({ isMobile = false }: Props) {
+type ItemEntry =
+  | InterestItem
+  | {
+      src?: string;
+      image?: string;
+      name: string;
+      price: string;
+      id?: string | number;
+    };
+
+export default function ClothesSlider({ isMobile = false, items }: Props) {
+  const router = useRouter();
   const slideWidth = isMobile ? '40vw' : '16.666vw';
   const slideHeight = isMobile ? '60vw' : '25vw';
 
@@ -135,47 +159,68 @@ export default function ClothesSlider({ isMobile = false }: Props) {
             paddingTop: '0.25rem',
           }}
         >
-          {clothes.map((c, idx) => (
-            <li
-              key={idx}
-              className="flex flex-col"
-              style={{ width: slideWidth, cursor: 'pointer' }}
-            >
-              <div
-                style={{ width: slideWidth, height: slideHeight }}
-                className="relative overflow-hidden"
-              >
-                <Image
-                  src={c.src}
-                  alt={c.name}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  sizes={isMobile ? '48vw' : '25vw'}
-                />
-              </div>
-              <div
-                className="mt-2 text-white"
-                style={{ paddingLeft: 4, paddingRight: 4 }}
-              >
-                <div
-                  className="text-sm md:text-base"
-                  style={{
-                    opacity: 0.95,
-                    marginTop: '0.5rem',
-                    paddingLeft: '0.5rem',
+          {(items && items.length > 0 ? items : clothes).map(
+            (c: ItemEntry, idx) => {
+              let src = '';
+              if ('image' in c && c.image) src = c.image;
+              else if ('src' in c && c.src) src = c.src;
+              const id = 'id' in c ? c.id : undefined;
+              return (
+                <li
+                  key={idx}
+                  className="flex flex-col"
+                  style={{ width: slideWidth, cursor: 'pointer' }}
+                  onClick={() => {
+                    try {
+                      const slug = buildProductSlug(c.name, id);
+                      if (!slug) return;
+                      router.push(`/w/${slug}`);
+                    } catch (err) {
+                      void err;
+                    }
                   }}
                 >
-                  {c.name}
-                </div>
-                <div
-                  className="text-base md:text-lg font-bold"
-                  style={{ marginTop: 4, paddingLeft: '0.5rem' }}
-                >
-                  {c.price}
-                </div>
-              </div>
-            </li>
-          ))}
+                  <div
+                    style={{ width: slideWidth, height: slideHeight }}
+                    className="relative overflow-hidden"
+                  >
+                    <Image
+                      src={src}
+                      alt={c.name}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes={isMobile ? '48vw' : '25vw'}
+                    />
+                  </div>
+                  <div
+                    className="mt-2 text-white"
+                    style={{ paddingLeft: 4, paddingRight: 4 }}
+                  >
+                    <div
+                      className="text-sm md:text-base"
+                      style={{
+                        opacity: 0.95,
+                        marginTop: '0.5rem',
+                        paddingLeft: '0.5rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={c.name}
+                    >
+                      {c.name}
+                    </div>
+                    <div
+                      className="text-base md:text-lg font-bold"
+                      style={{ marginTop: 4, paddingLeft: '0.5rem' }}
+                    >
+                      {c.price}
+                    </div>
+                  </div>
+                </li>
+              );
+            }
+          )}
         </ul>
       </div>
 
