@@ -2,7 +2,7 @@
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BottomSheet from '@/components/BottomSheet/BottomSheet';
 import BasketConfirmation from '@/components/BasketConfirmation';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 type ProductDetails = {
   multimedia: Array<{ image: string; label: string }>;
@@ -62,6 +62,10 @@ const ProductPageMobile: React.FC<Props> = ({
     collapse: () => void;
   } | null>(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
+  // Description modal + overflow detection (mobile: clamp to 2 lines)
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  const [descOverflow, setDescOverflow] = useState(false);
+  const descRef = useRef<HTMLDivElement | null>(null);
   const [basketConfirmation, setBasketConfirmation] = useState<{
     show: boolean;
     item: {
@@ -171,6 +175,15 @@ const ProductPageMobile: React.FC<Props> = ({
     setIsHorizontalSwipe(null);
   };
 
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    const t = setTimeout(() => {
+      setDescOverflow(el.scrollHeight > el.clientHeight);
+    }, 0);
+    return () => clearTimeout(t);
+  }, [productDetails.description, sheetExpanded]);
+
   return (
     <div
       className="w-full"
@@ -232,7 +245,7 @@ const ProductPageMobile: React.FC<Props> = ({
       <BottomSheet
         ref={bottomSheetRef}
         initialHeightVh={21}
-        expandedHeightVh={40}
+        expandedHeightVh={41}
         onExpandedChange={(expanded) => {
           setSheetExpanded(expanded);
           const el = document.getElementById('product-slider-container');
@@ -246,7 +259,7 @@ const ProductPageMobile: React.FC<Props> = ({
         <div
           className="w-full"
           style={{
-            height: sheetExpanded ? '31vh' : '20vh',
+            height: sheetExpanded ? '35vh' : '20vh',
             paddingTop: '0.1rem',
             paddingLeft: '0.7rem',
             paddingRight: '0.7rem',
@@ -389,39 +402,93 @@ const ProductPageMobile: React.FC<Props> = ({
                 paddingBottom: '0.5rem',
               }}
             >
-              <div className="flex items-center">
+              <div className="flex items-start" style={{ width: '100%' }}>
                 {/* Info icon */}
                 <div
                   style={{
                     width: 16,
                     height: 16,
                     marginRight: 8,
-                    borderRadius: '50%',
-                    border: '1.5px solid black',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'black',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
+                    marginTop: 2,
                   }}
                 >
-                  i
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    role="img"
+                    aria-label="Información"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <title>Información</title>
+                    <path
+                      fill="#2563eb"
+                      d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                    />
+                  </svg>
                 </div>
-                {/* Description text */}
-                <span
-                  style={{
-                    fontSize: '14px',
-                    color: '#6b7280',
-                    fontWeight: '400',
-                    display: 'block',
-                    maxHeight: 'calc(2 * 1.2em)', // 2 lines with line-height
-                    lineHeight: '1.2em',
-                    overflowY: 'hidden',
-                  }}
-                >
-                  {productDetails.description}
-                </span>
+
+                <div style={{ width: '100%' }}>
+                  <div
+                    ref={descRef}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setShowDescriptionModal(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setShowDescriptionModal(true);
+                      }
+                    }}
+                    aria-label="Descripción del producto. Abrir para ver más"
+                    style={{
+                      fontSize: '14px',
+                      color: '#6b7280',
+                      fontWeight: '400',
+                      whiteSpace: 'pre-line',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      lineHeight: '1.2em',
+                    }}
+                  >
+                    {productDetails.description}
+                  </div>
+
+                  {descOverflow && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        marginTop: 6,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setShowDescriptionModal(true)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#2563eb',
+                          fontWeight: 400,
+                          cursor: 'pointer',
+                          padding: 0,
+                          fontSize: '14px',
+                          lineHeight: '1.2em',
+                        }}
+                        aria-hidden={false}
+                      >
+                        ver más...
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -680,6 +747,54 @@ const ProductPageMobile: React.FC<Props> = ({
                 objectFit: 'contain',
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Description modal (mobile) */}
+      {showDescriptionModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowDescriptionModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 70,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '92%',
+              maxHeight: '85vh',
+              background: '#fff',
+              borderRadius: 8,
+              padding: '1rem',
+              overflowY: 'auto',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowDescriptionModal(false)}
+                aria-label="Cerrar descripción"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: 18,
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ whiteSpace: 'pre-line', color: '#111827' }}>
+              {productDetails.description}
+            </div>
           </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
+import { calculatePrice } from '@/utils/price';
 import { useSearchParams } from 'next/navigation';
 import useIsMobile from '@/hooks/useIsMobile';
 import GalleryItem from './GalleryItem';
@@ -153,17 +154,7 @@ export default function ClothesGallery() {
     return image || '/images/placeholder.jpg';
   };
 
-  // Helper function to calculate final price with discount
-  const calculateFinalPrice = (
-    price: string,
-    discount: Discount | null
-  ): number => {
-    const basePrice = parseFloat(price);
-    if (!discount || !discount.isActive) {
-      return basePrice;
-    }
-    return basePrice - (basePrice * discount.value) / 100;
-  };
+  // (shared pricing utility used below)
 
   // Transform API data to component format
   const clothesData = useMemo(() => {
@@ -177,23 +168,24 @@ export default function ClothesGallery() {
       subcategory.products.forEach((product) => {
         if (!product.enabled || product.productColors.length === 0) return;
 
-        const basePrice = parseFloat(product.price);
-        const finalPrice = calculateFinalPrice(product.price, product.discount);
-        const discountValue = product.discount?.isActive
-          ? product.discount.value
-          : 0;
+        const {
+          price: roundedBasePrice,
+          discountPercent,
+          finalPrice,
+        } = calculatePrice(product.price, product.discount);
+        const discountValue = discountPercent;
 
         allProducts.push({
           productId: product.id,
           src: getProductImage(product.productColors[0]?.multimedia || []),
           name: product.name,
-          price: Math.round(basePrice),
+          price: roundedBasePrice,
           colors: product.productColors
             .filter((pc) => pc.color)
             .map((pc) => pc.color.code),
           isNew: isProductNew(product.createdAt),
           discount: discountValue,
-          finalPrice: Math.round(finalPrice), // Always integer
+          finalPrice: finalPrice, // Already integer from utility
         });
       });
     });

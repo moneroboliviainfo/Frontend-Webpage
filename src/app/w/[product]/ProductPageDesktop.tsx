@@ -1,6 +1,6 @@
 'use client';
 import BasketConfirmation from '@/components/BasketConfirmation';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 
 type ProductDetails = {
@@ -25,21 +25,6 @@ type Props = {
 };
 
 const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
-  // Helper function to check if a color has any available sizes
-  const isColorAvailable = (colorIndex: number) => {
-    return (
-      productDetails.colorsWithSizes[colorIndex]?.sizes.some(
-        (sizeInfo) => sizeInfo.availability > 0
-      ) || false
-    );
-  };
-
-  // Get sizes for currently selected color
-  const getCurrentSizes = () => {
-    return productDetails.colorsWithSizes[selectedColorIndex]?.sizes || [];
-  };
-
-  // State management
   const [selectedColorIndex, setSelectedColorIndex] = useState<number>(0);
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
     null
@@ -53,7 +38,34 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
     };
     size: string;
   } | null>(null);
+
   const [showVideo, setShowVideo] = useState(false);
+
+  // Description modal + overflow detection
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  const [descOverflow, setDescOverflow] = useState(false);
+  const descRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    const t = setTimeout(() => {
+      setDescOverflow(el.scrollHeight > el.clientHeight);
+    }, 0);
+    return () => clearTimeout(t);
+  }, [productDetails.description]);
+
+  const isColorAvailable = (colorIndex: number) => {
+    return (
+      productDetails.colorsWithSizes[colorIndex]?.sizes.some(
+        (sizeInfo) => sizeInfo.availability > 0
+      ) || false
+    );
+  };
+
+  const getCurrentSizes = () => {
+    return productDetails.colorsWithSizes[selectedColorIndex]?.sizes || [];
+  };
 
   return (
     <>
@@ -81,7 +93,6 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
               gap: '0',
             }}
           >
-            {/* Create rows of images with separators (do not duplicate the array) */}
             {(() => {
               const images = productDetails.multimedia || [];
               const rows = Math.ceil(images.length / 2) || 0;
@@ -91,7 +102,6 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
 
                 return (
                   <React.Fragment key={rowIndex}>
-                    {/* Left image */}
                     {images[leftImageIndex] && (
                       <div
                         className="relative"
@@ -114,7 +124,6 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
                       </div>
                     )}
 
-                    {/* Vertical separator */}
                     <div
                       style={{
                         backgroundColor: '#fff',
@@ -123,7 +132,6 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
                       }}
                     />
 
-                    {/* Right image */}
                     {images[rightImageIndex] && (
                       <div
                         className="relative"
@@ -301,7 +309,6 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
                     aria-pressed={isSelected}
                     onClick={() => {
                       setSelectedColorIndex(i);
-                      // Reset size selection when color changes
                       setSelectedSizeIndex(null);
                     }}
                     onKeyDown={(e) => {
@@ -445,35 +452,88 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
               marginBottom: '2rem',
             }}
           >
-            <div className="flex items-center">
+            <div className="flex items-start">
               {/* Info icon */}
               <div
                 style={{
                   width: 16,
                   height: 16,
                   marginRight: 8,
-                  borderRadius: '50%',
-                  border: '1.5px solid black',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'black',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
+                  marginTop: 2,
                 }}
               >
-                i
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  role="img"
+                  aria-label="Información"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <title>Información</title>
+                  <path
+                    fill="#2563eb"
+                    d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                  />
+                </svg>
               </div>
-              {/* Description text */}
-              <span
-                style={{
-                  fontSize: '14px',
-                  color: '#6b7280',
-                  fontWeight: '400',
-                }}
-              >
-                {productDetails.description}
-              </span>
+
+              {/* Clickable truncated description for desktop (6 lines) */}
+              <div style={{ position: 'relative', width: '100%' }}>
+                <div
+                  ref={descRef}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setShowDescriptionModal(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setShowDescriptionModal(true);
+                    }
+                  }}
+                  aria-label="Descripción del producto. Abrir para ver más"
+                  style={{
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    fontWeight: '400',
+                    whiteSpace: 'pre-line',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 6,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    paddingRight: 60,
+                    lineHeight: '1.4em',
+                  }}
+                >
+                  {productDetails.description}
+                </div>
+
+                {descOverflow && (
+                  <button
+                    type="button"
+                    onClick={() => setShowDescriptionModal(true)}
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      bottom: 0,
+                      background: 'white',
+                      border: 'none',
+                      color: '#2563eb',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      paddingLeft: 6,
+                    }}
+                    aria-hidden={false}
+                  >
+                    ver más...
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -603,7 +663,55 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
         }}
         isMobile={false}
       />
-      {/* <Footer /> */}
+
+      {/* Description modal */}
+      {showDescriptionModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowDescriptionModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 70,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: 720,
+              width: '90%',
+              maxHeight: '80vh',
+              background: '#fff',
+              borderRadius: 8,
+              padding: '1.25rem',
+              overflowY: 'auto',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowDescriptionModal(false)}
+                aria-label="Cerrar descripción"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: 18,
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ whiteSpace: 'pre-line', color: '#111827' }}>
+              {productDetails.description}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -2,6 +2,7 @@
 import NavBar from '@/components/nav/NavBar';
 import useIsMobile from '@/hooks/useIsMobile';
 import React, { useState, useEffect } from 'react';
+import { calculatePrice, DiscountShape } from '@/utils/price';
 import { useRouter, useParams } from 'next/navigation';
 import ProductPageMobile from './ProductPageMobile';
 import ProductPageDesktop from './ProductPageDesktop';
@@ -91,7 +92,11 @@ type ApiProduct = {
     pdfs?: string[];
     videos?: string[];
     color?: { code?: string; name?: string };
-    variants?: Array<{ id?: number; size?: { id?: number; name?: string } }>;
+    variants?: Array<{
+      id?: number;
+      size?: { id?: number; name?: string } | string | number;
+      availableStock?: number;
+    }>;
   }>;
   subcategory?: { videos?: string[] } | null;
 };
@@ -106,20 +111,13 @@ function transformApiProduct(
   const name = api.name || '';
   const price = Number.parseFloat(String(api.price || 0)) || 0;
 
-  // discount
-  let discount = 0;
-  if (typeof api.discount === 'number') discount = api.discount;
-  else if (
-    api.discount &&
-    typeof api.discount === 'object' &&
-    typeof api.discount.percentage === 'number'
-  ) {
-    discount = api.discount.percentage;
-  }
-
-  const finalPrice = discount
-    ? Math.round(price * (1 - discount / 100) * 100) / 100
-    : price;
+  // Use shared pricing logic to compute rounded price, discount percent and final price
+  const {
+    price: roundedPrice,
+    discountPercent,
+    finalPrice,
+  } = calculatePrice(price, api.discount as unknown as DiscountShape);
+  const discount = discountPercent;
 
   // multimedia from all colors
   const multimediaUrls: string[] = [];
@@ -167,9 +165,15 @@ function transformApiProduct(
         color: pc.color?.code || pc.color?.name || '#000000',
         sizes: Array.isArray(pc.variants)
           ? pc.variants.map((v) => ({
-              size: String(v.size?.name || v.size || ''),
-              availability: 0,
-              id: v.size?.id ?? null,
+              size: String(
+                (v.size &&
+                  (typeof v.size === 'object' ? v.size.name : v.size)) ||
+                  ''
+              ),
+              availability: Number(v.availableStock ?? 0),
+              id: (v.size && typeof v.size === 'object'
+                ? v.size.id ?? null
+                : null) as number | null,
               variantId: v.id ?? null,
             }))
           : [],
@@ -184,7 +188,7 @@ function transformApiProduct(
     multimedia,
     productId,
     name,
-    price,
+    price: roundedPrice,
     colorsWithSizes,
     isNew: Boolean(api.isNew),
     discount,
