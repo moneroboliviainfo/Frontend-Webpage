@@ -58,7 +58,7 @@ export default async function GenderOutfitsPage({ params }: Props) {
       <NavBar dynamicTransparent={false} />
       <div data-gender={gender}>
         <OutfitsPageNavBar />
-        <OutfitsGallery />
+        <OutfitsGallery gender={gender} />
       </div>
       <Footer />
     </>

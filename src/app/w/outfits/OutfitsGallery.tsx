@@ -1,10 +1,13 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+// Image import removed: not used in apology fallback
+// import Image from 'next/image';
 import useIsMobile from '@/hooks/useIsMobile';
 import OutfitsGalleryItem from './OutfitsGalleryItem';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '@/config/env';
+import { filterOutfitsByGender } from '@/utils/outfits';
 
 type OutfitCard = {
   src: string;
@@ -41,17 +44,18 @@ export default function OutfitsGallery({ gender = 'female' }: Props) {
 
         if (!mounted) return;
 
-        const mapped: OutfitCard[] = (data as OutfitApi[])
-          .filter((o) => (gender ? o.gender === gender : true))
-          .map((o) => ({
-            src:
-              o.images && o.images.length > 0
-                ? (o.images[0] as string)
-                : '/clothes/clothe-1.png',
-            productId: o.id,
-            name: o.name,
-            gender: o.gender,
-          }));
+        // Filter using the shared helper (handles 'men'|'women' and 'male'|'female')
+        const filtered = filterOutfitsByGender(data as unknown[], gender);
+
+        const mapped: OutfitCard[] = (filtered as OutfitApi[]).map((o) => ({
+          src:
+            o.images && o.images.length > 0
+              ? (o.images[0] as string)
+              : '/clothes/clothe-1.png',
+          productId: o.id,
+          name: o.name,
+          gender: o.gender,
+        }));
 
         setOutfits(mapped);
         setLoading(false);
@@ -80,6 +84,28 @@ export default function OutfitsGallery({ gender = 'female' }: Props) {
     >
       {loading ? (
         <LoadingScreen message="Cargando outfits..." isVisible={true} />
+      ) : outfits.length === 0 ? (
+        // No outfits for this gender: show an apology message on black background
+        <div style={{ backgroundColor: 'black', padding: isMobile ? 12 : 24 }}>
+          <div style={{ maxWidth: 800, margin: '0 auto', color: '#fff' }}>
+            <div
+              style={{
+                padding: isMobile ? '1rem' : '2rem',
+                textAlign: 'center',
+              }}
+            >
+              <h3
+                style={{ margin: 0, fontSize: isMobile ? '1.1rem' : '1.5rem' }}
+              >
+                Lo sentimos
+              </h3>
+              <p style={{ color: '#d1d5db', marginTop: 8 }}>
+                No encontramos outfits para esta categoría en este momento.
+                Estamos trabajando para traer más opciones pronto.
+              </p>
+            </div>
+          </div>
+        </div>
       ) : (
         <div
           className={`w-full grid gap-1 ${

@@ -45,25 +45,32 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   // Get outfits from Redux store
   const allOutfits = useSelector((state: RootState) => state.clothing.outfits);
 
-  // Get last 3 outfits for gallery
+  // Convert gender string to API format (moved up so it's available for gallery filtering)
+  const apiGender: 'male' | 'female' =
+    gender === FRONTEND_GENDERS.MEN
+      ? CLOTHING_API_CONSTANTS.GENDERS.MALE
+      : CLOTHING_API_CONSTANTS.GENDERS.FEMALE;
+
+  // Get last 3 outfits for gallery, filtered by page gender (the API now returns outfit.gender)
   const galleryOutfits = useMemo(() => {
-    return allOutfits
-      .slice(-3) // Get last 3 outfits
+    const filtered = allOutfits.filter(
+      (outfit) =>
+        (outfit as unknown as { gender?: string }).gender === apiGender
+    );
+    return filtered
+      .slice(-3) // Get last 3 outfits for the gallery
       .map((outfit) => ({
-        src: outfit.images[0] || '/images/default-outfit.jpg', // First image from images array or fallback
+        src:
+          outfit.images && outfit.images.length > 0
+            ? outfit.images[0]
+            : '/images/default-outfit.jpg',
         label: outfit.name,
         href: `/w/outfits?outfit=${encodeURIComponent(
           `${outfit.name}-${outfit.id}`
         )}`,
         id: outfit.id,
       }));
-  }, [allOutfits]);
-
-  // Convert gender string to API format
-  const apiGender: 'male' | 'female' =
-    gender === FRONTEND_GENDERS.MEN
-      ? CLOTHING_API_CONSTANTS.GENDERS.MALE
-      : CLOTHING_API_CONSTANTS.GENDERS.FEMALE;
+  }, [allOutfits, apiGender]);
 
   // Get sliders data (no loading logic needed, handled by Suspense)
   const { desktopSliders, mobileSliders } = useSlidersData(apiGender);
@@ -139,7 +146,11 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
             {/* Static "Ver todos" tile */}
             <GalleryTile
               key="ver-todos"
-              src={'/categories/all-outfits.jpg'}
+              src={
+                gender === FRONTEND_GENDERS.MEN
+                  ? '/categories/all-outfits-men.jpg'
+                  : '/categories/all-outfits.jpg'
+              }
               label="Ver todos"
               isMobile={isMobile}
               priority={false}

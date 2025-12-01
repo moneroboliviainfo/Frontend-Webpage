@@ -9,6 +9,7 @@ import OutfitPageDesktop from './OutfitPageDesktop';
 import { API_URL } from '@/config/env';
 import buildProductSlug from '@/utils/buildProductSlug';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
+import { filterOutfitsByGender } from '@/utils/outfits';
 
 // API response shape (partial)
 type DiscountShape = {
@@ -26,7 +27,7 @@ type OutfitApi = {
   name?: string;
   images?: string[];
   videos?: string[];
-  gender?: string;
+  gender?: 'male' | 'female';
   productColors?: Array<{
     id?: number;
     multimedia?: string[];
@@ -53,6 +54,7 @@ type TransformedOutfit = {
   multimedia: { image: string; label: string }[];
   outfitId: number;
   name: string;
+  gender?: 'male' | 'female';
   items: Array<{
     id?: number;
     name: string;
@@ -328,6 +330,7 @@ const OutfitsPageContent = () => {
           multimedia,
           outfitId: data.id,
           name: data.name || '',
+          gender: data.gender,
           items,
           totalPrice: items.reduce((s: number, it) => s + (it.price || 0), 0),
           description: '',
@@ -348,6 +351,13 @@ const OutfitsPageContent = () => {
     };
   }, [currentOutfitId]);
 
+  // Limit swipable outfits to the same gender when possible
+  const swipableOutfits = (
+    fetchedOutfit?.gender
+      ? filterOutfitsByGender(allOutfitsData, fetchedOutfit.gender)
+      : allOutfitsData
+  ) as typeof allOutfitsData;
+
   return (
     <>
       {loading ? (
@@ -358,7 +368,7 @@ const OutfitsPageContent = () => {
           {isMobile ? (
             <OutfitPageMobile
               outfitDetails={currentOutfit}
-              allOutfits={allOutfitsData}
+              allOutfits={swipableOutfits}
               currentOutfitIndex={currentOutfitIndex}
               onOutfitChange={handleOutfitChange}
             />
