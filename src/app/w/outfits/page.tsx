@@ -2,6 +2,7 @@
 import NavBar from '@/components/nav/NavBar';
 import useIsMobile from '@/hooks/useIsMobile';
 import React, { useState, useEffect, Suspense } from 'react';
+import { calculatePrice } from '@/utils/price';
 import { useRouter, useSearchParams } from 'next/navigation';
 import OutfitPageMobile from './OutfitPageMobile';
 import OutfitPageDesktop from './OutfitPageDesktop';
@@ -9,6 +10,16 @@ import { API_URL } from '@/config/env';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 
 // API response shape (partial)
+type DiscountShape = {
+  id?: number;
+  description?: string;
+  discountType?: string;
+  isActive?: boolean;
+  startDate?: string | null;
+  endDate?: string | null;
+  value?: number;
+} | null;
+
 type OutfitApi = {
   id: number;
   name?: string;
@@ -20,6 +31,20 @@ type OutfitApi = {
     multimedia?: string[];
     pdfs?: string[];
     color?: { id?: number; name?: string; code?: string };
+    product?: {
+      id?: number;
+      name?: string;
+      description?: string;
+      price?: string;
+      enabled?: boolean;
+      createdAt?: string;
+      discount?: DiscountShape;
+    };
+    variants?: Array<{
+      id?: number;
+      size?: { id?: number; name?: string } | string | number;
+      availableStock?: number;
+    }>;
   }>;
 };
 
@@ -33,7 +58,7 @@ type TransformedOutfit = {
     multimedia: { image: string; label: string }[];
     price: number;
     discount: number;
-    sizes: Array<{ size: string; availability: number }>;
+    sizes: Array<{ id?: number; size: string; availability: number }>;
   }>;
   totalPrice: number;
   description: string;
@@ -238,13 +263,7 @@ const OutfitsPageContent = () => {
     let mounted = true;
     setLoading(true);
 
-    fetch(`${API_URL}outfits/${id}`, {
-      headers: {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoidXNlciIsImlhdCI6MTc2NDM4NDM0NywiZXhwIjoxNzY0NDcwNzQ3fQ.wu_PDO874GlaSh6pGFEl-ikFDy2RXeGoKNoTmgEDfio',
-        Referer: 'https://api.moneroget.com/api/docs',
-      },
-    })
+    fetch(`${API_URL}outfits/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('network');
         return res.json();
@@ -265,17 +284,43 @@ const OutfitsPageContent = () => {
         }
 
         const items = Array.isArray(data.productColors)
-          ? data.productColors.map((pc) => ({
-              id: pc.id,
-              name: pc.color?.name || `Item ${pc.id}`,
-              multimedia: Array.isArray(pc.multimedia)
+          ? data.productColors.map((pc) => {
+              const product = pc.product || null;
+              const multimediaArr = Array.isArray(pc.multimedia)
                 ? pc.multimedia.map((m) => ({ image: m, label: '' }))
-                : [],
-              // price/discount/sizes will be filled later; mock minimal values now
-              price: 0,
-              discount: 0,
-              sizes: [],
-            }))
+                : [];
+
+              const sizes = Array.isArray(pc.variants)
+                ? pc.variants.map((v) => {
+                    const sizeName =
+                      v.size && typeof v.size === 'object'
+                        ? v.size.name ?? ''
+                        : String(v.size ?? '');
+                    return {
+                      id: v.id,
+                      size: sizeName,
+                      availability: Number(v.availableStock ?? 0),
+                    };
+                  })
+                : [];
+
+              // Use shared price util to compute final price and discount
+              const priceInput = product?.price ?? 0;
+              const { finalPrice, discountPercent } = calculatePrice(
+                priceInput,
+                product?.discount ?? null
+              );
+
+              return {
+                id: pc.id,
+                productId: product?.id,
+                name: product?.name || pc.color?.name || `Item ${pc.id}`,
+                multimedia: multimediaArr,
+                price: finalPrice,
+                discount: discountPercent,
+                sizes,
+              };
+            })
           : [];
 
         const transformed: TransformedOutfit = {

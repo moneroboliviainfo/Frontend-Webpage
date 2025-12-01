@@ -6,15 +6,26 @@ import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
+// Create a simple slug helper for product name
+const slugify = (s: string | undefined | null) =>
+  String(s || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
 type OutfitDetails = {
   multimedia: Array<{ image: string; label: string }>;
   outfitId: number;
   name: string;
   items: Array<{
+    id?: number;
+    productId?: number;
     name: string;
     price: number;
+    discount?: number;
     multimedia?: Array<{ image: string; label: string }>;
-    sizes?: Array<{ size: string; availability: number }>;
+    sizes?: Array<{ id?: number; size: string; availability: number }>;
   }>;
   totalPrice: number;
   description: string;
@@ -31,10 +42,13 @@ type Props = {
 // OutfitItemsCarousel component
 type OutfitItemsCarouselProps = {
   items: Array<{
+    id?: number;
+    productId?: number;
     name: string;
     price: number;
+    discount?: number;
     multimedia?: Array<{ image: string; label: string }>;
-    sizes?: Array<{ size: string; availability: number }>;
+    sizes?: Array<{ id?: number; size: string; availability: number }>;
   }>;
   showSizePopup: number | null;
   setShowSizePopup: (value: number | null) => void;
@@ -42,11 +56,14 @@ type OutfitItemsCarouselProps = {
     value: {
       show: boolean;
       item: {
+        id?: number;
+        productId?: number;
         name: string;
         price: number;
-        sizes?: Array<{ size: string; availability: number }>;
+        sizes?: Array<{ id?: number; size: string; availability: number }>;
       };
       size: string;
+      sizeId?: number;
     } | null
   ) => void;
 };
@@ -140,9 +157,10 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
               className="flex flex-col"
               style={{ width: slideWidth, cursor: 'pointer' }}
               onClick={() => {
-                // Navigate to product page with a generated product ID
-                const productId = 101 + idx; // Generate product ID based on index
-                router.push(`/w/${productId}`);
+                // Navigate to product page using productId (or id) and slugified name
+                const id = item.productId ?? item.id ?? 101 + idx;
+                const slug = `${slugify(item.name)}-${id}`;
+                router.push(`/w/${slug}`);
               }}
             >
               <div
@@ -188,7 +206,8 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                   style={{
                     marginTop: 2,
                     paddingLeft: '0.25rem',
-                    color: '#000',
+                    color:
+                      item.discount && item.discount > 0 ? '#dc2626' : '#000',
                   }}
                 >
                   Bs. {item.price}
@@ -206,15 +225,26 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                       e.stopPropagation();
                       setShowSizePopup(idx);
                     }}
-                    disabled={sizeSelected[idx]}
+                    disabled={
+                      sizeSelected[idx] ||
+                      !item.sizes.some((s) => s.availability > 0)
+                    }
                     className="px-3 py-1 text-xs font-medium w-100"
                     style={{
                       backgroundColor: sizeSelected[idx] ? '#6B7280' : '#000',
                       color: '#fff',
                       borderRadius: 4,
                       border: 'none',
-                      cursor: sizeSelected[idx] ? 'default' : 'pointer',
-                      opacity: sizeSelected[idx] ? 0.7 : 1,
+                      cursor:
+                        sizeSelected[idx] ||
+                        !item.sizes.some((s) => s.availability > 0)
+                          ? 'default'
+                          : 'pointer',
+                      opacity:
+                        sizeSelected[idx] ||
+                        !item.sizes.some((s) => s.availability > 0)
+                          ? 0.7
+                          : 1,
                       padding: '0.25rem 0.5rem',
                     }}
                   >
@@ -348,11 +378,14 @@ const OutfitPageMobile: React.FC<Props> = ({
   const [basketConfirmation, setBasketConfirmation] = useState<{
     show: boolean;
     item: {
+      id?: number;
+      productId?: number;
       name: string;
       price: number;
-      sizes?: Array<{ size: string; availability: number }>;
+      sizes?: Array<{ id?: number; size: string; availability: number }>;
     };
     size: string;
+    sizeId?: number;
   } | null>(null);
 
   // Auto-close size popup when bottom sheet collapses

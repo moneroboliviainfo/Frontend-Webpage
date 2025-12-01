@@ -5,14 +5,25 @@ import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BasketConfirmation from '@/components/BasketConfirmation';
 import { useRouter } from 'next/navigation';
 
+// Simple slug helper to build /w/{slug}-{id}
+const slugify = (s: string | undefined | null) =>
+  String(s || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
 type OutfitDetails = {
   multimedia: Array<{ image: string; label: string }>;
   outfitId: number;
   name: string;
   items: Array<{
+    id?: number;
+    productId?: number;
     name: string;
     price: number;
-    sizes?: Array<{ size: string; availability: number }>;
+    discount?: number;
+    sizes?: Array<{ id?: number; size: string; availability: number }>;
     multimedia?: Array<{ image: string; label?: string }>;
   }>;
   totalPrice: number;
@@ -36,11 +47,14 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
   const [basketConfirmation, setBasketConfirmation] = useState<{
     show: boolean;
     item: {
+      id?: number;
+      productId?: number;
       name: string;
       price: number;
-      sizes?: Array<{ size: string; availability: number }>;
+      sizes?: Array<{ id?: number; size: string; availability: number }>;
     };
     size: string;
+    sizeId?: number;
   } | null>(null);
 
   return (
@@ -80,9 +94,9 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
               key={idx}
               className="flex flex-col cursor-pointer"
               onClick={() => {
-                // Navigate to product page with a generated product ID
-                const productId = 101 + idx;
-                router.push(`/w/${productId}`);
+                const id = item.productId ?? item.id ?? 101 + idx;
+                const slug = `${slugify(item.name)}-${id}`;
+                router.push(`/w/${slug}`);
               }}
             >
               {/* Image */}
@@ -122,7 +136,10 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                 {/* Price */}
                 <div
                   className="text-lg font-bold mb-3"
-                  style={{ color: '#000' }}
+                  style={{
+                    color:
+                      item.discount && item.discount > 0 ? '#dc2626' : '#000',
+                  }}
                 >
                   Bs. {item.price}
                 </div>
@@ -135,15 +152,26 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                         e.stopPropagation();
                         setShowSizePopup(idx);
                       }}
-                      disabled={sizeSelected[idx]}
+                      disabled={
+                        sizeSelected[idx] ||
+                        !item.sizes.some((s) => s.availability > 0)
+                      }
                       className="px-3 py-1 text-xs font-medium w-full"
                       style={{
                         backgroundColor: sizeSelected[idx] ? '#6B7280' : '#000',
                         color: '#fff',
                         borderRadius: 4,
                         border: 'none',
-                        cursor: sizeSelected[idx] ? 'default' : 'pointer',
-                        opacity: sizeSelected[idx] ? 0.7 : 1,
+                        cursor:
+                          sizeSelected[idx] ||
+                          !item.sizes.some((s) => s.availability > 0)
+                            ? 'default'
+                            : 'pointer',
+                        opacity:
+                          sizeSelected[idx] ||
+                          !item.sizes.some((s) => s.availability > 0)
+                            ? 0.7
+                            : 1,
                         padding: '0.25rem 0.5rem',
                       }}
                     >
@@ -205,7 +233,7 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                 const isAvailable = sizeObj.availability > 0;
                 return (
                   <button
-                    key={sizeObj.size}
+                    key={sizeObj.size + String(sizeObj.id)}
                     onClick={() => {
                       if (isAvailable) {
                         const selectedItem = outfitDetails.items[showSizePopup];
@@ -217,6 +245,7 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                           show: true,
                           item: selectedItem,
                           size: sizeObj.size,
+                          sizeId: sizeObj.id,
                         });
                         setShowSizePopup(null);
 
