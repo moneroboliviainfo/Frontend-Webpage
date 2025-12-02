@@ -2,11 +2,15 @@ import React from 'react';
 
 import { useSelector } from 'react-redux';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 import { RootState } from '@/store/store';
 import FireIcon from './FireIcon';
 
 const MostSearchedPills: React.FC = () => {
+  const params = useParams();
+  const gender = params?.gender || 'women';
+
   const mostSearched = useSelector(
     (state: RootState) => state.clothing.mostSearched
   );
@@ -29,7 +33,7 @@ const MostSearchedPills: React.FC = () => {
         {(mostSearched as Array<{ id?: number; name: string }>).map((item) => (
           <Link
             key={item.name}
-            href={`/results?search=${encodeURIComponent(item.name)}`}
+            href={`/${gender}/results?search=${encodeURIComponent(item.name)}`}
             passHref
           >
             <li

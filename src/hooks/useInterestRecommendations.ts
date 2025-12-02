@@ -1,23 +1,7 @@
 import { useEffect, useState } from 'react';
 import { API_URL } from '@/config/env';
-import { calculatePrice, DiscountShape } from '@/utils/price';
-
-type Product = {
-  id: number;
-  name: string;
-  description?: string;
-  price?: string;
-  enabled?: boolean;
-  createdAt?: string;
-  subcategory?: { category?: { image?: string } } | null;
-  productColors?: Array<{
-    id?: number;
-    multimedia?: string[];
-    pdfs?: unknown[];
-    color?: { id?: number; name?: string; code?: string };
-  }>;
-  discount?: DiscountShape;
-};
+import { calculatePrice } from '@/utils/price';
+import { Product } from '@/components/ProductsGallery';
 
 type SearchsResult = Array<{
   id: number;
@@ -87,9 +71,8 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
                   p.subcategory?.category?.image ||
                   ''
                 : p.subcategory?.category?.image || '';
-            const priceCalc = calculatePrice(p.price ?? 0, p.discount);
+            const priceCalc = calculatePrice(p.price ?? '0', p.discount);
             const price = `Bs. ${priceCalc.finalPrice}`;
-
             accumulated.push({
               id: p.id,
               name: p.name,
