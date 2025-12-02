@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { API_URL } from '@/config/env';
+import { calculatePrice, DiscountShape } from '@/utils/price';
 
 type Product = {
   id: number;
@@ -9,6 +10,13 @@ type Product = {
   enabled?: boolean;
   createdAt?: string;
   subcategory?: { category?: { image?: string } } | null;
+  productColors?: Array<{
+    id?: number;
+    multimedia?: string[];
+    pdfs?: unknown[];
+    color?: { id?: number; name?: string; code?: string };
+  }>;
+  discount?: DiscountShape;
 };
 
 type SearchsResult = Array<{
@@ -21,7 +29,8 @@ type SearchsResult = Array<{
 export type InterestItem = {
   id: number;
   name: string;
-  price: string;
+  price: string; // formatted final price like 'Bs. 469'
+  discountPercent: number; // 0 if no discount
   image: string;
 };
 
@@ -72,11 +81,22 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
             if (seen.has(p.id)) continue;
             seen.add(p.id);
 
-            const img = p.subcategory?.category?.image || '';
-            const priceNum = Number(p.price ?? 0);
-            const price = `Bs. ${Math.round(priceNum)}`;
+            const img =
+              p.productColors && p.productColors.length > 0
+                ? p.productColors[0].multimedia?.[0] ||
+                  p.subcategory?.category?.image ||
+                  ''
+                : p.subcategory?.category?.image || '';
+            const priceCalc = calculatePrice(p.price ?? 0, p.discount);
+            const price = `Bs. ${priceCalc.finalPrice}`;
 
-            accumulated.push({ id: p.id, name: p.name, price, image: img });
+            accumulated.push({
+              id: p.id,
+              name: p.name,
+              price,
+              discountPercent: priceCalc.discountPercent || 0,
+              image: img,
+            });
           }
         }
       } catch (e) {

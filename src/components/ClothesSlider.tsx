@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import buildProductSlug from '../utils/buildProductSlug';
 import type { InterestItem } from '../hooks/useInterestRecommendations';
+import FireIcon from './FireIcon';
 
 type Cloth = {
   src: string;
@@ -32,6 +33,7 @@ type Props = {
         name: string;
         price: string;
         id?: string | number;
+        discountPercent?: number;
       }
   )[];
 };
@@ -44,6 +46,7 @@ type ItemEntry =
       name: string;
       price: string;
       id?: string | number;
+      discountPercent?: number;
     };
 
 export default function ClothesSlider({ isMobile = false, items }: Props) {
@@ -165,6 +168,9 @@ export default function ClothesSlider({ isMobile = false, items }: Props) {
               if ('image' in c && c.image) src = c.image;
               else if ('src' in c && c.src) src = c.src;
               const id = 'id' in c ? c.id : undefined;
+              const discountPercent =
+                'discountPercent' in c ? c.discountPercent ?? 0 : 0;
+              const priceColor = discountPercent > 0 ? '#ff4d4f' : '#ffffff';
               return (
                 <li
                   key={idx}
@@ -212,9 +218,21 @@ export default function ClothesSlider({ isMobile = false, items }: Props) {
                     </div>
                     <div
                       className="text-base md:text-lg font-bold"
-                      style={{ marginTop: 4, paddingLeft: '0.5rem' }}
+                      style={{
+                        marginTop: 4,
+                        paddingLeft: '0.5rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        color: priceColor,
+                      }}
                     >
-                      {c.price}
+                      <span>{c.price}</span>
+                      {discountPercent > 0 && (
+                        <span style={{ transform: 'translateY(-1px)' }}>
+                          <FireIcon size={16} color="#ff4d4f" />
+                        </span>
+                      )}
                     </div>
                   </div>
                 </li>
