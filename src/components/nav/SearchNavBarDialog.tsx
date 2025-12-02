@@ -221,7 +221,7 @@ const SearchNavBarDialog: React.FC<{
       const encodedSearch = encodeURIComponent(suggestion);
       // Get gender from current path
       const currentGender = getCurrentGender() === 'male' ? 'men' : 'women';
-      router.push(`/${currentGender}/clothes?search=${encodedSearch}`);
+      router.push(`/${currentGender}/results?search=${encodedSearch}`);
       setOpen(false);
     },
     [router, setOpen, getCurrentGender]
@@ -414,7 +414,7 @@ const SearchNavBarDialog: React.FC<{
           {loading && <div className="text-gray-500">Cargando...</div>}
           {error && <div className="text-red-500">{error}</div>}
           {!loading && !error && mostSearched.length > 0 && (
-            <MostSearchedPills />
+            <MostSearchedPills onPillClick={() => setOpen(false)} />
           )}
         </div>
       </div>

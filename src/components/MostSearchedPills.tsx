@@ -7,7 +7,13 @@ import { useParams } from 'next/navigation';
 import { RootState } from '@/store/store';
 import FireIcon from './FireIcon';
 
-const MostSearchedPills: React.FC = () => {
+interface MostSearchedPillsProps {
+  onPillClick?: () => void;
+}
+
+const MostSearchedPills: React.FC<MostSearchedPillsProps> = ({
+  onPillClick,
+}) => {
   const params = useParams();
   const gender = params?.gender || 'women';
 
@@ -35,6 +41,7 @@ const MostSearchedPills: React.FC = () => {
             key={item.name}
             href={`/${gender}/results?search=${encodeURIComponent(item.name)}`}
             passHref
+            onClick={() => onPillClick?.()}
           >
             <li
               className="rounded-full text-sm cursor-pointer hover:bg-gray-200 transition flex items-center flex-shrink-0"
