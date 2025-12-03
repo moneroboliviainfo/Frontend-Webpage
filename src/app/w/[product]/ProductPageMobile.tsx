@@ -12,6 +12,7 @@ type ProductDetails = {
   colorsWithSizes: Array<{
     color: string;
     sizes: Array<{ size: string; availability: number }>;
+    firstMultimediaIndex?: number;
   }>;
   isNew: boolean;
   discount: number;
@@ -62,6 +63,12 @@ const ProductPageMobile: React.FC<Props> = ({
     collapse: () => void;
   } | null>(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
+  // controls ref for the ImageSlider so we can programmatically jump to slides
+  const sliderControlsRef = useRef<{
+    next: () => void;
+    prev: () => void;
+    slideTo: (index: number) => void;
+  } | null>(null);
   // Description modal + overflow detection (mobile: clamp to 2 lines)
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
   const [descOverflow, setDescOverflow] = useState(false);
@@ -236,6 +243,7 @@ const ProductPageMobile: React.FC<Props> = ({
               // collapse the bottom sheet when the user slides the image carousel
               bottomSheetRef.current?.collapse();
             }}
+            controlsRef={sliderControlsRef}
           />
         </div>
       </div>
@@ -345,6 +353,21 @@ const ProductPageMobile: React.FC<Props> = ({
                       setSelectedColorIndex(i);
                       // Reset size selection when color changes
                       setSelectedSizeIndex(null);
+                      // Jump slider to first multimedia of this color if available
+                      const index =
+                        productDetails.colorsWithSizes[i]?.firstMultimediaIndex;
+                      if (
+                        typeof index === 'number' &&
+                        sliderControlsRef.current
+                      ) {
+                        try {
+                          sliderControlsRef.current.slideTo(index);
+                        } catch {
+                          // ignore
+                        }
+                      }
+                      // collapse bottom sheet to reveal the slider
+                      bottomSheetRef.current?.collapse();
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {

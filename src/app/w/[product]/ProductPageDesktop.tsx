@@ -105,6 +105,7 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
                     {images[leftImageIndex] && (
                       <div
                         className="relative"
+                        id={`product-image-${leftImageIndex}`}
                         style={{
                           aspectRatio: '1 / 1.35',
                           backgroundColor: '#fff',
@@ -135,6 +136,7 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
                     {images[rightImageIndex] && (
                       <div
                         className="relative"
+                        id={`product-image-${rightImageIndex}`}
                         style={{
                           aspectRatio: '1 / 1.35',
                           backgroundColor: '#fff',
@@ -310,6 +312,23 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
                     onClick={() => {
                       setSelectedColorIndex(i);
                       setSelectedSizeIndex(null);
+                      // Scroll to the first multimedia of this color if available
+                      const index = (productDetails.colorsWithSizes as any)[i]
+                        ?.firstMultimediaIndex;
+                      if (typeof index === 'number') {
+                        try {
+                          const el = document.getElementById(
+                            `product-image-${index}`
+                          );
+                          if (el)
+                            el.scrollIntoView({
+                              behavior: 'smooth',
+                              block: 'center',
+                            });
+                        } catch {
+                          // ignore
+                        }
+                      }
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {

@@ -24,6 +24,8 @@ type ProductDetails = {
       id?: number | null;
       variantId?: number | null;
     }[];
+    // optional index in the product multimedia array where this color's media starts
+    firstMultimediaIndex?: number;
   }[];
   isNew: boolean;
   discount: number;
@@ -122,8 +124,12 @@ function transformApiProduct(
 
   // multimedia from all colors
   const multimediaUrls: string[] = [];
+  // track start index for each productColor's multimedia
+  const colorStartIndexes: number[] = [];
   if (Array.isArray(api.productColors)) {
     api.productColors.forEach((pc) => {
+      // record start index before adding this color's media
+      colorStartIndexes.push(multimediaUrls.length);
       if (Array.isArray(pc.multimedia)) {
         pc.multimedia.forEach((m) => {
           if (m && !multimediaUrls.includes(m)) multimediaUrls.push(m);
@@ -162,7 +168,7 @@ function transformApiProduct(
 
   // colors with sizes
   const colorsWithSizes = Array.isArray(api.productColors)
-    ? api.productColors.map((pc) => ({
+    ? api.productColors.map((pc, idx) => ({
         color: pc.color?.code || pc.color?.name || '#000000',
         sizes: Array.isArray(pc.variants)
           ? pc.variants.map((v) => ({
@@ -178,6 +184,8 @@ function transformApiProduct(
               variantId: v.id ?? null,
             }))
           : [],
+        // attach firstMultimediaIndex from earlier pass
+        firstMultimediaIndex: colorStartIndexes[idx] ?? 0,
       }))
     : [];
 

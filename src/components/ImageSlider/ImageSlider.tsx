@@ -41,10 +41,11 @@ interface ImageSliderProps {
   showNews?: boolean;
   // optional callback invoked when the active slide changes
   onSlide?: ((activeIndex: number) => void) | null;
-  // optional ref to expose next/prev controls to parent
+  // optional ref to expose controls to parent (next/prev/slideTo)
   controlsRef?: React.MutableRefObject<{
     next: () => void;
     prev: () => void;
+    slideTo: (index: number) => void;
   } | null>;
 }
 
@@ -110,6 +111,18 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
               controlsRef.current = {
                 next: () => s.slideNext(),
                 prev: () => s.slidePrev(),
+                slideTo: (index: number) => {
+                  try {
+                    // slideToLoop handles looped sliders correctly
+                    (s as any).slideToLoop(index);
+                  } catch {
+                    try {
+                      s.slideTo(index);
+                    } catch {
+                      // ignore
+                    }
+                  }
+                },
               };
             } catch {
               // ignore
