@@ -1,0 +1,27 @@
+.loading-more-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+  align-items: center;
+}
+
+.spinner {
+  height: 20px;
+  width: 20px;
+  border: 3px solid #d1d5db; /* gray-300 */
+  border-top-color: #fb923c; /* orange-400 */
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  animation: lm-spin 1s linear infinite;
+}
+
+.loading-text {
+  color: #4b5563; /* gray-700 */
+}
+
+@keyframes lm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
