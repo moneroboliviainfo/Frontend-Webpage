@@ -152,7 +152,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
               key="ver-todos"
               src={
                 gender === FRONTEND_GENDERS.MEN
-                  ? '/categories/all-outfits-men.jpg'
+                  ? '/categories/Outfits-men.jpg'
                   : '/categories/all-outfits.jpg'
               }
               label="Ver todos"

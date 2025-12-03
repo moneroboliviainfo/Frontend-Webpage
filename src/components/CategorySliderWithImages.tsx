@@ -120,8 +120,8 @@ export default function CategorySliderWithImages({
           key="all-categories"
           name="VER TODAS LAS CATEGORIAS"
           image={`/categories/all-categories${
-            gender === FRONTEND_GENDERS.MEN ? '-men' : ''
-          }.png`}
+            gender === FRONTEND_GENDERS.MEN ? '.jpg' : '.png'
+          }`}
           width={slideWidth}
           height={slideHeight}
           onClick={() => router.push(`/${gender}/categories`)}
