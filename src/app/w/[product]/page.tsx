@@ -316,6 +316,7 @@ const ProductPage = () => {
               allProducts={allProductsData}
               currentProductIndex={currentProductIndex}
               onProductChange={handleProductChange}
+              enableSwipeNavigation={false}
             />
           ) : (
             <ProductPageDesktop productDetails={currentProduct} />

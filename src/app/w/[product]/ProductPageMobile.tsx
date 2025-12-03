@@ -28,6 +28,7 @@ type Props = {
   allProducts?: ProductDetails[]; // Array of all products for swiping
   currentProductIndex?: number; // Current product index
   onProductChange?: (index: number) => void; // Callback when product changes
+  enableSwipeNavigation?: boolean;
 };
 
 const ProductPageMobile: React.FC<Props> = ({
@@ -35,6 +36,7 @@ const ProductPageMobile: React.FC<Props> = ({
   allProducts = [productDetails],
   currentProductIndex = 0,
   onProductChange,
+  enableSwipeNavigation = true,
 }) => {
   const [showVideo, setShowVideo] = useState(false);
   // Helper function to check if a color has any available sizes
@@ -160,7 +162,12 @@ const ProductPageMobile: React.FC<Props> = ({
         const direction = translateX > 0 ? -1 : 1; // Right swipe = -1 (previous), Left swipe = 1 (next)
         const newIndex = currentProductIndex + direction;
 
-        if (newIndex >= 0 && newIndex < allProducts.length && onProductChange) {
+        if (
+          newIndex >= 0 &&
+          newIndex < allProducts.length &&
+          onProductChange &&
+          enableSwipeNavigation
+        ) {
           // Add a slight delay for smooth transition
           setTimeout(() => {
             onProductChange(newIndex);
