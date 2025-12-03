@@ -63,6 +63,15 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
 
             // skip duplicates by product id
             if (seen.has(p.id)) continue;
+
+            // Filter by product category gender when provided
+            const productGender = p.subcategory?.category?.gender;
+            if (gender && productGender && productGender !== gender) continue;
+
+            // Ensure product is enabled and has at least one color with multimedia
+            if (!p.enabled) continue;
+            if (!p.productColors || p.productColors.length === 0) continue;
+
             seen.add(p.id);
 
             const img =
