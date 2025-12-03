@@ -113,8 +113,15 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
                 prev: () => s.slidePrev(),
                 slideTo: (index: number) => {
                   try {
-                    // slideToLoop handles looped sliders correctly
-                    (s as any).slideToLoop(index);
+                    // Prefer calling slideToLoop if available (handles looped sliders correctly)
+                    const maybeSlideToLoop = (
+                      s as unknown as { slideToLoop?: (i: number) => void }
+                    ).slideToLoop;
+                    if (typeof maybeSlideToLoop === 'function') {
+                      maybeSlideToLoop.call(s, index);
+                    } else {
+                      s.slideTo(index);
+                    }
                   } catch {
                     try {
                       s.slideTo(index);

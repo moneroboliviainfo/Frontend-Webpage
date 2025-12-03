@@ -11,6 +11,7 @@ type ProductDetails = {
   colorsWithSizes: Array<{
     color: string;
     sizes: Array<{ size: string; availability: number }>;
+    firstMultimediaIndex?: number;
   }>;
   isNew: boolean;
   discount: number;
@@ -313,8 +314,8 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
                       setSelectedColorIndex(i);
                       setSelectedSizeIndex(null);
                       // Scroll to the first multimedia of this color if available
-                      const index = (productDetails.colorsWithSizes as any)[i]
-                        ?.firstMultimediaIndex;
+                      const index =
+                        productDetails.colorsWithSizes[i]?.firstMultimediaIndex;
                       if (typeof index === 'number') {
                         try {
                           const el = document.getElementById(
