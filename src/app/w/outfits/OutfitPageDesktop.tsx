@@ -92,6 +92,7 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
   const sliderControlsRef = useRef<{
     next: () => void;
     prev: () => void;
+    slideTo: (index: number) => void;
   } | null>(null);
   const [showSizePopup, setShowSizePopup] = useState<number | null>(null);
   const [sizeSelected, setSizeSelected] = useState<{
