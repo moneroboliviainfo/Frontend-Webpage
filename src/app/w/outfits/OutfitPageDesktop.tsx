@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
+import sortSizes from '@/utils/sizeSorter';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BasketConfirmation from '@/components/BasketConfirmation';
 import { useRouter } from 'next/navigation';
@@ -308,62 +309,65 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                 gap: '8px',
               }}
             >
-              {outfitDetails.items[showSizePopup]?.sizes?.map((sizeObj) => {
-                const isAvailable = sizeObj.availability > 0;
-                return (
-                  <button
-                    key={sizeObj.size + String(sizeObj.id)}
-                    onClick={() => {
-                      if (isAvailable) {
-                        const selectedItem = outfitDetails.items[showSizePopup];
-                        setSizeSelected((prev) => ({
-                          ...prev,
-                          [showSizePopup]: true,
-                        }));
-                        setBasketConfirmation({
-                          show: true,
-                          item: selectedItem,
-                          size: sizeObj.size,
-                          sizeId: sizeObj.id,
-                        });
-                        setShowSizePopup(null);
+              {sortSizes(outfitDetails.items[showSizePopup]?.sizes || []).map(
+                (sizeObj) => {
+                  const isAvailable = sizeObj.availability > 0;
+                  return (
+                    <button
+                      key={sizeObj.size + String(sizeObj.id)}
+                      onClick={() => {
+                        if (isAvailable) {
+                          const selectedItem =
+                            outfitDetails.items[showSizePopup];
+                          setSizeSelected((prev) => ({
+                            ...prev,
+                            [showSizePopup]: true,
+                          }));
+                          setBasketConfirmation({
+                            show: true,
+                            item: selectedItem,
+                            size: sizeObj.size,
+                            sizeId: sizeObj.id,
+                          });
+                          setShowSizePopup(null);
 
-                        // Auto-hide after 5 seconds
-                        setTimeout(() => {
-                          setBasketConfirmation(null);
-                        }, 50000);
-                      }
-                    }}
-                    disabled={!isAvailable}
-                    style={{
-                      padding: '12px',
-                      border: `1px solid ${
-                        isAvailable ? '#e5e7eb' : '#d1d5db'
-                      }`,
-                      borderRadius: 4,
-                      backgroundColor: isAvailable ? '#fff' : '#f3f4f6',
-                      color: isAvailable ? '#000' : '#9ca3af',
-                      cursor: isAvailable ? 'pointer' : 'not-allowed',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      opacity: isAvailable ? 1 : 0.6,
-                    }}
-                  >
-                    {sizeObj.size}
-                    {isAvailable && (
-                      <div
-                        style={{
-                          fontSize: '10px',
-                          color: '#6B7280',
-                          marginTop: '2px',
-                        }}
-                      >
-                        Disponible: {sizeObj.availability}
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
+                          // Auto-hide after 5 seconds
+                          setTimeout(() => {
+                            setBasketConfirmation(null);
+                          }, 50000);
+                        }
+                      }}
+                      disabled={!isAvailable}
+                      style={{
+                        padding: '12px',
+                        border: `1px solid ${
+                          isAvailable ? '#e5e7eb' : '#d1d5db'
+                        }`,
+                        borderRadius: 4,
+                        backgroundColor: isAvailable ? '#fff' : '#f3f4f6',
+                        color: isAvailable ? '#000' : '#9ca3af',
+                        cursor: isAvailable ? 'pointer' : 'not-allowed',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        opacity: isAvailable ? 1 : 0.6,
+                      }}
+                    >
+                      {sizeObj.size}
+                      {isAvailable && (
+                        <div
+                          style={{
+                            fontSize: '10px',
+                            color: '#6B7280',
+                            marginTop: '2px',
+                          }}
+                        >
+                          Disponible: {sizeObj.availability}
+                        </div>
+                      )}
+                    </button>
+                  );
+                }
+              )}
             </div>
           </div>
         </div>

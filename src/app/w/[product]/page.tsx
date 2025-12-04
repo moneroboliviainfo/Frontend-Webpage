@@ -9,6 +9,7 @@ import ProductPageMobile from './ProductPageMobile';
 import ProductPageDesktop from './ProductPageDesktop';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import { API_URL } from '@/config/env';
+import sortSizes from '@/utils/sizeSorter';
 
 // Local product details shape used by the page components
 type ProductDetails = {
@@ -170,20 +171,24 @@ function transformApiProduct(
   const colorsWithSizes = Array.isArray(api.productColors)
     ? api.productColors.map((pc, idx) => ({
         color: pc.color?.code || pc.color?.name || '#000000',
-        sizes: Array.isArray(pc.variants)
-          ? pc.variants.map((v) => ({
-              size: String(
-                (v.size &&
-                  (typeof v.size === 'object' ? v.size.name : v.size)) ||
-                  ''
-              ),
-              availability: Number(v.availableStock ?? 0),
-              id: (v.size && typeof v.size === 'object'
-                ? v.size.id ?? null
-                : null) as number | null,
-              variantId: v.id ?? null,
-            }))
-          : [],
+        sizes: (() => {
+          const rawSizes = Array.isArray(pc.variants)
+            ? pc.variants.map((v) => ({
+                size: String(
+                  (v.size &&
+                    (typeof v.size === 'object' ? v.size.name : v.size)) ||
+                    ''
+                ),
+                availability: Number(v.availableStock ?? 0),
+                id: (v.size && typeof v.size === 'object'
+                  ? v.size.id ?? null
+                  : null) as number | null,
+                variantId: v.id ?? null,
+              }))
+            : [];
+
+          return sortSizes(rawSizes);
+        })(),
         // attach firstMultimediaIndex from earlier pass
         firstMultimediaIndex: colorStartIndexes[idx] ?? 0,
       }))
