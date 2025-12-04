@@ -3,8 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FiUser, FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { motion, useAnimation } from 'framer-motion';
-import { useAppSelector } from '@/store/hooks';
-import { selectCartQuantity } from '@/store/cartSlice';
+import { getCartItemCount } from '@/utils/cartStorage';
 import NavBarLink from './NavBarLink';
 import NavBarIconText from './NavBarIconText';
 import NavBarDropdown from './NavBarDropdown';
@@ -32,10 +31,30 @@ export default function NavBar({
   const [cartOpen, setCartOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const controls = useAnimation();
-  const cartLength = useAppSelector(selectCartQuantity);
+  const [cartLength, setCartLength] = useState(0);
   // TODO: Replace with real client name from redux
   const clientName = null;
   const pathname = usePathname();
+
+  // Load cart count from localStorage
+  useEffect(() => {
+    const updateCartCount = () => {
+      setCartLength(getCartItemCount());
+    };
+
+    updateCartCount();
+
+    // Listen for cart updates (when dialog closes or items change)
+    const interval = setInterval(updateCartCount, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update cart count when cart dialog closes
+  useEffect(() => {
+    if (!cartOpen) {
+      setCartLength(getCartItemCount());
+    }
+  }, [cartOpen]);
 
   // measure nav height and expose it via CSS variable so other components can
   // position themselves below the nav without hardcoded values
@@ -172,7 +191,10 @@ export default function NavBar({
               CARRITO
             </span>
             {cartLength > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+              <span
+                className="absolute -top-2 -right-2 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                style={{ backgroundColor: 'var(--color-primary)' }}
+              >
                 {cartLength}
               </span>
             )}

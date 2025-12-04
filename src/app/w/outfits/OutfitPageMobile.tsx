@@ -6,6 +6,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import buildProductSlug from '@/utils/buildProductSlug';
+import { addToCart } from '@/utils/cartStorage';
+import type { CartItem } from '@/types/cart';
 
 type OutfitDetails = {
   multimedia: Array<{ image: string; label: string }>;
@@ -17,8 +19,16 @@ type OutfitDetails = {
     name: string;
     price: number;
     discount?: number;
+    finalPrice?: number;
+    colorName?: string;
+    colorCode?: string;
     multimedia?: Array<{ image: string; label: string }>;
-    sizes?: Array<{ id?: number; size: string; availability: number }>;
+    sizes?: Array<{
+      id?: number;
+      variantId?: number;
+      size: string;
+      availability: number;
+    }>;
   }>;
   totalPrice: number;
   description: string;
@@ -40,23 +50,23 @@ type OutfitItemsCarouselProps = {
     name: string;
     price: number;
     discount?: number;
+    finalPrice?: number;
+    colorName?: string;
+    colorCode?: string;
     multimedia?: Array<{ image: string; label: string }>;
-    sizes?: Array<{ id?: number; size: string; availability: number }>;
+    sizes?: Array<{
+      id?: number;
+      variantId?: number;
+      size: string;
+      availability: number;
+    }>;
   }>;
   showSizePopup: number | null;
   setShowSizePopup: (value: number | null) => void;
   setBasketConfirmation: (
     value: {
       show: boolean;
-      item: {
-        id?: number;
-        productId?: number;
-        name: string;
-        price: number;
-        sizes?: Array<{ id?: number; size: string; availability: number }>;
-      };
-      size: string;
-      sizeId?: number;
+      cartItem: CartItem;
     } | null
   ) => void;
 };
@@ -302,14 +312,32 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                     onClick={() => {
                       if (isAvailable) {
                         const selectedItem = items[showSizePopup];
+                        const firstImage =
+                          selectedItem.multimedia?.[0]?.image || '';
+
+                        // Add to cart storage
+                        const cartItem = addToCart({
+                          productId: selectedItem.productId ?? 0,
+                          productName: selectedItem.name,
+                          variantId: sizeObj.variantId ?? 0,
+                          price: selectedItem.price,
+                          discount: selectedItem.discount ?? 0,
+                          finalPrice:
+                            selectedItem.finalPrice ?? selectedItem.price,
+                          sizeName: sizeObj.size,
+                          sizeId: sizeObj.id,
+                          colorName: selectedItem.colorName ?? 'Color',
+                          colorCode: selectedItem.colorCode ?? '#000000',
+                          imageUrl: firstImage,
+                        });
+
                         setSizeSelected((prev) => ({
                           ...prev,
                           [showSizePopup]: true,
                         }));
                         setBasketConfirmation({
                           show: true,
-                          item: selectedItem,
-                          size: sizeObj.size,
+                          cartItem,
                         });
                         setShowSizePopup(null);
 
@@ -370,15 +398,7 @@ const OutfitPageMobile: React.FC<Props> = ({
   const [showSizePopup, setShowSizePopup] = useState<number | null>(null);
   const [basketConfirmation, setBasketConfirmation] = useState<{
     show: boolean;
-    item: {
-      id?: number;
-      productId?: number;
-      name: string;
-      price: number;
-      sizes?: Array<{ id?: number; size: string; availability: number }>;
-    };
-    size: string;
-    sizeId?: number;
+    cartItem: CartItem;
   } | null>(null);
 
   // Auto-close size popup when bottom sheet collapses
@@ -635,23 +655,17 @@ const OutfitPageMobile: React.FC<Props> = ({
       </BottomSheet>
 
       {/* Basket Confirmation Popup */}
-      <BasketConfirmation
-        show={basketConfirmation !== null}
-        item={basketConfirmation?.item || { name: '', price: 0 }}
-        size={basketConfirmation?.size || ''}
-        itemIndex={
-          basketConfirmation
-            ? outfitDetails.items.findIndex(
-                (item) => item === basketConfirmation.item
-              )
-            : 0
-        }
-        onClose={() => setBasketConfirmation(null)}
-        onProceedToCheckout={() => {
-          window.location.href = '/w/checkout';
-        }}
-        isMobile={true}
-      />
+      {basketConfirmation && (
+        <BasketConfirmation
+          show={true}
+          cartItem={basketConfirmation.cartItem}
+          onClose={() => setBasketConfirmation(null)}
+          onProceedToCheckout={() => {
+            window.location.href = '/w/checkout';
+          }}
+          isMobile={true}
+        />
+      )}
     </div>
   );
 };

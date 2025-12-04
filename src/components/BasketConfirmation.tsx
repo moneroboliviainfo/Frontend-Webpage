@@ -1,16 +1,11 @@
 'use client';
 import React from 'react';
 import Image from 'next/image';
+import type { CartItem } from '@/types/cart';
 
 type BasketConfirmationProps = {
   show: boolean;
-  item: {
-    name: string;
-    price: number;
-    sizes?: Array<{ size: string; availability: number }>;
-  };
-  size: string;
-  itemIndex: number;
+  cartItem: CartItem;
   onClose: () => void;
   onProceedToCheckout: () => void;
   isMobile?: boolean;
@@ -18,9 +13,7 @@ type BasketConfirmationProps = {
 
 const BasketConfirmation: React.FC<BasketConfirmationProps> = ({
   show,
-  item,
-  size,
-  itemIndex,
+  cartItem,
   onClose,
   onProceedToCheckout,
   isMobile = false,
@@ -62,11 +55,11 @@ const BasketConfirmation: React.FC<BasketConfirmationProps> = ({
         onClick={onClose}
         style={{
           position: 'absolute',
-          top: '5px',
-          right: '10px',
+          top: '8px',
+          right: '8px',
           background: 'none',
           border: 'none',
-          fontSize: '28px',
+          fontSize: '24px',
           cursor: 'pointer',
           color: '#6B7280',
         }}
@@ -116,8 +109,8 @@ const BasketConfirmation: React.FC<BasketConfirmationProps> = ({
           }}
         >
           <Image
-            src={`/clothes/clothe-${(itemIndex % 4) + 1}.png`}
-            alt={item.name}
+            src={cartItem.imageUrl}
+            alt={cartItem.productName}
             width={60}
             height={80}
             style={{ objectFit: 'cover' }}
@@ -134,14 +127,14 @@ const BasketConfirmation: React.FC<BasketConfirmationProps> = ({
               marginBottom: '4px',
             }}
           >
-            {item.price} €
+            Bs. {cartItem.finalPrice}
           </div>
           <div style={{ fontSize: '14px', color: '#000', marginBottom: '8px' }}>
-            {item.name}
+            {cartItem.productName}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ fontSize: '12px', color: '#6B7280' }}>
-              Size {size}
+              Talla: {cartItem.sizeName}
             </div>
             {/* Color indicator */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -150,11 +143,13 @@ const BasketConfirmation: React.FC<BasketConfirmationProps> = ({
                   width: '12px',
                   height: '12px',
                   borderRadius: '50%',
-                  backgroundColor: '#000',
+                  backgroundColor: cartItem.colorCode,
                   border: '1px solid #e5e7eb',
                 }}
               ></div>
-              <span style={{ fontSize: '12px', color: '#6B7280' }}>Black</span>
+              <span style={{ fontSize: '12px', color: '#6B7280' }}>
+                {cartItem.colorName}
+              </span>
             </div>
           </div>
         </div>

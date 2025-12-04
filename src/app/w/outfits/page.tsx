@@ -57,11 +57,20 @@ type TransformedOutfit = {
   gender?: 'male' | 'female';
   items: Array<{
     id?: number;
+    productId?: number;
     name: string;
     multimedia: { image: string; label: string }[];
     price: number;
     discount: number;
-    sizes: Array<{ id?: number; size: string; availability: number }>;
+    finalPrice: number;
+    colorName?: string;
+    colorCode?: string;
+    sizes: Array<{
+      id?: number;
+      variantId?: number;
+      size: string;
+      availability: number;
+    }>;
   }>;
   totalPrice: number;
   description: string;
@@ -299,8 +308,13 @@ const OutfitsPageContent = () => {
                       v.size && typeof v.size === 'object'
                         ? v.size.name ?? ''
                         : String(v.size ?? '');
+                    const sizeId =
+                      v.size && typeof v.size === 'object'
+                        ? v.size.id
+                        : undefined;
                     return {
-                      id: v.id,
+                      id: sizeId,
+                      variantId: v.id,
                       size: sizeName,
                       availability: Number(v.availableStock ?? 0),
                     };
@@ -319,8 +333,14 @@ const OutfitsPageContent = () => {
                 productId: product?.id,
                 name: product?.name || pc.color?.name || `Item ${pc.id}`,
                 multimedia: multimediaArr,
-                price: finalPrice,
+                price:
+                  typeof priceInput === 'string'
+                    ? parseFloat(priceInput)
+                    : Number(priceInput),
                 discount: discountPercent,
+                finalPrice,
+                colorName: pc.color?.name,
+                colorCode: pc.color?.code,
                 sizes,
               };
             })

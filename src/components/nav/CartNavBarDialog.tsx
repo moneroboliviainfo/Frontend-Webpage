@@ -1,161 +1,110 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useAppSelector } from '@/store/hooks';
-import { selectCartItems } from '@/store/cartSlice';
-import { CartItem } from '@/store/types';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import NavBarDialog from './NavBarDialog';
 import useIsMobile from '@/hooks/useIsMobile';
+import {
+  getCart,
+  updateCartItemQuantity,
+  removeFromCart,
+} from '@/utils/cartStorage';
+import type { CartItem } from '@/types/cart';
 
 const CartNavBarDialog: React.FC<{
   open: boolean;
   setOpen: (open: boolean) => void;
 }> = ({ open, setOpen }) => {
-  const cartItems = useAppSelector(selectCartItems);
-
-  // Memoize mock items to prevent recreation on every render
-  const mockItems = useMemo(
-    () => [
-      {
-        itemId: 'mock-1',
-        name: 'Chaqueta Derby',
-        cost: 116,
-        quantity: 1,
-        src: '/images/ver-slide-1.png',
-        color: {
-          colorId: 'black',
-          name: 'Negro',
-        },
-        size: {
-          sizeId: 'm',
-          name: 'M',
-        },
-        totalCost: 116,
-      },
-      {
-        itemId: 'mock-2',
-        name: 'Blusa Elegante',
-        cost: 79,
-        quantity: 2,
-        src: '/images/ver-slide-2.png',
-        color: {
-          colorId: 'orange',
-          name: 'Naranja',
-        },
-        size: {
-          sizeId: 'l',
-          name: 'L',
-        },
-        totalCost: 158,
-      },
-      {
-        itemId: 'mock-3',
-        name: 'Chaqueta Derby',
-        cost: 116,
-        quantity: 1,
-        src: '/images/ver-slide-1.png',
-        color: {
-          colorId: 'black',
-          name: 'Negro',
-        },
-        size: {
-          sizeId: 'm',
-          name: 'M',
-        },
-        totalCost: 116,
-      },
-      {
-        itemId: 'mock-4',
-        name: 'Blusa Elegante',
-        cost: 79,
-        quantity: 2,
-        src: '/images/ver-slide-2.png',
-        color: {
-          colorId: 'orange',
-          name: 'Naranja',
-        },
-        size: {
-          sizeId: 'l',
-          name: 'L',
-        },
-        totalCost: 158,
-      },
-    ],
-    []
-  );
-
-  const displayItems = cartItems.length > 0 ? cartItems : mockItems;
-  const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [removedItems, setRemovedItems] = useState<{ [key: string]: boolean }>(
     {}
   );
   const [undoData, setUndoData] = useState<{
-    itemId: string;
+    itemKey: string;
     item: CartItem;
-    quantity: number;
   } | null>(null);
   const [showUndoToast, setShowUndoToast] = useState(false);
   const isMobile = useIsMobile();
 
-  // Initialize quantities for cart items
+  // Load cart items from localStorage
   useEffect(() => {
-    const initialQuantities: { [key: string]: number } = {};
-    const itemsToProcess = cartItems.length > 0 ? cartItems : mockItems;
-    itemsToProcess.forEach((item) => {
-      const key = item.itemId;
-      initialQuantities[key] = item.quantity;
-    });
-    setQuantities(initialQuantities);
-  }, [cartItems, mockItems]);
+    const loadCart = () => {
+      const cart = getCart();
+      setCartItems(cart.items);
+    };
 
-  const updateQuantity = (itemId: string, delta: number) => {
-    const currentQuantity = quantities[itemId] || 1;
-    const newQuantity = currentQuantity + delta;
+    loadCart();
+    // Reload cart when dialog opens
+    if (open) {
+      loadCart();
+    }
+  }, [open]);
+
+  const getItemKey = (item: CartItem) => `${item.variantId}-${item.sizeName}`;
+
+  const updateQuantity = (item: CartItem, delta: number) => {
+    const newQuantity = item.quantity + delta;
 
     if (newQuantity <= 0) {
-      // Find the item to store for undo
-      const itemToRemove = displayItems.find((item) => item.itemId === itemId);
-      if (itemToRemove) {
-        // Store undo data
-        setUndoData({
-          itemId,
-          item: itemToRemove,
-          quantity: currentQuantity,
-        });
+      const itemKey = getItemKey(item);
+      // Store undo data
+      setUndoData({
+        itemKey,
+        item,
+      });
 
-        // Mark item as removed
-        setRemovedItems((prev) => ({ ...prev, [itemId]: true }));
+      // Mark item as removed
+      setRemovedItems((prev) => ({ ...prev, [itemKey]: true }));
 
-        // Show undo toast
-        setShowUndoToast(true);
+      // Remove from localStorage
+      removeFromCart(item.variantId, item.sizeName);
 
-        // Auto-hide toast after 5 seconds
-        setTimeout(() => {
-          setShowUndoToast(false);
-          setUndoData(null);
-        }, 5000);
-      }
+      // Update local state
+      setCartItems((prev) => prev.filter((i) => getItemKey(i) !== itemKey));
+
+      // Show undo toast
+      setShowUndoToast(true);
+
+      // Auto-hide toast after 5 seconds
+      setTimeout(() => {
+        setShowUndoToast(false);
+        setUndoData(null);
+      }, 5000);
     } else {
-      setQuantities((prev) => ({
-        ...prev,
-        [itemId]: newQuantity,
-      }));
+      // Update quantity in localStorage
+      updateCartItemQuantity(item.variantId, item.sizeName, newQuantity);
+
+      // Update local state
+      setCartItems((prev) =>
+        prev.map((i) =>
+          getItemKey(i) === getItemKey(item)
+            ? { ...i, quantity: newQuantity }
+            : i
+        )
+      );
     }
   };
 
   const undoRemove = () => {
     if (undoData) {
-      // Restore the item
-      setRemovedItems((prev) => {
-        const newState = { ...prev };
-        delete newState[undoData.itemId];
-        return newState;
+      // Restore the item in localStorage
+      const { item } = undoData;
+      updateCartItemQuantity(item.variantId, item.sizeName, item.quantity);
+
+      // Restore in local state
+      setCartItems((prev) => {
+        const itemKey = getItemKey(item);
+        const exists = prev.some((i) => getItemKey(i) === itemKey);
+        if (exists) {
+          return prev;
+        }
+        return [...prev, item];
       });
 
-      // Restore quantity
-      setQuantities((prev) => ({
-        ...prev,
-        [undoData.itemId]: undoData.quantity,
-      }));
+      // Remove from removed items
+      setRemovedItems((prev) => {
+        const newState = { ...prev };
+        delete newState[undoData.itemKey];
+        return newState;
+      });
 
       // Hide toast
       setShowUndoToast(false);
@@ -164,16 +113,15 @@ const CartNavBarDialog: React.FC<{
   };
 
   const calculateSubtotal = () => {
-    return displayItems
-      .filter((item) => !removedItems[item.itemId])
+    return cartItems
+      .filter((item) => !removedItems[getItemKey(item)])
       .reduce((total: number, item) => {
-        const quantity = quantities[item.itemId] || item.quantity;
-        return total + item.cost * quantity;
+        return total + item.finalPrice * item.quantity;
       }, 0);
   };
 
-  const visibleItems = displayItems.filter(
-    (item) => !removedItems[item.itemId]
+  const visibleItems = cartItems.filter(
+    (item) => !removedItems[getItemKey(item)]
   );
 
   return (
@@ -192,7 +140,7 @@ const CartNavBarDialog: React.FC<{
           style={{
             padding: '0 2rem',
             flex: 1,
-            paddingBottom: displayItems.length > 0 ? '200px' : '0',
+            paddingBottom: cartItems.length > 0 ? '200px' : '0',
           }}
         >
           {visibleItems.length === 0 ? (
@@ -201,11 +149,9 @@ const CartNavBarDialog: React.FC<{
             </div>
           ) : (
             visibleItems.map((item, index) => {
-              const quantity = quantities[item.itemId] || item.quantity;
-
               return (
                 <div
-                  key={item.itemId}
+                  key={getItemKey(item)}
                   className="flex"
                   style={{
                     height: '30vh',
@@ -225,7 +171,7 @@ const CartNavBarDialog: React.FC<{
                       height: '100%',
                     }}
                   >
-                    {item.src ? (
+                    {item.imageUrl ? (
                       <div
                         className="relative w-full h-full"
                         style={{
@@ -237,8 +183,8 @@ const CartNavBarDialog: React.FC<{
                         }}
                       >
                         <Image
-                          src={item.src}
-                          alt={item.name}
+                          src={item.imageUrl}
+                          alt={item.productName}
                           fill
                           className="object-contain rounded-r-sm"
                           sizes="25vw"
@@ -270,7 +216,7 @@ const CartNavBarDialog: React.FC<{
                         WebkitBoxOrient: 'vertical',
                       }}
                     >
-                      {item.name}
+                      {item.productName}
                     </h3>
 
                     {/* Price */}
@@ -283,7 +229,7 @@ const CartNavBarDialog: React.FC<{
                         className="font-bold"
                         style={{ fontSize: '1.1rem' }}
                       >
-                        Bs. {item.cost}
+                        Bs. {item.finalPrice}
                       </span>
                     </div>
 
@@ -295,8 +241,26 @@ const CartNavBarDialog: React.FC<{
                         fontSize: '0.9rem',
                       }}
                     >
-                      <div>Talla: {item.size.name}</div>
-                      <div>Color: {item.color.name}</div>
+                      <div>Talla: {item.sizeName}</div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <span>Color:</span>
+                        <div
+                          style={{
+                            width: '12px',
+                            height: '12px',
+                            borderRadius: '50%',
+                            backgroundColor: item.colorCode,
+                            border: '1px solid #e5e7eb',
+                          }}
+                        />
+                        <span>{item.colorName}</span>
+                      </div>
                     </div>
 
                     {/* Quantity counter */}
@@ -307,7 +271,7 @@ const CartNavBarDialog: React.FC<{
                       >
                         <button
                           className="hover:bg-gray-100"
-                          onClick={() => updateQuantity(item.itemId, -1)}
+                          onClick={() => updateQuantity(item, -1)}
                           style={{
                             cursor: 'pointer',
                             padding: '0.5rem 0.75rem',
@@ -319,11 +283,11 @@ const CartNavBarDialog: React.FC<{
                           className="font-medium"
                           style={{ minWidth: '3rem', textAlign: 'center' }}
                         >
-                          {quantity}
+                          {item.quantity}
                         </span>
                         <button
                           className="hover:bg-gray-100"
-                          onClick={() => updateQuantity(item.itemId, 1)}
+                          onClick={() => updateQuantity(item, 1)}
                           style={{
                             cursor: 'pointer',
                             padding: '0.5rem 0.75rem',
@@ -416,8 +380,8 @@ const CartNavBarDialog: React.FC<{
             {/* Item image */}
             <div className="flex-shrink-0">
               <Image
-                src={undoData.item.src || '/images/placeholder.jpg'}
-                alt={undoData.item.name}
+                src={undoData.item.imageUrl || '/images/placeholder.jpg'}
+                alt={undoData.item.productName}
                 width={32}
                 height={32}
                 className="object-cover rounded"

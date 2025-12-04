@@ -2,6 +2,8 @@
 import BasketConfirmation from '@/components/BasketConfirmation';
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { addToCart } from '@/utils/cartStorage';
+import type { CartItem } from '@/types/cart';
 
 type ProductDetails = {
   multimedia: Array<{ image: string; label: string }>;
@@ -10,7 +12,13 @@ type ProductDetails = {
   price: number;
   colorsWithSizes: Array<{
     color: string;
-    sizes: Array<{ size: string; availability: number }>;
+    colorName?: string;
+    sizes: Array<{
+      size: string;
+      availability: number;
+      id?: number | null;
+      variantId?: number | null;
+    }>;
     firstMultimediaIndex?: number;
   }>;
   isNew: boolean;
@@ -32,12 +40,7 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
   );
   const [basketConfirmation, setBasketConfirmation] = useState<{
     show: boolean;
-    item: {
-      name: string;
-      price: number;
-      sizes?: Array<{ size: string; availability: number }>;
-    };
-    size: string;
+    cartItem: CartItem;
   } | null>(null);
 
   const [showVideo, setShowVideo] = useState(false);
@@ -621,14 +624,33 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
             onClick={() => {
               if (selectedSizeIndex !== null) {
                 const selectedSize = getCurrentSizes()[selectedSizeIndex];
+                const selectedColor =
+                  productDetails.colorsWithSizes[selectedColorIndex];
+                const firstImage =
+                  selectedColor.firstMultimediaIndex !== undefined
+                    ? productDetails.multimedia[
+                        selectedColor.firstMultimediaIndex
+                      ]?.image
+                    : productDetails.multimedia[0]?.image;
+
+                // Add to cart storage
+                const cartItem = addToCart({
+                  productId: productDetails.productId,
+                  productName: productDetails.name,
+                  variantId: selectedSize.variantId ?? 0,
+                  price: productDetails.price,
+                  discount: productDetails.discount,
+                  finalPrice: productDetails.finalPrice,
+                  sizeName: selectedSize.size,
+                  sizeId: selectedSize.id ?? undefined,
+                  colorName: selectedColor.colorName ?? 'Color',
+                  colorCode: selectedColor.color,
+                  imageUrl: firstImage || '',
+                });
+
                 setBasketConfirmation({
                   show: true,
-                  item: {
-                    name: productDetails.name,
-                    price: productDetails.finalPrice,
-                    sizes: getCurrentSizes(),
-                  },
-                  size: selectedSize.size,
+                  cartItem,
                 });
 
                 // Auto-hide after 5 seconds
@@ -672,17 +694,17 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
       </div>
 
       {/* Basket Confirmation Popup */}
-      <BasketConfirmation
-        show={basketConfirmation !== null}
-        item={basketConfirmation?.item || { name: '', price: 0 }}
-        size={basketConfirmation?.size || ''}
-        itemIndex={0}
-        onClose={() => setBasketConfirmation(null)}
-        onProceedToCheckout={() => {
-          window.location.href = '/w/checkout';
-        }}
-        isMobile={false}
-      />
+      {basketConfirmation && (
+        <BasketConfirmation
+          show={true}
+          cartItem={basketConfirmation.cartItem}
+          onClose={() => setBasketConfirmation(null)}
+          onProceedToCheckout={() => {
+            window.location.href = '/w/checkout';
+          }}
+          isMobile={false}
+        />
+      )}
 
       {/* Description modal */}
       {showDescriptionModal && (

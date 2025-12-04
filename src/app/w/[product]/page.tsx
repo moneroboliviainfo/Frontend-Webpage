@@ -19,6 +19,7 @@ type ProductDetails = {
   price: number;
   colorsWithSizes: {
     color: string;
+    colorName?: string;
     sizes: {
       size: string;
       availability: number;
@@ -171,6 +172,7 @@ function transformApiProduct(
   const colorsWithSizes = Array.isArray(api.productColors)
     ? api.productColors.map((pc, idx) => ({
         color: pc.color?.code || pc.color?.name || '#000000',
+        colorName: pc.color?.name || 'Color',
         sizes: (() => {
           const rawSizes = Array.isArray(pc.variants)
             ? pc.variants.map((v) => ({

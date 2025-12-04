@@ -217,7 +217,7 @@ const ProfileNavBarDialog: React.FC<{
                         marginTop: '2px',
                       }}
                     >
-                      {new Date(order.date).toLocaleDateString('es-ES')} • €
+                      {new Date(order.date).toLocaleDateString('es-ES')}
                       {order.total.toFixed(2)}
                     </p>
                   </div>

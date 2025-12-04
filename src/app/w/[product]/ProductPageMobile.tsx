@@ -3,6 +3,8 @@ import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BottomSheet from '@/components/BottomSheet/BottomSheet';
 import BasketConfirmation from '@/components/BasketConfirmation';
 import React, { useRef, useState, useEffect } from 'react';
+import { addToCart } from '@/utils/cartStorage';
+import type { CartItem } from '@/types/cart';
 
 type ProductDetails = {
   multimedia: Array<{ image: string; label: string }>;
@@ -11,7 +13,13 @@ type ProductDetails = {
   price: number;
   colorsWithSizes: Array<{
     color: string;
-    sizes: Array<{ size: string; availability: number }>;
+    colorName?: string;
+    sizes: Array<{
+      size: string;
+      availability: number;
+      id?: number | null;
+      variantId?: number | null;
+    }>;
     firstMultimediaIndex?: number;
   }>;
   isNew: boolean;
@@ -77,12 +85,7 @@ const ProductPageMobile: React.FC<Props> = ({
   const descRef = useRef<HTMLDivElement | null>(null);
   const [basketConfirmation, setBasketConfirmation] = useState<{
     show: boolean;
-    item: {
-      name: string;
-      price: number;
-      sizes?: Array<{ size: string; availability: number }>;
-    };
-    size: string;
+    cartItem: CartItem;
   } | null>(null);
 
   // Swipe detection states
@@ -602,15 +605,34 @@ const ProductPageMobile: React.FC<Props> = ({
                       onClick={() => {
                         if (isAvailable) {
                           setSelectedSizeIndex(i);
+                          const selectedColor =
+                            productDetails.colorsWithSizes[selectedColorIndex];
+                          const firstImage =
+                            selectedColor.firstMultimediaIndex !== undefined
+                              ? productDetails.multimedia[
+                                  selectedColor.firstMultimediaIndex
+                                ]?.image
+                              : productDetails.multimedia[0]?.image;
+
+                          // Add to cart storage
+                          const cartItem = addToCart({
+                            productId: productDetails.productId,
+                            productName: productDetails.name,
+                            variantId: sizeData.variantId ?? 0,
+                            price: productDetails.price,
+                            discount: productDetails.discount,
+                            finalPrice: productDetails.finalPrice,
+                            sizeName: sizeData.size,
+                            sizeId: sizeData.id ?? undefined,
+                            colorName: selectedColor.colorName || 'Color',
+                            colorCode: selectedColor.color,
+                            imageUrl: firstImage || '',
+                          });
+
                           // Show basket confirmation
                           setBasketConfirmation({
                             show: true,
-                            item: {
-                              name: productDetails.name,
-                              price: productDetails.finalPrice,
-                              sizes: getCurrentSizes(),
-                            },
-                            size: sizeData.size,
+                            cartItem,
                           });
 
                           // Auto-hide after 5 seconds
@@ -830,17 +852,17 @@ const ProductPageMobile: React.FC<Props> = ({
       )}
 
       {/* Basket Confirmation Popup */}
-      <BasketConfirmation
-        show={basketConfirmation !== null}
-        item={basketConfirmation?.item || { name: '', price: 0 }}
-        size={basketConfirmation?.size || ''}
-        itemIndex={0}
-        onClose={() => setBasketConfirmation(null)}
-        onProceedToCheckout={() => {
-          window.location.href = '/w/checkout';
-        }}
-        isMobile={true}
-      />
+      {basketConfirmation && (
+        <BasketConfirmation
+          show={true}
+          cartItem={basketConfirmation.cartItem}
+          onClose={() => setBasketConfirmation(null)}
+          onProceedToCheckout={() => {
+            window.location.href = '/w/checkout';
+          }}
+          isMobile={true}
+        />
+      )}
     </div>
   );
 };

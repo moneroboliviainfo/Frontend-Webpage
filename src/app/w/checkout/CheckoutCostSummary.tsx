@@ -23,7 +23,7 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
   };
 
   const formatPrice = (price: number) => {
-    return `${price.toFixed(2)} €`;
+    return `Bs. ${price.toFixed(2)}`;
   };
 
   const getDeliveryCostDisplay = () => {
