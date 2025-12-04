@@ -5,11 +5,13 @@ import useIsMobile from '@/hooks/useIsMobile';
 interface NewProductsNavBarProps {
   gender: string;
   productsCount?: number;
+  variant?: 'new' | 'discounts';
 }
 
 export default function NewProductsNavBar({
   gender,
   productsCount,
+  variant = 'new',
 }: NewProductsNavBarProps) {
   const isMobile = useIsMobile();
 
@@ -61,7 +63,9 @@ export default function NewProductsNavBar({
                 d="M9 5l7 7-7 7"
               />
             </svg>
-            <span className="text-gray-900 font-medium">Novedades</span>
+            <span className="text-gray-900 font-medium">
+              {variant === 'discounts' ? 'Descuentos' : 'Novedades'}
+            </span>
           </nav>
 
           {/* Main heading and products count */}
@@ -79,7 +83,7 @@ export default function NewProductsNavBar({
                       fontSize: isMobile ? '1.5rem' : '2.5rem',
                     }}
                   >
-                    Novedades
+                    {variant === 'discounts' ? 'Descuentos' : 'Novedades'}
                   </h1>
                   <svg
                     className="w-8 h-8 ml-3 text-orange-500"
@@ -100,7 +104,9 @@ export default function NewProductsNavBar({
                 className="text-gray-600 text-sm"
                 style={{ marginTop: '0.2rem' }}
               >
-                Los productos más recientes en nuestra colección
+                {variant === 'discounts'
+                  ? 'Productos en oferta y con descuento. Aprovecha las promociones.'
+                  : 'Los productos más recientes en nuestra colección'}
               </p>
             </div>
           </div>
@@ -126,11 +132,14 @@ export default function NewProductsNavBar({
               </svg>
               <div>
                 <p className="text-sm text-orange-800 font-medium">
-                  ¡Recién llegados!
+                  {variant === 'discounts'
+                    ? '¡Ofertas y descuentos!'
+                    : '¡Recién llegados!'}
                 </p>
                 <p className="text-sm text-orange-700 mt-1">
-                  Productos agregados en los últimos {15} días. Sé el primero en
-                  conseguirlos.
+                  {variant === 'discounts'
+                    ? 'Explora los productos con descuento y promociones especiales.'
+                    : `Productos agregados en los últimos ${15} días. Sé el primero en conseguirlos.`}
                 </p>
               </div>
             </div>
