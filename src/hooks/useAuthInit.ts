@@ -1,35 +1,43 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setClient } from '@/store/clientSlice';
+import { setClient, type Client } from '@/store/clientSlice';
 import { API_URL } from '@/config/env';
+import { AuthStorage } from '@/utils/authStorage';
 
 export const useAuthInit = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('authToken');
+      const token = AuthStorage.getToken();
 
-      if (token) {
-        try {
-          // Verify token and get user data
-          const response = await fetch(`${API_URL}auth/verify`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+      if (!token) return;
 
-          if (response.ok) {
-            const userData = await response.json();
-            dispatch(setClient(userData));
-          } else {
-            // Invalid token, remove it
-            localStorage.removeItem('authToken');
-          }
-        } catch (error) {
-          console.error('Error verifying token:', error);
-          localStorage.removeItem('authToken');
+      try {
+        // Call the customers/me endpoint to verify token and fetch profile
+        const response = await fetch(`${API_URL}customers/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.ok) {
+          const profile = await response.json();
+          const client: Client = {
+            clientId: String(profile.id ?? ''),
+            name: profile.name ?? '',
+            email: profile.email ?? '',
+            address: Array.isArray(profile.address)
+              ? JSON.stringify(profile.address)
+              : profile.address ?? '',
+            phone: profile.phone ?? undefined,
+          };
+          dispatch(setClient(client));
+        } else {
+          // Token invalid — clear it
+          AuthStorage.clearToken();
         }
+      } catch (err) {
+        console.error('Error verifying token/profile:', err);
+        AuthStorage.clearToken();
       }
     };
 

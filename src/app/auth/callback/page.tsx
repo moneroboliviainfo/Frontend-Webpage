@@ -2,9 +2,10 @@
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import { createClient } from '@/store/clientSlice';
+import { setClient, type Client } from '@/store/clientSlice';
 import { AuthStorage } from '@/utils/authStorage';
 import { GoogleAuthService } from '@/services/googleAuth';
+import { API_URL } from '@/config/env';
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -30,11 +31,32 @@ function AuthCallbackContent() {
           // Store the token in localStorage
           if (data.token) {
             AuthStorage.storeToken(data.token);
-          }
 
-          // Update Redux state with user data
-          if (data.user) {
-            dispatch(createClient.fulfilled(data.user, '', data.user));
+            // Fetch user profile using the token
+            try {
+              const profileRes = await fetch(`${API_URL}customers/me`, {
+                headers: { Authorization: `Bearer ${data.token}` },
+              });
+              if (profileRes.ok) {
+                const profile = await profileRes.json();
+                // Map API profile to local Client shape
+                const client: Client = {
+                  clientId: String(profile.id ?? ''),
+                  name: profile.name ?? '',
+                  email: profile.email ?? '',
+                  address: Array.isArray(profile.address)
+                    ? JSON.stringify(profile.address)
+                    : profile.address ?? '',
+                  phone: profile.phone ?? undefined,
+                };
+                // Store client details in Redux
+                dispatch(setClient(client));
+              } else {
+                console.warn('Failed to fetch profile after token exchange');
+              }
+            } catch (err) {
+              console.error('Error fetching profile:', err);
+            }
           }
 
           // Redirect to the original page
