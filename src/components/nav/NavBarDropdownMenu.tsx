@@ -31,11 +31,23 @@ export default function NavBarDropdownMenu({
         <Link
           key={item.href}
           href={item.href}
-          className="navbar-font block px-4 py-2 hover:bg-gray-100 text-xs"
-          style={{ padding: '0.5rem 0.5rem' }}
-          tabIndex={0}
+          className="navbar-font block px-4 py-2 text-xs"
+          style={{
+            padding: '0.5rem 0.5rem',
+            color: 'var(--color-secondary)',
+            transition: 'background 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(244, 239, 233, 0.1)';
+            if (onMouseEnter) onMouseEnter();
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '';
+            if (onMouseLeave) onMouseLeave();
+          }}
           onFocus={onMouseEnter}
           onBlur={onMouseLeave}
+          tabIndex={0}
         >
           {item.label}
         </Link>

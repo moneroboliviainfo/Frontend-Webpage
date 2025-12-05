@@ -1,7 +1,7 @@
 /* Theme variables for the clothing store app */
 :root {
   --color-primary: #16302b; /* Red base */
-  --color-secondary: #ff6f60; /* Light red/coral */
+  --color-secondary: #f4efe9; /* Light red/coral */
   --color-tertiary: #5f3d39; /* Light red/coral */
   --color-accent: #d32f2f; /* Darker red */
   --color-background: #fff8f7;

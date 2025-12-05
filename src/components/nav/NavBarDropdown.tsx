@@ -16,12 +16,21 @@ export default function NavBarDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const onMouseEnter = () => {
-    (dropdownRef.current as HTMLDivElement).style.background =
-      'var(--color-primary)';
+    const dropdown = dropdownRef.current as HTMLDivElement;
+    dropdown.style.background = 'var(--color-primary)';
+    const span = dropdown.querySelector('span');
+    if (span) {
+      span.style.color = 'var(--color-secondary)';
+    }
   };
 
   const onMouseLeave = () => {
-    (dropdownRef.current as HTMLDivElement).style.background = '';
+    const dropdown = dropdownRef.current as HTMLDivElement;
+    dropdown.style.background = '';
+    const span = dropdown.querySelector('span');
+    if (span) {
+      span.style.color = '';
+    }
   };
 
   return (
