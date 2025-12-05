@@ -16,7 +16,7 @@ interface Shipment {
 
 interface DeliveryOptionsProps {
   selectedCountry: string;
-  onDeliveryOptionSelect: (option: string) => void;
+  onDeliveryOptionSelect: (shipmentId: number, shipmentName: string) => void;
   isMobile?: boolean;
   shipments?: Shipment[];
 }
@@ -93,7 +93,7 @@ export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
     return (
       <Component
         key={option.id}
-        onClick={() => onDeliveryOptionSelect(option.title)}
+        onClick={() => onDeliveryOptionSelect(Number(option.id), option.title)}
         className={className}
         style={containerStyle}
       >

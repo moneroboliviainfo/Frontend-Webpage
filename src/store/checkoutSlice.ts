@@ -33,6 +33,7 @@ interface CheckoutState {
   selectedPlace: Place | null;
   selectedShipment: Shipment | null;
   addressId: number | null;
+  cartToken: string | null;
 }
 
 const initialState: CheckoutState = {
@@ -40,6 +41,7 @@ const initialState: CheckoutState = {
   selectedPlace: null,
   selectedShipment: null,
   addressId: null,
+  cartToken: null,
 };
 
 const checkoutSlice = createSlice({
@@ -58,11 +60,15 @@ const checkoutSlice = createSlice({
     setAddressId: (state, action: PayloadAction<number>) => {
       state.addressId = action.payload;
     },
+    setCartToken: (state, action: PayloadAction<string>) => {
+      state.cartToken = action.payload;
+    },
     clearCheckoutData: (state) => {
       state.formData = null;
       state.selectedPlace = null;
       state.selectedShipment = null;
       state.addressId = null;
+      state.cartToken = null;
     },
   },
 });
@@ -72,6 +78,7 @@ export const {
   setSelectedPlace,
   setSelectedShipment,
   setAddressId,
+  setCartToken,
   clearCheckoutData,
 } = checkoutSlice.actions;
 
@@ -83,5 +90,6 @@ export const selectSelectedPlace = (state: RootState) =>
 export const selectSelectedShipment = (state: RootState) =>
   state.checkout.selectedShipment;
 export const selectAddressId = (state: RootState) => state.checkout.addressId;
+export const selectCartToken = (state: RootState) => state.checkout.cartToken;
 
 export default checkoutSlice.reducer;

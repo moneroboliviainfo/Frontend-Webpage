@@ -1,7 +1,15 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import OrderReviewSection from './OrderReviewSection';
+import { useAppSelector } from '@/store/hooks';
+import {
+  selectSelectedShipment,
+  selectAddressId,
+  selectCartToken,
+} from '@/store/checkoutSlice';
+import { createOrder, generateQR } from '@/utils/orderService';
 
 interface OrderConfirmationModalProps {
   isOpen: boolean;
@@ -32,9 +40,16 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   formData,
 }) => {
   const router = useRouter();
+  const selectedShipment = useAppSelector(selectSelectedShipment);
+  const addressId = useAppSelector(selectAddressId);
+  const cartToken = useAppSelector(selectCartToken);
+
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [showQRPayment, setShowQRPayment] = useState(false);
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+  const [qrImageBase64, setQrImageBase64] = useState<string>('');
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [orderError, setOrderError] = useState<string>('');
 
   // Mock cart items - replace with actual cart data
   const cartItems = [
@@ -50,16 +65,40 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     },
   ];
 
-  const handlePayOrder = () => {
-    if (hasAcceptedTerms) {
-      // Generate a random order ID for development purposes
-      const orderId = Math.random().toString(36).substr(2, 8).toUpperCase();
-      // For development purposes - redirect to order confirmed page
-      // In production, this would show QR and wait for payment
-      router.push(`/w/checkout/order-confirmed?orderId=${orderId}`);
-      // Uncomment below for QR popup functionality:
-      // setShowQRPayment(true);
-      // setTimeLeft(15 * 60); // Reset timer to 15 minutes
+  const handlePayOrder = async () => {
+    if (!hasAcceptedTerms) return;
+    if (!selectedShipment || !addressId || !cartToken) {
+      setOrderError('Missing required order information. Please try again.');
+      return;
+    }
+
+    try {
+      setIsCreatingOrder(true);
+      setOrderError('');
+
+      // Step 1: Create the order
+      const orderResponse = await createOrder({
+        items: cartToken,
+        shipment: selectedShipment.id,
+        address: addressId,
+      });
+
+      // Step 2: Generate QR code
+      const qrResponse = await generateQR(orderResponse.id);
+
+      // Step 3: Show QR payment modal
+      setQrImageBase64(qrResponse.qr);
+      setShowQRPayment(true);
+      setTimeLeft(15 * 60); // Reset timer to 15 minutes
+    } catch (error) {
+      console.error('Error creating order or generating QR:', error);
+      setOrderError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to create order. Please try again.'
+      );
+    } finally {
+      setIsCreatingOrder(false);
     }
   };
 
@@ -389,24 +428,75 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           </div>
         </div>
 
+        {/* Error Message */}
+        {orderError && (
+          <div
+            style={{
+              padding: '1rem',
+              backgroundColor: '#fef2f2',
+              borderLeft: '4px solid #ef4444',
+              marginBottom: '1rem',
+            }}
+          >
+            <p style={{ color: '#991b1b', fontSize: '0.875rem' }}>
+              {orderError}
+            </p>
+          </div>
+        )}
+
         {/* Pay Button */}
         <div style={{ padding: '1rem' }}>
           <button
             onClick={handlePayOrder}
-            disabled={!hasAcceptedTerms}
-            className="w-full font-bold"
+            disabled={!hasAcceptedTerms || isCreatingOrder}
+            className="w-full font-bold flex items-center justify-center"
             style={{
-              backgroundColor: hasAcceptedTerms ? '#000' : '#d1d5db',
-              color: hasAcceptedTerms ? 'white' : '#9ca3af',
+              backgroundColor:
+                hasAcceptedTerms && !isCreatingOrder ? '#000' : '#d1d5db',
+              color: hasAcceptedTerms && !isCreatingOrder ? 'white' : '#9ca3af',
               padding: '1rem',
               borderRadius: '0.375rem',
               fontSize: '1rem',
-              cursor: hasAcceptedTerms ? 'pointer' : 'not-allowed',
+              cursor:
+                hasAcceptedTerms && !isCreatingOrder
+                  ? 'pointer'
+                  : 'not-allowed',
               border: 'none',
               transition: 'all 0.2s ease',
             }}
           >
-            Generar QR y pagar orden
+            {isCreatingOrder ? (
+              <>
+                <svg
+                  className="animate-spin"
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    marginRight: '0.5rem',
+                  }}
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Creando orden...
+              </>
+            ) : (
+              'Generar QR y pagar orden'
+            )}
           </button>
         </div>
       </div>
@@ -438,47 +528,63 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
               {formatTime(timeLeft)}
             </div>
 
-            {/* QR Code Placeholder */}
+            {/* QR Code */}
             <div
-              className="border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50"
+              className="flex items-center justify-center bg-white"
               style={{
-                width: '200px',
-                height: '200px',
+                width: '250px',
+                height: '250px',
                 marginBottom: '1.5rem',
               }}
             >
-              <div className="text-center">
-                <svg
-                  width="80"
-                  height="80"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  style={{ color: '#9ca3af', marginBottom: '0.5rem' }}
-                >
-                  <rect x="3" y="3" width="5" height="5" />
-                  <rect x="3" y="16" width="5" height="5" />
-                  <rect x="16" y="3" width="5" height="5" />
-                  <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
-                  <path d="M21 21v.01" />
-                  <path d="M12 7v3a2 2 0 0 1-2 2H7" />
-                  <path d="M3 12h.01" />
-                  <path d="M12 3h.01" />
-                  <path d="M12 16v.01" />
-                  <path d="M16 12h1" />
-                  <path d="M21 12v.01" />
-                  <path d="M12 21v-1" />
-                </svg>
-                <div
+              {qrImageBase64 ? (
+                <Image
+                  src={`data:image/png;base64,${qrImageBase64}`}
+                  alt="QR Code for Payment"
+                  width={250}
+                  height={250}
                   style={{
-                    fontSize: '0.875rem',
-                    color: '#6b7280',
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
                   }}
-                >
-                  Código QR
+                />
+              ) : (
+                <div className="text-center">
+                  <svg
+                    className="animate-spin"
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style={{ color: '#3b82f6', margin: '0 auto' }}
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <div
+                    style={{
+                      fontSize: '0.875rem',
+                      color: '#6b7280',
+                      marginTop: '1rem',
+                    }}
+                  >
+                    Cargando QR...
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Status Messages */}

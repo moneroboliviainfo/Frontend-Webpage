@@ -16,6 +16,8 @@ import {
   setCheckoutFormData,
   setSelectedPlace,
   setAddressId,
+  setCartToken,
+  setSelectedShipment,
   selectSelectedPlace,
   type Place,
 } from '@/store/checkoutSlice';
@@ -244,6 +246,8 @@ const CheckoutPage: React.FC = () => {
         } else {
           // Success: Update local cart with backend-validated prices
           updateCartWithRepriceData(repriceResponse);
+          // Store cart token in Redux
+          dispatch(setCartToken(cartResponse.token));
           setIsValidatingCart(false);
         }
       } catch (error) {
@@ -257,7 +261,7 @@ const CheckoutPage: React.FC = () => {
     };
 
     validateCart();
-  }, [router]);
+  }, [router, dispatch]);
 
   // Handle proceeding without out-of-stock items
   const handleProceedWithoutOutOfStock = async () => {
@@ -502,8 +506,16 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  const handleDeliveryOptionSelect = (deliveryOption: string) => {
-    setSelectedDeliveryMethod(deliveryOption);
+  const handleDeliveryOptionSelect = (
+    shipmentId: number,
+    shipmentName: string
+  ) => {
+    // Find the full shipment object
+    const shipment = selectedPlace?.shipments.find((s) => s.id === shipmentId);
+    if (shipment) {
+      dispatch(setSelectedShipment(shipment));
+    }
+    setSelectedDeliveryMethod(shipmentName);
     setShowDeliveryModal(false);
     setCurrentStep(3); // Move to payment step
     setShowOrderConfirmationModal(true);
