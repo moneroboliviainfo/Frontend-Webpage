@@ -1,11 +1,23 @@
 'use client';
 import React, { useState } from 'react';
 
+interface RepriceData {
+  items: Array<{
+    variantId: number;
+    quantity: number;
+    unit_price: number;
+    discountValue: number;
+    totalPrice: string;
+  }>;
+  total: string;
+}
+
 interface CheckoutCostSummaryProps {
   subtotal: number;
   selectedCountry: string;
   deliveryCost?: number;
   onExpandToggle?: (isExpanded: boolean) => void;
+  repriceData?: RepriceData | null;
 }
 
 const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
@@ -13,6 +25,7 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
   selectedCountry,
   deliveryCost,
   onExpandToggle,
+  repriceData,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -34,7 +47,23 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
     }
   };
 
-  const total = subtotal + (deliveryCost || 0);
+  // Calculate totals from reprice data
+  const itemsSubtotal = repriceData
+    ? repriceData.items.reduce(
+        (sum, item) => sum + item.unit_price * item.quantity,
+        0
+      )
+    : subtotal;
+
+  const totalDiscount = repriceData
+    ? repriceData.items.reduce(
+        (sum, item) => sum + item.discountValue * item.quantity,
+        0
+      )
+    : 0;
+
+  const subtotalAfterDiscount = itemsSubtotal - totalDiscount;
+  const total = subtotalAfterDiscount + (deliveryCost || 0);
 
   return (
     <div
@@ -58,8 +87,23 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
             }}
           >
             <span style={{ fontWeight: 'bold' }}>Subtotal</span>
-            <span>{formatPrice(subtotal)}</span>
+            <span>{formatPrice(itemsSubtotal)}</span>
           </div>
+
+          {/* Discounts - Only show if there are discounts */}
+          {totalDiscount > 0 && (
+            <div
+              className="flex justify-between items-center"
+              style={{
+                marginBottom: '0.75rem',
+                fontSize: '1rem',
+                color: '#10b981',
+              }}
+            >
+              <span style={{ fontWeight: 'bold' }}>Descuentos</span>
+              <span>-{formatPrice(totalDiscount)}</span>
+            </div>
+          )}
 
           {/* Delivery Cost */}
           <div
@@ -71,7 +115,11 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
             }}
           >
             <span style={{ fontWeight: 'bold' }}>Costo de envío</span>
-            <span>{getDeliveryCostDisplay()}</span>
+            <span>
+              {deliveryCost
+                ? formatPrice(deliveryCost)
+                : getDeliveryCostDisplay()}
+            </span>
           </div>
 
           {/* Divider */}

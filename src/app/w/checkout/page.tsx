@@ -19,6 +19,7 @@ import {
   setCartToken,
   setSelectedShipment,
   selectSelectedPlace,
+  selectSelectedShipment,
   type Place,
 } from '@/store/checkoutSlice';
 import { createAddress } from '@/utils/addressService';
@@ -69,6 +70,7 @@ const CheckoutPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const client = useAppSelector(selectClient);
   const selectedPlace = useAppSelector(selectSelectedPlace);
+  const selectedShipment = useAppSelector(selectSelectedShipment);
   const [selectedCountry, setSelectedCountry] = useState('Bolivia');
   const [showCountryCodeModal, setShowCountryCodeModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
@@ -104,6 +106,18 @@ const CheckoutPage: React.FC = () => {
   >('new');
   const [isFormReadOnly, setIsFormReadOnly] = useState(false);
   const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
+
+  // Cart reprice data state
+  const [repriceData, setRepriceData] = useState<{
+    items: Array<{
+      variantId: number;
+      quantity: number;
+      unit_price: number;
+      discountValue: number;
+      totalPrice: string;
+    }>;
+    total: string;
+  } | null>(null);
 
   // Step labels - shared between mobile and desktop
   const stepLabels = {
@@ -336,6 +350,8 @@ const CheckoutPage: React.FC = () => {
           updateCartWithRepriceData(repriceResponse);
           // Store cart token in Redux
           dispatch(setCartToken(cartResponse.token));
+          // Store reprice data for checkout summary
+          setRepriceData(repriceResponse);
           setIsValidatingCart(false);
         }
       } catch (error) {
@@ -393,6 +409,10 @@ const CheckoutPage: React.FC = () => {
       } else {
         // Success: Update cart and continue
         updateCartWithRepriceData(repriceResponse);
+        // Store cart token in Redux
+        dispatch(setCartToken(cartResponse.token));
+        // Store reprice data for checkout summary
+        setRepriceData(repriceResponse);
         setIsValidatingCart(false);
       }
     } catch (error) {
@@ -1505,6 +1525,10 @@ const CheckoutPage: React.FC = () => {
               <DesktopCartSummary
                 selectedCountry={selectedCountry}
                 selectedDeliveryMethod={selectedDeliveryMethod}
+                repriceData={repriceData}
+                deliveryCost={
+                  selectedShipment ? parseFloat(selectedShipment.price) : 0
+                }
               />
             </div>
           </div>
@@ -2370,9 +2394,12 @@ const CheckoutPage: React.FC = () => {
 
               {/* Checkout Cost Summary */}
               <CheckoutCostSummary
-                subtotal={59.98}
+                subtotal={repriceData ? parseFloat(repriceData.total) : 0}
                 selectedCountry={selectedCountry}
-                deliveryCost={0}
+                deliveryCost={
+                  selectedShipment ? parseFloat(selectedShipment.price) : 0
+                }
+                repriceData={repriceData}
               />
             </div>
           )}

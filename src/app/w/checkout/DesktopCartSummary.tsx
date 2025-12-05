@@ -1,52 +1,54 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { getCart } from '@/utils/cartStorage';
+import type { CartItem } from '@/types/cart';
+
+interface RepriceData {
+  items: Array<{
+    variantId: number;
+    quantity: number;
+    unit_price: number;
+    discountValue: number;
+    totalPrice: string;
+  }>;
+  total: string;
+}
 
 interface DesktopCartSummaryProps {
   selectedCountry: string;
   selectedDeliveryMethod?: string;
+  repriceData?: RepriceData | null;
+  deliveryCost?: number;
 }
 
 const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
-  selectedCountry,
   selectedDeliveryMethod,
+  repriceData,
+  deliveryCost = 0,
 }) => {
-  // Mock cart items - in real app would come from Redux store
-  const cartItems = [
-    {
-      id: 1,
-      name: 'Cropped denim jacket',
-      size: 'XS',
-      color: 'Light blue',
-      price: 29.99,
-      image: '/clothes/jacket-1.jpg',
-    },
-    {
-      id: 2,
-      name: 'Low-rise boot-cut trousers',
-      size: '36 Regular',
-      color: 'Black',
-      price: 29.99,
-      image: '/clothes/pants-1.jpg',
-    },
-    {
-      id: 3,
-      name: 'Kitten heel slingback shoes',
-      size: '35',
-      color: 'BLACK',
-      price: 29.99,
-      image: '/clothes/shoes-1.jpg',
-    },
-  ];
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
-  const deliveryCost =
-    selectedDeliveryMethod === 'Envío a terminal'
-      ? 30
-      : selectedCountry === 'Bolivia'
-      ? 0
-      : 30;
-  const total = subtotal + (selectedDeliveryMethod ? deliveryCost : 0);
+  useEffect(() => {
+    const cart = getCart();
+    setCartItems(cart.items);
+  }, []);
+
+  // Calculate totals
+  const itemsSubtotal = repriceData
+    ? repriceData.items.reduce(
+        (sum, item) => sum + item.unit_price * item.quantity,
+        0
+      )
+    : cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const totalDiscount = repriceData
+    ? repriceData.items.reduce(
+        (sum, item) => sum + item.discountValue * item.quantity,
+        0
+      )
+    : 0;
 
   return (
     <div
@@ -77,69 +79,91 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
 
       {/* Cart Items */}
       <div style={{ marginBottom: '2rem' }}>
-        {cartItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex"
-            style={{
-              marginBottom: '1.5rem',
-              gap: '1rem',
-            }}
-          >
-            {/* Item Image */}
+        {cartItems.map((item) => {
+          return (
             <div
-              className="bg-gray-200 rounded flex items-center justify-center flex-shrink-0"
+              key={item.variantId}
+              className="flex"
               style={{
-                width: '60px',
-                height: '80px',
+                marginBottom: '1.5rem',
+                gap: '1rem',
               }}
             >
+              {/* Item Image */}
               <div
+                className="rounded flex-shrink-0 relative overflow-hidden"
                 style={{
-                  fontSize: '0.75rem',
-                  color: '#6b7280',
-                  textAlign: 'center',
+                  width: '60px',
+                  height: '80px',
+                  backgroundColor: '#f3f4f6',
                 }}
               >
-                IMG
+                {item.imageUrl ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.productName}
+                    fill
+                    sizes="60px"
+                    style={{ objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div
+                    className="flex items-center justify-center h-full"
+                    style={{
+                      fontSize: '0.75rem',
+                      color: '#6b7280',
+                    }}
+                  >
+                    IMG
+                  </div>
+                )}
               </div>
-            </div>
 
-            {/* Item Details */}
-            <div className="flex-1">
-              <Link
-                href="/w/pantalón-slim-102"
-                className="font-medium hover:underline"
-                style={{
-                  fontSize: '0.875rem',
-                  color: '#3b82f6',
-                  marginBottom: '0.25rem',
-                  display: 'block',
-                }}
-              >
-                {item.name}
-              </Link>
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: '#6b7280',
-                  marginBottom: '0.25rem',
-                }}
-              >
-                {item.size} {item.color}
-              </div>
-              <div
-                className="font-semibold"
-                style={{
-                  fontSize: '0.875rem',
-                  color: '#111827',
-                }}
-              >
-                Bs. {item.price.toFixed(2)}
+              {/* Item Details */}
+              <div className="flex-1">
+                <Link
+                  href="/w/pantalón-slim-102"
+                  className="font-medium hover:underline"
+                  style={{
+                    fontSize: '0.875rem',
+                    color: '#3b82f6',
+                    marginBottom: '0.25rem',
+                    display: 'block',
+                  }}
+                >
+                  {item.productName}
+                </Link>
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    marginBottom: '0.25rem',
+                  }}
+                >
+                  {item.sizeName} - {item.colorName}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    marginBottom: '0.25rem',
+                  }}
+                >
+                  Cantidad: {item.quantity}
+                </div>
+                <div
+                  className="font-semibold"
+                  style={{
+                    fontSize: '0.875rem',
+                    color: '#111827',
+                  }}
+                >
+                  Bs. {(item.finalPrice * item.quantity).toFixed(2)}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Summary */}
@@ -159,8 +183,26 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
           }}
         >
           <span style={{ color: '#6b7280' }}>Subtotal</span>
-          <span style={{ color: '#111827' }}>Bs. {subtotal.toFixed(2)}</span>
+          <span style={{ color: '#111827' }}>
+            Bs. {itemsSubtotal.toFixed(2)}
+          </span>
         </div>
+
+        {/* Discounts - Only show if there are discounts */}
+        {totalDiscount > 0 && (
+          <div
+            className="flex justify-between"
+            style={{
+              marginBottom: '0.75rem',
+              fontSize: '0.875rem',
+            }}
+          >
+            <span style={{ color: '#10b981' }}>Descuentos</span>
+            <span style={{ color: '#10b981' }}>
+              -Bs. {totalDiscount.toFixed(2)}
+            </span>
+          </div>
+        )}
 
         {/* Delivery Costs */}
         <div
@@ -190,7 +232,9 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
           }}
         >
           <span style={{ color: '#111827' }}>Total</span>
-          <span style={{ color: '#111827' }}>Bs. {total.toFixed(2)}</span>
+          <span style={{ color: '#111827' }}>
+            Bs. {(itemsSubtotal - totalDiscount + deliveryCost).toFixed(2)}
+          </span>
         </div>
       </div>
     </div>
