@@ -455,7 +455,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
             </p>
             <p>
               <strong style={{ color: '#111' }}>Horario:</strong> Lunes a
-              Sábado, 9:00 AM - 7:00 PM
+              Sábado, 9:00 - 13:00 y 15:30 - 21:00
             </p>
           </div>
         </div>
