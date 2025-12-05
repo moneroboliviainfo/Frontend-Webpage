@@ -27,6 +27,7 @@ import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 import ClothesSlider from '@/components/ClothesSlider';
 import GenderCrossSellSection from '@/components/GenderCrossSellSection';
+import SubscriptionSection from '@/components/SubscriptionSection';
 import useInterestRecommendations from '@/hooks/useInterestRecommendations';
 import useIsMobile from '@/hooks/useIsMobile';
 import { FEATURE_FLAGS } from '@/config/features';
@@ -234,93 +235,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           isMobile={isMobile}
         />
       )}
-      <div
-        className="w-full"
-        style={{ backgroundColor: 'white', paddingTop: '0.17rem' }}
-      >
-        <div
-          className="w-full flex items-center justify-center"
-          style={{ minHeight: isMobile ? '40vh' : '30vh' }}
-        >
-          <div
-            className="flex flex-col items-center text-center"
-            style={{
-              gap: '1rem',
-              width: '100%',
-              maxWidth: 860,
-              padding: '0 1rem',
-            }}
-          >
-            {/* Title: same size as SectionHeader */}
-            <h2
-              style={{
-                fontSize: isMobile ? '2rem' : '3rem',
-                fontWeight: 800,
-                margin: 0,
-                color: '#111',
-              }}
-            >
-              SUSCRÍBETE PARA RECIBIR OFERTAS
-            </h2>
-
-            {/* Subtitle: 4x smaller than title */}
-            <p
-              style={{
-                fontSize: isMobile ? '0.85rem' : '1.1rem',
-                margin: 0,
-                color: '#374151',
-                maxWidth: 720,
-                lineHeight: 1.3,
-              }}
-            >
-              Sé la primera en recibir las nuevas colecciones, promociones y
-              mucho más
-            </p>
-
-            {/* Input + Button row */}
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="flex items-center"
-              style={{
-                width: '100%',
-                justifyContent: 'center',
-                marginTop: '0.75rem',
-              }}
-            >
-              <input
-                aria-label="Ingresa tu correo"
-                placeholder="Ingresa tu correo"
-                type="email"
-                className="bg-white"
-                style={{
-                  border: '1px solid rgba(0,0,0,0.12)',
-                  borderRadius: 8,
-                  padding: isMobile ? '0.5rem 0.75rem' : '0.6rem 1rem',
-                  width: isMobile ? '65%' : 420,
-                  maxWidth: '100%',
-                  outline: 'none',
-                }}
-              />
-
-              <button
-                type="submit"
-                style={{
-                  marginLeft: 12,
-                  background: '#000',
-                  color: '#fff',
-                  borderRadius: 9999,
-                  padding: isMobile ? '0.5rem 0.9rem' : '0.6rem 1.25rem',
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                Súscribete
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
+      <SubscriptionSection isMobile={isMobile} />
       <div
         className="w-full"
         style={{
