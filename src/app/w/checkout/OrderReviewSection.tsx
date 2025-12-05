@@ -45,6 +45,8 @@ interface OrderReviewSectionProps {
   showTerms?: boolean;
   hasAcceptedTerms?: boolean;
   onTermsChange?: (accepted: boolean) => void;
+  isCreatingOrder?: boolean;
+  orderError?: string;
 }
 
 const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
@@ -62,6 +64,8 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
   showTerms = false,
   hasAcceptedTerms = false,
   onTermsChange,
+  isCreatingOrder = false,
+  orderError = '',
 }) => {
   // Use Redux state for cart items and reprice data
   const cartItems = useAppSelector(selectCheckoutCartItems);
@@ -527,26 +531,80 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
         </div>
       )}
 
+      {/* Error Message */}
+      {orderError && (
+        <div
+          style={{
+            padding: '1rem',
+            backgroundColor: '#fef2f2',
+            borderLeft: '4px solid #ef4444',
+            marginBottom: '1rem',
+            borderRadius: '0.375rem',
+          }}
+        >
+          <p style={{ color: '#991b1b', fontSize: '0.875rem' }}>{orderError}</p>
+        </div>
+      )}
+
       {/* Confirm Order Button */}
       {showConfirmButton && onConfirmOrder && (
         <button
           onClick={onConfirmOrder}
-          disabled={showTerms && !hasAcceptedTerms}
-          className="w-full font-bold"
+          disabled={(showTerms && !hasAcceptedTerms) || isCreatingOrder}
+          className="w-full font-bold flex items-center justify-center"
           style={{
             backgroundColor:
-              showTerms && !hasAcceptedTerms ? '#d1d5db' : '#000',
-            color: showTerms && !hasAcceptedTerms ? '#9ca3af' : 'white',
+              (showTerms && !hasAcceptedTerms) || isCreatingOrder
+                ? '#d1d5db'
+                : '#000',
+            color:
+              (showTerms && !hasAcceptedTerms) || isCreatingOrder
+                ? '#9ca3af'
+                : 'white',
             padding: '1rem',
             borderRadius: '0.375rem',
             fontSize: '1rem',
-            cursor: showTerms && !hasAcceptedTerms ? 'not-allowed' : 'pointer',
+            cursor:
+              (showTerms && !hasAcceptedTerms) || isCreatingOrder
+                ? 'not-allowed'
+                : 'pointer',
             border: 'none',
             marginBottom: '1rem',
             transition: 'all 0.2s ease',
           }}
         >
-          Confirmar pedido
+          {isCreatingOrder ? (
+            <>
+              <svg
+                className="animate-spin"
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  marginRight: '0.5rem',
+                }}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Creando orden...
+            </>
+          ) : (
+            'Confirmar pedido'
+          )}
         </button>
       )}
 

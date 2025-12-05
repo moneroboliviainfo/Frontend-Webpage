@@ -22,6 +22,8 @@ import {
   setRepriceData as setRepriceDataRedux,
   selectSelectedPlace,
   selectSelectedShipment,
+  selectAddressId,
+  selectCartToken,
   type Place,
 } from '@/store/checkoutSlice';
 import { createAddress } from '@/utils/addressService';
@@ -34,6 +36,7 @@ import {
   removeOutOfStockVariants,
   getAvailableCartItems,
 } from '@/utils/checkoutCart';
+import { createOrder, generateQR } from '@/utils/orderService';
 import type { CartItem } from '@/types/cart';
 import { API_URL } from '@/config/env';
 
@@ -73,6 +76,8 @@ const CheckoutPage: React.FC = () => {
   const client = useAppSelector(selectClient);
   const selectedPlace = useAppSelector(selectSelectedPlace);
   const selectedShipment = useAppSelector(selectSelectedShipment);
+  const addressId = useAppSelector(selectAddressId);
+  const cartToken = useAppSelector(selectCartToken);
   const [selectedCountry, setSelectedCountry] = useState('Bolivia');
   const [showCountryCodeModal, setShowCountryCodeModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
@@ -120,6 +125,13 @@ const CheckoutPage: React.FC = () => {
     }>;
     total: string;
   } | null>(null);
+
+  // Desktop QR modal state
+  const [showDesktopQRModal, setShowDesktopQRModal] = useState(false);
+  const [qrImageBase64, setQrImageBase64] = useState<string>('');
+  const [qrTimeLeft, setQrTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [orderError, setOrderError] = useState<string>('');
 
   // Step labels - shared between mobile and desktop
   const stepLabels = {
@@ -579,7 +591,10 @@ const CheckoutPage: React.FC = () => {
           // Using existing address - address ID already stored in Redux
           // No need to call address API
           setCurrentStep(2);
-          setShowDeliveryModal(true);
+          // Only show modal on mobile (desktop uses currentStep to render content)
+          if (window.innerWidth < 1024) {
+            setShowDeliveryModal(true);
+          }
         } else {
           // Creating new address - call API
           // Prepare address data for API
@@ -616,9 +631,12 @@ const CheckoutPage: React.FC = () => {
           // Store address ID in Redux
           dispatch(setAddressId(addressResponse.id));
 
-          // Form is valid, show delivery modal and update step
+          // Form is valid, update step (desktop will show step 2, mobile needs modal)
           setCurrentStep(2);
-          setShowDeliveryModal(true);
+          // Only show modal on mobile (desktop uses currentStep to render content)
+          if (window.innerWidth < 1024) {
+            setShowDeliveryModal(true);
+          }
         }
       } catch (error) {
         console.error('Error creating address:', error);
@@ -652,13 +670,84 @@ const CheckoutPage: React.FC = () => {
     setSelectedDeliveryMethod(shipmentName);
     setShowDeliveryModal(false);
     setCurrentStep(3); // Move to payment step
-    setShowOrderConfirmationModal(true);
+    // Only show modal on mobile (desktop uses currentStep to render content)
+    if (window.innerWidth < 1024) {
+      setShowOrderConfirmationModal(true);
+    }
   };
 
   const handleBackToDelivery = () => {
     setShowOrderConfirmationModal(false);
     setCurrentStep(2); // Back to delivery step
     setShowDeliveryModal(true);
+  };
+
+  const handleConfirmOrder = async () => {
+    if (!hasAcceptedTerms) return;
+    if (!selectedShipment || !addressId || !cartToken) {
+      setOrderError('Missing required order information. Please try again.');
+      return;
+    }
+
+    try {
+      setIsCreatingOrder(true);
+      setOrderError('');
+
+      // Step 1: Create the order
+      const orderResponse = await createOrder({
+        items: cartToken,
+        shipment: selectedShipment.id,
+        address: addressId,
+      });
+
+      // Step 2: Generate QR code
+      const qrResponse = await generateQR(orderResponse.id);
+
+      // Step 3: Show QR payment modal
+      setQrImageBase64(qrResponse.qr);
+      setShowDesktopQRModal(true);
+      setQrTimeLeft(15 * 60); // Reset timer to 15 minutes
+    } catch (error) {
+      console.error('Error creating order or generating QR:', error);
+      setOrderError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to create order. Please try again.'
+      );
+    } finally {
+      setIsCreatingOrder(false);
+    }
+  };
+
+  // QR countdown timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (showDesktopQRModal && qrTimeLeft > 0) {
+      interval = setInterval(() => {
+        setQrTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            setShowDesktopQRModal(false);
+            // TODO: Handle timeout - cancel order
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [showDesktopQRModal, qrTimeLeft]);
+
+  // Format time display (MM:SS)
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds
+      .toString()
+      .padStart(2, '0')}`;
   };
 
   return (
@@ -1521,9 +1610,7 @@ const CheckoutPage: React.FC = () => {
                               ? parseFloat(selectedShipment.price)
                               : 0
                           }
-                          onConfirmOrder={() =>
-                            setShowOrderConfirmationModal(true)
-                          }
+                          onConfirmOrder={handleConfirmOrder}
                           onBackToDelivery={handleBackToDelivery}
                           showBackButton={true}
                           showConfirmButton={true}
@@ -1532,6 +1619,8 @@ const CheckoutPage: React.FC = () => {
                           showTerms={true}
                           hasAcceptedTerms={hasAcceptedTerms}
                           onTermsChange={setHasAcceptedTerms}
+                          isCreatingOrder={isCreatingOrder}
+                          orderError={orderError}
                         />
                       </div>
                     </>
@@ -2433,6 +2522,148 @@ const CheckoutPage: React.FC = () => {
             selectedDeliveryMethod={selectedDeliveryMethod}
             formData={formData}
           />
+
+          {/* Desktop QR Payment Modal */}
+          {showDesktopQRModal && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+              style={{ zIndex: 60 }}
+            >
+              <div
+                className="bg-white rounded-lg flex flex-col items-center"
+                style={{
+                  padding: '2rem',
+                  maxWidth: '400px',
+                  width: '90%',
+                  maxHeight: '80vh',
+                }}
+              >
+                {/* Countdown Timer */}
+                <div
+                  className="font-bold text-center"
+                  style={{
+                    fontSize: '2rem',
+                    color: qrTimeLeft < 300 ? '#ef4444' : '#374151',
+                    marginBottom: '2rem',
+                  }}
+                >
+                  {formatTime(qrTimeLeft)}
+                </div>
+
+                {/* QR Code */}
+                <div
+                  className="flex items-center justify-center bg-white"
+                  style={{
+                    width: '250px',
+                    height: '250px',
+                    marginBottom: '1.5rem',
+                  }}
+                >
+                  {qrImageBase64 ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`data:image/png;base64,${qrImageBase64}`}
+                      alt="QR Code for Payment"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                      }}
+                    />
+                  ) : (
+                    <div className="text-center">
+                      <svg
+                        className="animate-spin"
+                        width="40"
+                        height="40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{ color: '#3b82f6', margin: '0 auto' }}
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      <div
+                        style={{
+                          fontSize: '0.875rem',
+                          color: '#6b7280',
+                          marginTop: '1rem',
+                        }}
+                      >
+                        Cargando QR...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Status Messages */}
+                <div className="text-center">
+                  <div
+                    className="font-medium"
+                    style={{
+                      fontSize: '1.125rem',
+                      color: '#374151',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    Esperando el pago...
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.875rem',
+                      color: '#6b7280',
+                      marginBottom: '1.5rem',
+                    }}
+                  >
+                    Serás redireccionado cuando se reciba el pago
+                  </div>
+                </div>
+
+                {/* Error Message */}
+                {orderError && (
+                  <div
+                    style={{
+                      padding: '1rem',
+                      backgroundColor: '#fef2f2',
+                      borderLeft: '4px solid #ef4444',
+                      marginBottom: '1rem',
+                      width: '100%',
+                      borderRadius: '0.375rem',
+                    }}
+                  >
+                    <p style={{ color: '#991b1b', fontSize: '0.875rem' }}>
+                      {orderError}
+                    </p>
+                  </div>
+                )}
+
+                {/* Cancel Button */}
+                <button
+                  onClick={() => setShowDesktopQRModal(false)}
+                  className="border border-gray-300 rounded-lg hover:bg-gray-50"
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    fontSize: '0.875rem',
+                    color: '#374151',
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </>
