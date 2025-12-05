@@ -46,6 +46,9 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   // Responsive: use vertical slides for mobile, horizontal for desktop
   const isMobile = useIsMobile();
 
+  // Map interaction state
+  const [isMapInteracted, setIsMapInteracted] = React.useState(false);
+
   // Get outfits from Redux store
   const allOutfits = useSelector((state: RootState) => state.clothing.outfits);
 
@@ -342,6 +345,9 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
                 boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
                 border: '2px solid #e5e7eb',
               }}
+              onMouseDown={() => setIsMapInteracted(true)}
+              onTouchStart={() => setIsMapInteracted(true)}
+              onWheel={() => setIsMapInteracted(true)}
             >
               {/* Google Maps Iframe */}
               <iframe
@@ -358,77 +364,79 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
               />
 
               {/* Map Pin with Logo Overlay */}
-              <div
-                className="absolute"
-                style={{
-                  top: 'calc(50% + 25px)',
-                  left: 'calc(50% + 15px)',
-                  transform: 'translate(-50%, -100%)',
-                  pointerEvents: 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
-              >
-                {/* Pin Container */}
+              {!isMapInteracted && (
                 <div
+                  className="absolute"
                   style={{
-                    position: 'relative',
+                    top: 'calc(50% + 25px)',
+                    left: 'calc(50% + 15px)',
+                    transform: 'translate(-50%, -100%)',
+                    pointerEvents: 'none',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                   }}
                 >
-                  {/* Circular Logo Container (Pin Head) */}
+                  {/* Pin Container */}
                   <div
                     style={{
-                      backgroundColor: 'white',
-                      borderRadius: '50%',
-                      padding: isMobile ? '0.15rem' : '0.4rem',
-                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: isMobile ? '70px' : '90px',
-                      height: isMobile ? '70px' : '90px',
-                      border: '3px solid #e5e7eb',
                       position: 'relative',
-                      zIndex: 2,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
                     }}
                   >
-                    <Image
-                      src="/logos/Logo-Monero.png"
-                      alt="Monero Logo"
-                      width={isMobile ? 65 : 100}
-                      height={isMobile ? 65 : 100}
+                    {/* Circular Logo Container (Pin Head) */}
+                    <div
                       style={{
-                        objectFit: 'contain',
+                        backgroundColor: 'white',
+                        borderRadius: '50%',
+                        padding: isMobile ? '0.15rem' : '0.4rem',
+                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: isMobile ? '70px' : '90px',
+                        height: isMobile ? '70px' : '90px',
+                        border: '3px solid #e5e7eb',
+                        position: 'relative',
+                        zIndex: 2,
+                      }}
+                    >
+                      <Image
+                        src="/logos/Logo-Monero.png"
+                        alt="Monero Logo"
+                        width={isMobile ? 65 : 100}
+                        height={isMobile ? 65 : 100}
+                        style={{
+                          objectFit: 'contain',
+                        }}
+                      />
+                    </div>
+
+                    {/* Pin Point */}
+                    <div
+                      style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: isMobile
+                          ? '12px solid transparent'
+                          : '18px solid transparent',
+                        borderRight: isMobile
+                          ? '12px solid transparent'
+                          : '18px solid transparent',
+                        borderTop: isMobile
+                          ? '18px solid white'
+                          : '24px solid white',
+                        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25))',
+                        position: 'relative',
+                        top: '-3px',
+                        zIndex: 1,
                       }}
                     />
                   </div>
-
-                  {/* Pin Point */}
-                  <div
-                    style={{
-                      width: 0,
-                      height: 0,
-                      borderLeft: isMobile
-                        ? '12px solid transparent'
-                        : '18px solid transparent',
-                      borderRight: isMobile
-                        ? '12px solid transparent'
-                        : '18px solid transparent',
-                      borderTop: isMobile
-                        ? '18px solid white'
-                        : '24px solid white',
-                      filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25))',
-                      position: 'relative',
-                      top: '-3px',
-                      zIndex: 1,
-                    }}
-                  />
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -443,7 +451,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           >
             <p style={{ marginBottom: '0.5rem' }}>
               <strong style={{ color: '#111' }}>Dirección:</strong> Destacamento
-              317 N° 1110
+              317 N° 1110 (Frente al mundito)
             </p>
             <p>
               <strong style={{ color: '#111' }}>Horario:</strong> Lunes a
