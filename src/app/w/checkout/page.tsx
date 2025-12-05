@@ -679,7 +679,10 @@ const CheckoutPage: React.FC = () => {
   const handleBackToDelivery = () => {
     setShowOrderConfirmationModal(false);
     setCurrentStep(2); // Back to delivery step
-    setShowDeliveryModal(true);
+    // Only show modal on mobile (desktop uses currentStep to render content)
+    if (window.innerWidth < 1024) {
+      setShowDeliveryModal(true);
+    }
   };
 
   const handleConfirmOrder = async () => {
