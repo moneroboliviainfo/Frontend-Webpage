@@ -7,6 +7,7 @@ import NavBarImageButton from './NavBarImageButton';
 import SocialMediaLinks from '../SocialMediaLinks';
 import { selectClient, logout } from '@/store/clientSlice';
 import { FEATURE_FLAGS } from '@/config/features';
+import { GenderStorage } from '@/utils/genderStorage';
 
 const iconSize = 26;
 
@@ -16,6 +17,7 @@ const HamburgerNavBarDialog: React.FC<{
 }> = ({ open, setOpen }) => {
   const client = useSelector(selectClient);
   const dispatch = useDispatch();
+  const currentGender = GenderStorage.getGender();
 
   return (
     <NavBarDialog open={open} setOpen={setOpen}>
@@ -28,25 +30,29 @@ const HamburgerNavBarDialog: React.FC<{
       >
         <NavBarImageButton
           content="HOMBRES"
-          backgroundImage="https://images.asos-media.com/navigation/mw_com_newin_1M_148883109_p3w5ie?&$n_320w$"
+          backgroundColor="var(--color-secondary)"
+          fontColor="var(--color-primary)"
           targetUrl="/men"
         />
         {FEATURE_FLAGS.WOMEN_ENABLED && (
           <NavBarImageButton
             content="MUJERES"
-            backgroundImage="https://images.asos-media.com/navigation/mw_com_newin_1M_148883109_p3w5ie?&$n_320w$"
+            backgroundColor="var(--color-secondary)"
+            fontColor="var(--color-primary)"
             targetUrl="/women"
           />
         )}
         <NavBarImageButton
-          content="CONTACTO"
-          backgroundImage="https://images.asos-media.com/navigation/mw_com_newin_1M_148883109_p3w5ie?&$n_320w$"
-          targetUrl="/men"
+          content="SOBRE NOSOTROS"
+          backgroundColor="var(--color-secondary)"
+          fontColor="var(--color-primary)"
+          targetUrl={`/${currentGender}/about_us`}
         />
         <NavBarImageButton
           content="ACERCA DE TU COMPRA"
-          backgroundImage="https://images.asos-media.com/navigation/mw_com_newin_1M_148883109_p3w5ie?&$n_320w$"
-          targetUrl="/women"
+          backgroundColor="var(--color-secondary)"
+          fontColor="var(--color-primary)"
+          targetUrl={`/${currentGender}/information#purchase`}
         />
       </div>
       {/* Spacer */}

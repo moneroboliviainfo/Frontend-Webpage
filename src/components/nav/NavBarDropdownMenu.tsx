@@ -1,6 +1,7 @@
 // This file has been moved to the nav folder and is no longer available here.
 import React from 'react';
 import Link from 'next/link';
+import { GenderStorage } from '@/utils/genderStorage';
 
 interface NavBarDropdownMenuProps {
   show: boolean;
@@ -8,17 +9,28 @@ interface NavBarDropdownMenuProps {
   onMouseLeave?: () => void;
 }
 
-const menuItems = [
-  { href: '/faqs', label: 'PREGUNTAS FRECUENTES' },
-  { href: '/policy', label: 'POLÍTICAS DE COMPRA' },
-  { href: '/order-status', label: 'ESTADO DE TU PEDIDO' },
-];
+const getMenuItems = () => {
+  const currentGender = GenderStorage.getGender();
+  return [
+    {
+      href: `/${currentGender}/information#faqs`,
+      label: 'PREGUNTAS FRECUENTES',
+    },
+    { href: `/${currentGender}/policies`, label: 'POLÍTICAS DE COMPRA' },
+    {
+      href: `/${currentGender}/information#purchase`,
+      label: 'ESTADO DE TU PEDIDO',
+    },
+  ];
+};
 
 export default function NavBarDropdownMenu({
   show,
   onMouseEnter,
   onMouseLeave,
 }: NavBarDropdownMenuProps) {
+  const menuItems = getMenuItems();
+
   if (!show) {
     return null;
   }

@@ -167,8 +167,11 @@ export default function NavBar({
                 MUJERES
               </NavBarLink>
             )}
-            <NavBarLink href="/contact" active={pathname === '/contact'}>
-              CONTACTO
+            <NavBarLink
+              href={`/${GenderStorage.getGender()}/about_us`}
+              active={pathname.includes('/about_us')}
+            >
+              SOBRE NOSOTROS
             </NavBarLink>
             <NavBarDropdown
               show={showMenu}
