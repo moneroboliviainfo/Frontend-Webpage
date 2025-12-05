@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FiUser, FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { motion, useAnimation } from 'framer-motion';
 import { getCartItemCount } from '@/utils/cartStorage';
+import Link from 'next/link';
+import { GenderStorage } from '@/utils/genderStorage';
 import NavBarLink from './NavBarLink';
 import NavBarIconText from './NavBarIconText';
 import NavBarDropdown from './NavBarDropdown';
@@ -147,9 +149,12 @@ export default function NavBar({
             iconsSize={iconsSize}
             iconsStrokeWidth={iconsStrokeWidth}
           />
-          <span className="text-xl md:text-3xl font-extrabold tracking-widest select-none">
+          <Link
+            href={`/${GenderStorage.getGender()}`}
+            className="text-xl md:text-3xl font-extrabold tracking-widest select-none cursor-pointer hover:opacity-80 transition-opacity"
+          >
             MONERO
-          </span>
+          </Link>
 
           {/* Nav links only on md+ */}
           <div className="hidden md:flex items-center gap-6 text-base font-medium h-full relative">

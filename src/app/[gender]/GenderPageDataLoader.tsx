@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store/store';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
+import { GenderStorage } from '@/utils/genderStorage';
 import {
   fetchSliders,
   fetchCategories,
@@ -25,6 +26,11 @@ const GenderPageDataLoader: React.FC<GenderPageDataLoaderProps> = ({
   const dispatch = useDispatch<AppDispatch>();
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Store gender in localStorage for navbar redirect
+  useEffect(() => {
+    GenderStorage.storeGender(gender);
+  }, [gender]);
 
   // Use refs to track what we've already dispatched to prevent duplicate calls
   const dispatchedRef = useRef({
