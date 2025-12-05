@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from './store';
+import type { CartItem } from '@/types/cart';
 
 export interface Shipment {
   id: number;
@@ -12,6 +13,17 @@ export interface Place {
   id: number;
   place: string;
   shipments: Shipment[];
+}
+
+export interface RepriceData {
+  items: Array<{
+    variantId: number;
+    quantity: number;
+    unit_price: number;
+    discountValue: number;
+    totalPrice: string;
+  }>;
+  total: string;
 }
 
 export interface CheckoutFormData {
@@ -34,6 +46,8 @@ interface CheckoutState {
   selectedShipment: Shipment | null;
   addressId: number | null;
   cartToken: string | null;
+  checkoutCartItems: CartItem[];
+  repriceData: RepriceData | null;
 }
 
 const initialState: CheckoutState = {
@@ -42,6 +56,8 @@ const initialState: CheckoutState = {
   selectedShipment: null,
   addressId: null,
   cartToken: null,
+  checkoutCartItems: [],
+  repriceData: null,
 };
 
 const checkoutSlice = createSlice({
@@ -63,12 +79,20 @@ const checkoutSlice = createSlice({
     setCartToken: (state, action: PayloadAction<string>) => {
       state.cartToken = action.payload;
     },
+    setCheckoutCartItems: (state, action: PayloadAction<CartItem[]>) => {
+      state.checkoutCartItems = action.payload;
+    },
+    setRepriceData: (state, action: PayloadAction<RepriceData>) => {
+      state.repriceData = action.payload;
+    },
     clearCheckoutData: (state) => {
       state.formData = null;
       state.selectedPlace = null;
       state.selectedShipment = null;
       state.addressId = null;
       state.cartToken = null;
+      state.checkoutCartItems = [];
+      state.repriceData = null;
     },
   },
 });
@@ -79,6 +103,8 @@ export const {
   setSelectedShipment,
   setAddressId,
   setCartToken,
+  setCheckoutCartItems,
+  setRepriceData,
   clearCheckoutData,
 } = checkoutSlice.actions;
 
@@ -91,5 +117,9 @@ export const selectSelectedShipment = (state: RootState) =>
   state.checkout.selectedShipment;
 export const selectAddressId = (state: RootState) => state.checkout.addressId;
 export const selectCartToken = (state: RootState) => state.checkout.cartToken;
+export const selectCheckoutCartItems = (state: RootState) =>
+  state.checkout.checkoutCartItems;
+export const selectRepriceData = (state: RootState) =>
+  state.checkout.repriceData;
 
 export default checkoutSlice.reducer;

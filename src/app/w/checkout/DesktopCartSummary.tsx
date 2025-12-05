@@ -1,9 +1,12 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getCart } from '@/utils/cartStorage';
-import type { CartItem } from '@/types/cart';
+import { useAppSelector } from '@/store/hooks';
+import {
+  selectCheckoutCartItems,
+  selectRepriceData,
+} from '@/store/checkoutSlice';
 
 interface RepriceData {
   items: Array<{
@@ -25,15 +28,15 @@ interface DesktopCartSummaryProps {
 
 const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
   selectedDeliveryMethod,
-  repriceData,
+  repriceData: repriceDataProp,
   deliveryCost = 0,
 }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // Use Redux state for cart items and reprice data
+  const cartItems = useAppSelector(selectCheckoutCartItems);
+  const repriceDataRedux = useAppSelector(selectRepriceData);
 
-  useEffect(() => {
-    const cart = getCart();
-    setCartItems(cart.items);
-  }, []);
+  // Use Redux data if available, otherwise fall back to prop
+  const repriceData = repriceDataRedux || repriceDataProp;
 
   // Calculate totals
   const itemsSubtotal = repriceData

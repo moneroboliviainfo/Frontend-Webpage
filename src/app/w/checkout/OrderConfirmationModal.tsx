@@ -1,6 +1,5 @@
 'use client';
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import OrderReviewSection from './OrderReviewSection';
 import { useAppSelector } from '@/store/hooks';
@@ -8,6 +7,8 @@ import {
   selectSelectedShipment,
   selectAddressId,
   selectCartToken,
+  selectCheckoutCartItems,
+  selectRepriceData,
 } from '@/store/checkoutSlice';
 import { createOrder, generateQR } from '@/utils/orderService';
 
@@ -39,10 +40,11 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   selectedDeliveryMethod,
   formData,
 }) => {
-  const router = useRouter();
   const selectedShipment = useAppSelector(selectSelectedShipment);
   const addressId = useAppSelector(selectAddressId);
   const cartToken = useAppSelector(selectCartToken);
+  const cartItems = useAppSelector(selectCheckoutCartItems);
+  const repriceData = useAppSelector(selectRepriceData);
 
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [showQRPayment, setShowQRPayment] = useState(false);
@@ -50,20 +52,6 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   const [qrImageBase64, setQrImageBase64] = useState<string>('');
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string>('');
-
-  // Mock cart items - replace with actual cart data
-  const cartItems = [
-    {
-      id: 1,
-      image: '/clothes/jacket-1.jpg', // Replace with actual image paths
-      name: 'Blue Jacket',
-    },
-    {
-      id: 2,
-      image: '/clothes/pants-1.jpg', // Replace with actual image paths
-      name: 'Black Pants',
-    },
-  ];
 
   const handlePayOrder = async () => {
     if (!hasAcceptedTerms) return;
@@ -210,26 +198,37 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
         >
           {cartItems.map((item) => (
             <div
-              key={item.id}
-              className="flex-shrink-0 bg-gray-100 rounded-lg"
+              key={item.variantId}
+              className="flex-shrink-0 rounded-lg overflow-hidden"
               style={{
                 width: '120px',
                 height: '120px',
                 scrollSnapAlign: 'start',
+                position: 'relative',
+                backgroundColor: '#f3f4f6',
               }}
             >
-              {/* Placeholder for item image */}
-              <div
-                className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center"
-                style={{
-                  fontSize: '0.75rem',
-                  color: '#6b7280',
-                  textAlign: 'center',
-                  padding: '0.5rem',
-                }}
-              >
-                {item.name}
-              </div>
+              {item.imageUrl ? (
+                <Image
+                  src={item.imageUrl}
+                  alt={item.productName}
+                  fill
+                  sizes="120px"
+                  style={{ objectFit: 'cover' }}
+                />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center"
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    textAlign: 'center',
+                    padding: '0.5rem',
+                  }}
+                >
+                  {item.productName}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -399,11 +398,15 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                   color: '#111827',
                 }}
               >
-                {(
-                  59.98 +
-                  (selectedDeliveryMethod === 'Envío a terminal' ? 27.99 : 0)
-                ).toFixed(2)}{' '}
-                €
+                Bs.{' '}
+                {repriceData
+                  ? (
+                      parseFloat(repriceData.total) +
+                      (selectedShipment
+                        ? parseFloat(selectedShipment.price)
+                        : 0)
+                    ).toFixed(2)
+                  : '0.00'}
               </span>
               <button
                 className="flex items-center justify-center hover:bg-gray-100 rounded-full"

@@ -18,6 +18,8 @@ import {
   setAddressId,
   setCartToken,
   setSelectedShipment,
+  setCheckoutCartItems,
+  setRepriceData as setRepriceDataRedux,
   selectSelectedPlace,
   selectSelectedShipment,
   type Place,
@@ -348,9 +350,15 @@ const CheckoutPage: React.FC = () => {
         } else {
           // Success: Update local cart with backend-validated prices
           updateCartWithRepriceData(repriceResponse);
+
+          // Load updated cart from localStorage and dispatch to Redux
+          const updatedCart = getCart();
+          dispatch(setCheckoutCartItems(updatedCart.items));
+          dispatch(setRepriceDataRedux(repriceResponse));
+
           // Store cart token in Redux
           dispatch(setCartToken(cartResponse.token));
-          // Store reprice data for checkout summary
+          // Store reprice data for local state (can be removed later)
           setRepriceData(repriceResponse);
           setIsValidatingCart(false);
         }
@@ -409,9 +417,15 @@ const CheckoutPage: React.FC = () => {
       } else {
         // Success: Update cart and continue
         updateCartWithRepriceData(repriceResponse);
+
+        // Load updated cart from localStorage and dispatch to Redux
+        const updatedCart = getCart();
+        dispatch(setCheckoutCartItems(updatedCart.items));
+        dispatch(setRepriceDataRedux(repriceResponse));
+
         // Store cart token in Redux
         dispatch(setCartToken(cartResponse.token));
-        // Store reprice data for checkout summary
+        // Store reprice data for local state (can be removed later)
         setRepriceData(repriceResponse);
         setIsValidatingCart(false);
       }
@@ -1501,6 +1515,12 @@ const CheckoutPage: React.FC = () => {
                           selectedDeliveryMethod={selectedDeliveryMethod}
                           selectedCountry={selectedCountry}
                           formData={formData}
+                          repriceData={repriceData}
+                          deliveryCost={
+                            selectedShipment
+                              ? parseFloat(selectedShipment.price)
+                              : 0
+                          }
                           onConfirmOrder={() =>
                             setShowOrderConfirmationModal(true)
                           }

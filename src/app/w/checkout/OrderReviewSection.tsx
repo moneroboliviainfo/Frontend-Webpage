@@ -1,5 +1,23 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
+import { useAppSelector } from '@/store/hooks';
+import {
+  selectCheckoutCartItems,
+  selectRepriceData,
+  selectSelectedShipment,
+} from '@/store/checkoutSlice';
+
+interface RepriceData {
+  items: Array<{
+    variantId: number;
+    quantity: number;
+    unit_price: number;
+    discountValue: number;
+    totalPrice: string;
+  }>;
+  total: string;
+}
 
 interface OrderReviewSectionProps {
   selectedDeliveryMethod: string;
@@ -16,6 +34,8 @@ interface OrderReviewSectionProps {
     streetNumber: string;
     postalCode: string;
   };
+  repriceData?: RepriceData | null;
+  deliveryCost?: number;
   onConfirmOrder?: () => void;
   onBackToDelivery?: () => void;
   showBackButton?: boolean;
@@ -31,6 +51,8 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
   selectedDeliveryMethod,
   selectedCountry,
   formData,
+  repriceData: repriceDataProp,
+  deliveryCost = 0,
   onConfirmOrder,
   onBackToDelivery,
   showBackButton = true,
@@ -41,6 +63,17 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
   hasAcceptedTerms = false,
   onTermsChange,
 }) => {
+  // Use Redux state for cart items and reprice data
+  const cartItems = useAppSelector(selectCheckoutCartItems);
+  const repriceDataRedux = useAppSelector(selectRepriceData);
+  const selectedShipment = useAppSelector(selectSelectedShipment);
+
+  // Use Redux data if available, otherwise fall back to prop
+  const repriceData = repriceDataRedux || repriceDataProp;
+  const deliveryCostFromRedux = selectedShipment
+    ? parseFloat(selectedShipment.price)
+    : 0;
+  const finalDeliveryCost = deliveryCostFromRedux || deliveryCost;
   const formatDeliveryDetails = () => {
     if (selectedCountry === 'Bolivia') {
       switch (selectedDeliveryMethod) {
@@ -87,8 +120,207 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
     return addressParts.filter((part) => part.trim() !== '').join('\n');
   };
 
+  // Calculate pricing
+  const itemsSubtotal = repriceData
+    ? repriceData.items.reduce(
+        (sum, item) => sum + item.unit_price * item.quantity,
+        0
+      )
+    : 0;
+
+  const totalDiscount = repriceData
+    ? repriceData.items.reduce(
+        (sum, item) => sum + item.discountValue * item.quantity,
+        0
+      )
+    : 0;
+
+  const subtotalAfterDiscount = itemsSubtotal - totalDiscount;
+  const total = subtotalAfterDiscount + finalDeliveryCost;
+
   return (
     <>
+      {/* Cart Summary Section */}
+      {cartItems.length > 0 && repriceData && (
+        <div
+          className="border-b"
+          style={{
+            paddingBottom: '1.5rem',
+            marginBottom: '1.5rem',
+            borderBottom: '1px solid #e5e7eb',
+          }}
+        >
+          {showSectionTitles && (
+            <h3
+              className="font-medium"
+              style={{
+                fontSize: '1rem',
+                marginBottom: '1rem',
+                color: '#374151',
+                fontWeight: 'bold',
+              }}
+            >
+              Resumen de la orden:
+            </h3>
+          )}
+
+          {/* Cart Items */}
+          <div style={{ marginBottom: '1rem' }}>
+            {cartItems.map((item) => (
+              <div
+                key={item.variantId}
+                className="flex"
+                style={{
+                  gap: '1rem',
+                  marginBottom: '1rem',
+                  paddingBottom: '1rem',
+                  borderBottom: '1px solid #f3f4f6',
+                }}
+              >
+                {/* Product Image */}
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '60px',
+                    height: '80px',
+                    flexShrink: 0,
+                    borderRadius: '0.375rem',
+                    overflow: 'hidden',
+                    backgroundColor: '#f3f4f6',
+                  }}
+                >
+                  {item.imageUrl ? (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.productName}
+                      fill
+                      sizes="60px"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem',
+                        color: '#9ca3af',
+                      }}
+                    >
+                      Sin imagen
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Details */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    className="font-medium"
+                    style={{
+                      fontSize: '0.875rem',
+                      color: '#111827',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    {item.productName}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.75rem',
+                      color: '#6b7280',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    Talla: {item.sizeName} | Color: {item.colorName}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.75rem',
+                      color: '#6b7280',
+                    }}
+                  >
+                    Cantidad: {item.quantity}
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div
+                  className="font-medium"
+                  style={{
+                    fontSize: '0.875rem',
+                    color: '#111827',
+                    flexShrink: 0,
+                  }}
+                >
+                  Bs. {item.finalPrice.toFixed(2)}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pricing Breakdown */}
+          <div style={{ marginTop: '1rem' }}>
+            {/* Subtotal */}
+            <div
+              className="flex justify-between"
+              style={{
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <span>Subtotal:</span>
+              <span>Bs. {itemsSubtotal.toFixed(2)}</span>
+            </div>
+
+            {/* Discount */}
+            {totalDiscount > 0 && (
+              <div
+                className="flex justify-between"
+                style={{
+                  fontSize: '0.875rem',
+                  color: '#10b981',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                <span>Descuento:</span>
+                <span>- Bs. {totalDiscount.toFixed(2)}</span>
+              </div>
+            )}
+
+            {/* Delivery Cost */}
+            <div
+              className="flex justify-between"
+              style={{
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <span>Costo de envío:</span>
+              <span>Bs. {finalDeliveryCost.toFixed(2)}</span>
+            </div>
+
+            {/* Total */}
+            <div
+              className="flex justify-between font-bold"
+              style={{
+                fontSize: '1rem',
+                color: '#111827',
+                paddingTop: '0.5rem',
+                borderTop: '1px solid #e5e7eb',
+                marginTop: '0.5rem',
+              }}
+            >
+              <span>Total:</span>
+              <span>Bs. {total.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Selected Delivery Method Display */}
       {selectedDeliveryMethod && (
         <div

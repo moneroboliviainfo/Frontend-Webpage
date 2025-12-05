@@ -85,6 +85,12 @@ const cartSlice = createSlice({
       localStorage.setItem(ENCRYPTED_CART_KEY, action.payload.encryptedCart);
       state.cart = action.payload.cart;
     },
+    syncCartFromStorage(state: CartState) {
+      // This action triggers a re-sync of cart from localStorage
+      // The actual loading happens in the component via getCart()
+      // This just signals that cart should be re-read
+      state.status = CART_STATUS.IDLE;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -142,5 +148,6 @@ export const selectCartQuantity = (state: RootState) =>
 
 export const selectCartItems = (state: RootState) => state.cart.cart;
 
-export const { cleanCart, setCartFromStorage } = cartSlice.actions;
+export const { cleanCart, setCartFromStorage, syncCartFromStorage } =
+  cartSlice.actions;
 export default cartSlice.reducer;
