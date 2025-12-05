@@ -1567,20 +1567,33 @@ const CheckoutPage: React.FC = () => {
                         {/* Back Button */}
                         <div
                           className="flex justify-center"
-                          style={{ marginTop: '1.5rem' }}
+                          style={{ marginTop: '2rem' }}
                         >
                           <button
                             onClick={() => setCurrentStep(1)}
-                            className="text-gray-600 hover:text-black transition-colors"
+                            className="flex items-center gap-2 hover:bg-gray-100 transition-all"
                             style={{
-                              fontSize: '0.875rem',
-                              textDecoration: 'underline',
-                              background: 'none',
-                              border: 'none',
+                              fontSize: '0.9rem',
+                              color: '#374151',
+                              background: 'white',
+                              border: '1.5px solid #d1d5db',
+                              borderRadius: '0.5rem',
+                              padding: '0.75rem 1.5rem',
                               cursor: 'pointer',
+                              fontWeight: '500',
                             }}
                           >
-                            ← Volver a detalles del destinatario
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="m15 18-6-6 6-6" />
+                            </svg>
+                            Volver a detalles del destinatario
                           </button>
                         </div>
                       </div>
