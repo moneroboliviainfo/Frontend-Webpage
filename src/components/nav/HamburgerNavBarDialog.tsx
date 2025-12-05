@@ -6,6 +6,7 @@ import NavBarDialog from './NavBarDialog';
 import NavBarImageButton from './NavBarImageButton';
 import SocialMediaLinks from '../SocialMediaLinks';
 import { selectClient, logout } from '@/store/clientSlice';
+import { FEATURE_FLAGS } from '@/config/features';
 
 const iconSize = 26;
 
@@ -30,11 +31,13 @@ const HamburgerNavBarDialog: React.FC<{
           backgroundImage="https://images.asos-media.com/navigation/mw_com_newin_1M_148883109_p3w5ie?&$n_320w$"
           targetUrl="/men"
         />
-        <NavBarImageButton
-          content="MUJERES"
-          backgroundImage="https://images.asos-media.com/navigation/mw_com_newin_1M_148883109_p3w5ie?&$n_320w$"
-          targetUrl="/women"
-        />
+        {FEATURE_FLAGS.WOMEN_ENABLED && (
+          <NavBarImageButton
+            content="MUJERES"
+            backgroundImage="https://images.asos-media.com/navigation/mw_com_newin_1M_148883109_p3w5ie?&$n_320w$"
+            targetUrl="/women"
+          />
+        )}
         <NavBarImageButton
           content="CONTACTO"
           backgroundImage="https://images.asos-media.com/navigation/mw_com_newin_1M_148883109_p3w5ie?&$n_320w$"

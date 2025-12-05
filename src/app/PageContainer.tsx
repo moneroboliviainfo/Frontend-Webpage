@@ -26,8 +26,10 @@ const QrIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 import ClothesSlider from '@/components/ClothesSlider';
+import GenderCrossSellSection from '@/components/GenderCrossSellSection';
 import useInterestRecommendations from '@/hooks/useInterestRecommendations';
 import useIsMobile from '@/hooks/useIsMobile';
+import { FEATURE_FLAGS } from '@/config/features';
 
 // Frontend gender constants to match route parameters
 const FRONTEND_GENDERS = {
@@ -186,104 +188,46 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           />
         </div>
       </div>
-      <div
-        className="w-full"
-        style={{ backgroundColor: 'black', paddingTop: '0.17rem' }}
-      >
-        <SectionHeader
+      {/* Gender Cross-Sell or Most Searched Section */}
+      {FEATURE_FLAGS.WOMEN_ENABLED ? (
+        // When women is enabled: show opposite gender
+        <GenderCrossSellSection
           title={gender === FRONTEND_GENDERS.MEN ? 'MUJERES' : 'HOMBRES'}
-          fontColor="white"
+          subtitle={
+            gender === FRONTEND_GENDERS.MEN ? 'Moda Femenina' : 'Moda Másculina'
+          }
+          buttonText="Comprar"
+          buttonUrl={`/${gender === FRONTEND_GENDERS.MEN ? 'women' : 'men'}`}
+          mobileImage={
+            gender === FRONTEND_GENDERS.MEN
+              ? '/images/model-women-2.png'
+              : '/images/model-man-4.png'
+          }
+          desktopImage1={
+            gender === FRONTEND_GENDERS.MEN
+              ? '/images/model-women-1.jpg'
+              : '/images/model-man-4.png'
+          }
+          desktopImage2={
+            gender === FRONTEND_GENDERS.MEN
+              ? '/images/model-women-3.jpg'
+              : '/images/model-man3.png'
+          }
           isMobile={isMobile}
         />
-        <div className="w-full" style={{ marginTop: '0.17rem' }}>
-          {/* unified relative wrapper so the overlay sits centered for both mobile and desktop */}
-          <div className="relative w-full" style={{ height: '80vh' }}>
-            {isMobile ? (
-              <div className="absolute inset-0">
-                <Image
-                  src={
-                    gender === FRONTEND_GENDERS.MEN
-                      ? '/images/model-women-2.png'
-                      : '/images/model-man-4.png'
-                  }
-                  alt="Model"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  sizes="100vw"
-                  priority
-                />
-              </div>
-            ) : (
-              <div className="absolute inset-0 w-full flex">
-                <div className="relative" style={{ flex: '1 1 0' }}>
-                  <Image
-                    src={
-                      gender === FRONTEND_GENDERS.MEN
-                        ? '/images/model-women-1.jpg'
-                        : '/images/model-man-4.png'
-                    }
-                    alt="Model"
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="50vw"
-                  />
-                </div>
-                <div className="relative" style={{ flex: '1 1 0' }}>
-                  <Image
-                    src={
-                      gender === FRONTEND_GENDERS.MEN
-                        ? '/images/model-women-3.jpg'
-                        : '/images/model-man3.png'
-                    }
-                    alt="Model 2"
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="50vw"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Centered overlay (same position in mobile & desktop) */}
-            <div
-              className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center text-center"
-              style={{ width: isMobile ? '80%' : '50%' }}
-            >
-              <h2
-                className="text-white"
-                style={{
-                  fontSize: isMobile ? '1.2rem' : '2.7rem',
-                  fontWeight: 'bolder',
-                }}
-              >
-                {gender === FRONTEND_GENDERS.MEN
-                  ? 'Moda Femenina'
-                  : 'Moda Másculina'}
-              </h2>
-              <button
-                type="button"
-                onClick={() =>
-                  (window.location.href = `/${
-                    gender === FRONTEND_GENDERS.MEN ? 'women' : 'men'
-                  }`)
-                }
-                style={{
-                  background: '#fff',
-                  color: '#000',
-                  fontWeight: 'bolder',
-                  borderRadius: 10,
-                  padding: '0.5rem 2rem 0.5rem 2rem',
-                  fontSize: isMobile ? '1rem' : '1.5rem',
-                  marginTop: '0.2rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Comprar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      ) : (
+        // When women is disabled: show most searched
+        <GenderCrossSellSection
+          title="LO MÁS BUSCADO"
+          subtitle="Moda Másculina"
+          buttonText="Comprar"
+          buttonUrl="/men/results?search=most-searched"
+          mobileImage="/images/monero-model-ver.jpg"
+          desktopImage1="/images/monero-model-hor-1.jpg"
+          desktopImage2="/images/monero-model-hor-2.jpg"
+          isMobile={isMobile}
+        />
+      )}
       <div
         className="w-full"
         style={{ backgroundColor: 'white', paddingTop: '0.17rem' }}

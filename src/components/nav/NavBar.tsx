@@ -10,6 +10,7 @@ import NavBarLink from './NavBarLink';
 import NavBarIconText from './NavBarIconText';
 import NavBarDropdown from './NavBarDropdown';
 import { usePathname } from 'next/navigation';
+import { FEATURE_FLAGS } from '@/config/features';
 
 import HamburgerButton from './HamburgerButton';
 import HamburgerNavBarDialog from './HamburgerNavBarDialog';
@@ -161,9 +162,11 @@ export default function NavBar({
             <NavBarLink href="/men" active={pathname === '/men'}>
               HOMBRES
             </NavBarLink>
-            <NavBarLink href="/women" active={pathname === '/women'}>
-              MUJERES
-            </NavBarLink>
+            {FEATURE_FLAGS.WOMEN_ENABLED && (
+              <NavBarLink href="/women" active={pathname === '/women'}>
+                MUJERES
+              </NavBarLink>
+            )}
             <NavBarLink href="/contact" active={pathname === '/contact'}>
               CONTACTO
             </NavBarLink>

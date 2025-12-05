@@ -1,12 +1,28 @@
 'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import CenteredButton from '@/components/CenteredButton';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import NavBar from '@/components/nav/NavBar';
 import useIsMobile from '@/hooks/useIsMobile';
+import { FEATURE_FLAGS } from '@/config/features';
 
 export default function Home() {
+  const router = useRouter();
   // Responsive: use vertical slides for mobile, horizontal for desktop
   const isMobile = useIsMobile();
+
+  // Redirect to /men if women's section is disabled
+  useEffect(() => {
+    if (!FEATURE_FLAGS.WOMEN_ENABLED) {
+      router.replace('/men');
+    }
+  }, [router]);
+
+  // Don't render content if redirecting
+  if (!FEATURE_FLAGS.WOMEN_ENABLED) {
+    return null;
+  }
 
   // Slides for each mode
   const horSlides = [
