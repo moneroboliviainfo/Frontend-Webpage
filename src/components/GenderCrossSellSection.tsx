@@ -27,7 +27,7 @@ const GenderCrossSellSection: React.FC<GenderCrossSellSectionProps> = ({
   return (
     <div
       className="w-full"
-      style={{ backgroundColor: 'black', paddingTop: '0.17rem' }}
+      style={{ backgroundColor: 'var(--color-primary)', paddingTop: '0.17rem' }}
     >
       <SectionHeader title={title} fontColor="white" isMobile={isMobile} />
       <div className="w-full" style={{ marginTop: '0.17rem' }}>

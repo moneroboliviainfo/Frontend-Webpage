@@ -111,17 +111,20 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           </div>
         </div>
       </div>
-      <div>
+      <div style={{ backgroundColor: 'var(--color-secondary)' }}>
         <CategorySliderWithImages gender={gender} />
       </div>
       <div
         className="w-full"
-        style={{ backgroundColor: 'white', paddingBottom: '0.17rem' }}
+        style={{
+          backgroundColor: 'var(--color-secondary)',
+          paddingBottom: '0.17rem',
+        }}
       >
         <SectionHeader
           title="MIRA LOS OUTFITS"
           subtitle="Hecha un vistazo a todos los outfits que preparamos para ti. Listos para cada ocasión, inspírate y encuentra tu estilo."
-          fontColor="#374151"
+          fontColor="var(--color-primary)"
           isMobile={isMobile}
         />
         <div className="w-full">
@@ -167,11 +170,14 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
       </div>
       <div
         className="w-full"
-        style={{ backgroundColor: 'black', paddingTop: '0.17rem' }}
+        style={{
+          backgroundColor: 'var(--color-primary)',
+          paddingTop: '0.17rem',
+        }}
       >
         <SectionHeader
           title="TE PODRÍA INTERESAR"
-          fontColor="white"
+          fontColor="var(--color-secondary)"
           isMobile={isMobile}
         />
         <div className="w-full" style={{ marginTop: '0.17rem' }}>

@@ -122,7 +122,6 @@ export default function ClothesSlider({ isMobile = false, items }: Props) {
             width: 44,
             height: 44,
             borderRadius: '9999px',
-            background: '#fff',
             color: '#000',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 30,
