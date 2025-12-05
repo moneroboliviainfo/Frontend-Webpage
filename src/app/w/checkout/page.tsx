@@ -15,9 +15,11 @@ import { selectClient } from '@/store/clientSlice';
 import {
   setCheckoutFormData,
   setSelectedPlace,
+  setAddressId,
   selectSelectedPlace,
   type Place,
 } from '@/store/checkoutSlice';
+import { createAddress } from '@/utils/addressService';
 import { getCart } from '@/utils/cartStorage';
 import {
   createBackendCart,
@@ -92,6 +94,7 @@ const CheckoutPage: React.FC = () => {
   const [hasRemainingItems, setHasRemainingItems] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isCreatingAddress, setIsCreatingAddress] = useState(false);
 
   // Step labels - shared between mobile and desktop
   const stepLabels = {
@@ -423,24 +426,73 @@ const CheckoutPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (validateForm()) {
-      // Store form data in Redux
-      dispatch(setCheckoutFormData(formData));
+      try {
+        setIsCreatingAddress(true);
 
-      // Find and store the selected place with its shipments
-      if (selectedCountry === 'Bolivia' && formData.departamento) {
-        const place = departments.find(
-          (dept) => normalizePlaceName(dept.place) === formData.departamento
-        );
-        if (place) {
-          dispatch(setSelectedPlace(place));
+        // Store form data in Redux
+        dispatch(setCheckoutFormData(formData));
+
+        // Find and store the selected place with its shipments
+        let selectedPlaceData: Place | undefined;
+        if (selectedCountry === 'Bolivia' && formData.departamento) {
+          selectedPlaceData = departments.find(
+            (dept) => normalizePlaceName(dept.place) === formData.departamento
+          );
+          if (selectedPlaceData) {
+            dispatch(setSelectedPlace(selectedPlaceData));
+          }
         }
-      }
 
-      // Form is valid, show delivery modal and update step
-      setCurrentStep(2);
-      setShowDeliveryModal(true);
+        // Prepare address data for API
+        const isBoliva = selectedCountry === 'Bolivia';
+        const addressData: {
+          address: string;
+          city: string;
+          country: string;
+          type: 'national' | 'international';
+          postal_code?: string;
+          place?: number;
+        } = {
+          address: isBoliva
+            ? formData.detailedAddress
+            : `${formData.streetNumber}`,
+          city: isBoliva ? formData.cityProvince : formData.city,
+          country: selectedCountry,
+          type: isBoliva ? 'national' : 'international',
+        };
+
+        // Add postal_code for international addresses
+        if (!isBoliva && formData.postalCode) {
+          addressData.postal_code = formData.postalCode;
+        }
+
+        // Add place for Bolivia addresses
+        if (isBoliva && selectedPlaceData) {
+          addressData.place = selectedPlaceData.id;
+        }
+
+        // Call address API
+        const addressResponse = await createAddress(addressData);
+
+        // Store address ID in Redux
+        dispatch(setAddressId(addressResponse.id));
+
+        // Form is valid, show delivery modal and update step
+        setCurrentStep(2);
+        setShowDeliveryModal(true);
+      } catch (error) {
+        console.error('Error creating address:', error);
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : 'Unable to save your address. Please try again.'
+        );
+        setShowErrorModal(true);
+      } finally {
+        setIsCreatingAddress(false);
+      }
     } else {
       // Scroll to first error
       const firstErrorField = document.querySelector('.error-field');
@@ -1121,19 +1173,56 @@ const CheckoutPage: React.FC = () => {
                         {/* Continue Button */}
                         <button
                           onClick={handleContinue}
-                          className="w-full font-bold"
+                          disabled={isCreatingAddress}
+                          className="w-full font-bold flex items-center justify-center"
                           style={{
-                            backgroundColor: '#000',
+                            backgroundColor: isCreatingAddress
+                              ? '#6b7280'
+                              : '#000',
                             color: 'white',
                             padding: '1rem',
                             borderRadius: '0.375rem',
                             fontSize: '1rem',
-                            cursor: 'pointer',
+                            cursor: isCreatingAddress
+                              ? 'not-allowed'
+                              : 'pointer',
                             border: 'none',
                             marginTop: '2rem',
+                            opacity: isCreatingAddress ? 0.7 : 1,
                           }}
                         >
-                          Continuar
+                          {isCreatingAddress ? (
+                            <>
+                              <svg
+                                className="animate-spin"
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  marginRight: '0.5rem',
+                                }}
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                              Guardando...
+                            </>
+                          ) : (
+                            'Continuar'
+                          )}
                         </button>
                       </div>
                     </>
@@ -1787,18 +1876,51 @@ const CheckoutPage: React.FC = () => {
               {/* Continue Button */}
               <button
                 onClick={handleContinue}
-                className="w-full font-bold"
+                disabled={isCreatingAddress}
+                className="w-full font-bold flex items-center justify-center"
                 style={{
-                  backgroundColor: '#000',
+                  backgroundColor: isCreatingAddress ? '#6b7280' : '#000',
                   color: 'white',
                   padding: '1rem',
                   borderRadius: '0.375rem',
                   fontSize: '1rem',
-                  cursor: 'pointer',
+                  cursor: isCreatingAddress ? 'not-allowed' : 'pointer',
                   border: 'none',
+                  opacity: isCreatingAddress ? 0.7 : 1,
                 }}
               >
-                Continuar
+                {isCreatingAddress ? (
+                  <>
+                    <svg
+                      className="animate-spin"
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        marginRight: '0.5rem',
+                      }}
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Guardando...
+                  </>
+                ) : (
+                  'Continuar'
+                )}
               </button>
             </div>
 

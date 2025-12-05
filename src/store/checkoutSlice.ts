@@ -32,12 +32,14 @@ interface CheckoutState {
   formData: CheckoutFormData | null;
   selectedPlace: Place | null;
   selectedShipment: Shipment | null;
+  addressId: number | null;
 }
 
 const initialState: CheckoutState = {
   formData: null,
   selectedPlace: null,
   selectedShipment: null,
+  addressId: null,
 };
 
 const checkoutSlice = createSlice({
@@ -53,10 +55,14 @@ const checkoutSlice = createSlice({
     setSelectedShipment: (state, action: PayloadAction<Shipment>) => {
       state.selectedShipment = action.payload;
     },
+    setAddressId: (state, action: PayloadAction<number>) => {
+      state.addressId = action.payload;
+    },
     clearCheckoutData: (state) => {
       state.formData = null;
       state.selectedPlace = null;
       state.selectedShipment = null;
+      state.addressId = null;
     },
   },
 });
@@ -65,6 +71,7 @@ export const {
   setCheckoutFormData,
   setSelectedPlace,
   setSelectedShipment,
+  setAddressId,
   clearCheckoutData,
 } = checkoutSlice.actions;
 
@@ -75,5 +82,6 @@ export const selectSelectedPlace = (state: RootState) =>
   state.checkout.selectedPlace;
 export const selectSelectedShipment = (state: RootState) =>
   state.checkout.selectedShipment;
+export const selectAddressId = (state: RootState) => state.checkout.addressId;
 
 export default checkoutSlice.reducer;
