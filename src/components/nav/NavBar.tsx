@@ -182,22 +182,24 @@ export default function NavBar({
             onClick={() => setProfileOpen(true)}
           />
           <div
-            className="relative flex items-center gap-2"
+            className="flex items-center gap-2"
             style={{ cursor: 'pointer' }}
             onClick={() => setCartOpen(true)}
           >
-            <FiShoppingCart size={iconsSize} strokeWidth={iconsStrokeWidth} />
+            <div className="relative">
+              <FiShoppingCart size={iconsSize} strokeWidth={iconsStrokeWidth} />
+              {cartLength > 0 && (
+                <span
+                  className="absolute -top-2 -right-2 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                  style={{ backgroundColor: 'var(--color-primary)' }}
+                >
+                  {cartLength}
+                </span>
+              )}
+            </div>
             <span className="navbar-font hidden md:inline text-xs">
               CARRITO
             </span>
-            {cartLength > 0 && (
-              <span
-                className="absolute -top-2 -right-2 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
-                style={{ backgroundColor: 'var(--color-primary)' }}
-              >
-                {cartLength}
-              </span>
-            )}
           </div>
         </div>
       </motion.nav>
