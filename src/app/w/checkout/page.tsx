@@ -2163,229 +2163,229 @@ const CheckoutPage: React.FC = () => {
                 )}
               </button>
             </div>
+          </div>
 
-            {/* Country Code Modal */}
-            {showCountryCodeModal && (
+          {/* Modals - Shared between Mobile and Desktop */}
+
+          {/* Country Code Modal */}
+          {showCountryCodeModal && (
+            <div
+              className="fixed inset-0 bg-white z-50 flex flex-col"
+              style={{
+                paddingTop: 'var(--nav-height, 60px)',
+              }}
+            >
+              {/* Modal Top Bar */}
               <div
-                className="fixed inset-0 bg-white z-50 flex flex-col"
+                className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
                 style={{
-                  paddingTop: 'var(--nav-height, 60px)',
+                  height: 'var(--nav-height, 60px)',
+                  borderBottom: '1px solid #e5e7eb',
+                  padding: '0 1rem',
                 }}
               >
-                {/* Modal Top Bar */}
-                <div
-                  className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
+                {/* Empty space for balance */}
+                <div style={{ width: '40px' }}></div>
+
+                {/* Title */}
+                <h2
+                  className="font-semibold text-center flex-1"
+                  style={{ fontSize: '1.1rem' }}
+                >
+                  {modalType === 'countryCode' ? 'Country code' : 'País'}
+                </h2>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => {
+                    setShowCountryCodeModal(false);
+                    setSearchQuery('');
+                    setFilteredCountries(countries);
+                  }}
+                  className="flex items-center justify-center hover:bg-gray-100 rounded-full"
                   style={{
-                    height: 'var(--nav-height, 60px)',
-                    borderBottom: '1px solid #e5e7eb',
-                    padding: '0 1rem',
+                    width: '40px',
+                    height: '40px',
                   }}
                 >
-                  {/* Empty space for balance */}
-                  <div style={{ width: '40px' }}></div>
-
-                  {/* Title */}
-                  <h2
-                    className="font-semibold text-center flex-1"
-                    style={{ fontSize: '1.1rem' }}
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
                   >
-                    {modalType === 'countryCode' ? 'Country code' : 'País'}
-                  </h2>
-
-                  {/* Close Button */}
-                  <button
-                    onClick={() => {
-                      setShowCountryCodeModal(false);
-                      setSearchQuery('');
-                      setFilteredCountries(countries);
-                    }}
-                    className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                    }}
-                  >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Modal Content */}
-                <div
-                  className="flex-1 overflow-y-auto"
-                  style={{ padding: '2rem' }}
-                >
-                  {/* Search Input */}
-                  <div className="relative" style={{ marginBottom: '1rem' }}>
-                    <div
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                      style={{ color: '#9ca3af' }}
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="m21 21-4.35-4.35" />
-                      </svg>
-                    </div>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={handleSearchCountries}
-                      placeholder="Search"
-                      className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      style={{
-                        padding: '0.75rem 0.75rem 0.75rem 3rem',
-                        border: '1px solid #d1d5db',
-                        fontSize: '1rem',
-                        backgroundColor: '#f9fafb',
-                      }}
-                    />
-                  </div>
-
-                  {/* Countries List */}
-                  {isLoadingCountries ? (
-                    <div
-                      className="flex items-center justify-center"
-                      style={{ padding: '2rem' }}
-                    >
-                      <p style={{ color: '#6b7280' }}>Loading countries...</p>
-                    </div>
-                  ) : (
-                    <div>
-                      {filteredCountries.map((country) => (
-                        <button
-                          key={country.code}
-                          onClick={() => handleCountryCodeSelect(country)}
-                          className="w-full text-left hover:bg-gray-50 flex items-center justify-between"
-                          style={{
-                            padding: '1rem 0',
-                            borderBottom: '1px solid #f3f4f6',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <span style={{ fontSize: '1rem', color: '#374151' }}>
-                            {country.name}
-                          </span>
-                          {modalType === 'countryCode' && (
-                            <span
-                              style={{ fontSize: '1rem', color: '#6b7280' }}
-                            >
-                              ({country.dialCode})
-                            </span>
-                          )}
-                        </button>
-                      ))}
-
-                      {filteredCountries.length === 0 && searchQuery && (
-                        <div
-                          className="text-center"
-                          style={{ padding: '2rem', color: '#6b7280' }}
-                        >
-                          No countries found
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-            )}
 
-            {/* Delivery Method Modal */}
-            {showDeliveryModal && (
+              {/* Modal Content */}
               <div
-                className="fixed inset-0 bg-white z-50 flex flex-col"
-                style={{
-                  paddingTop: 'var(--nav-height, 60px)',
-                }}
+                className="flex-1 overflow-y-auto"
+                style={{ padding: '2rem' }}
               >
-                {/* Modal Top Bar */}
-                <div
-                  className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
-                  style={{
-                    height: 'var(--nav-height, 60px)',
-                    borderBottom: '1px solid #e5e7eb',
-                    padding: '0 1rem',
-                  }}
-                >
-                  {/* Back Arrow */}
-                  <button
-                    onClick={() => setShowDeliveryModal(false)}
-                    className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                    }}
+                {/* Search Input */}
+                <div className="relative" style={{ marginBottom: '1rem' }}>
+                  <div
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2"
+                    style={{ color: '#9ca3af' }}
                   >
                     <svg
-                      width="24"
-                      height="24"
+                      width="20"
+                      height="20"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
                     >
-                      <path d="m15 18-6-6 6-6" />
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.35-4.35" />
                     </svg>
-                  </button>
-
-                  {/* Title */}
-                  <h2
-                    className="font-semibold flex-1"
-                    style={{ fontSize: '1.1rem', marginLeft: '1rem' }}
-                  >
-                    Método de envío
-                  </h2>
-
-                  {/* Empty space for balance */}
-                  <div style={{ width: '40px' }}></div>
-                </div>
-
-                {/* Modal Content */}
-                <div
-                  className="flex-1 overflow-y-auto"
-                  style={{ padding: '1.5rem', paddingBottom: '8rem' }}
-                >
-                  <DeliveryOptionsSection
-                    selectedCountry={selectedCountry}
-                    onDeliveryOptionSelect={handleDeliveryOptionSelect}
-                    isMobile={true}
-                    shipments={selectedPlace?.shipments || []}
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchCountries}
+                    placeholder="Search"
+                    className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    style={{
+                      padding: '0.75rem 0.75rem 0.75rem 3rem',
+                      border: '1px solid #d1d5db',
+                      fontSize: '1rem',
+                      backgroundColor: '#f9fafb',
+                    }}
                   />
                 </div>
 
-                {/* Checkout Cost Summary */}
-                <CheckoutCostSummary
-                  subtotal={59.98}
+                {/* Countries List */}
+                {isLoadingCountries ? (
+                  <div
+                    className="flex items-center justify-center"
+                    style={{ padding: '2rem' }}
+                  >
+                    <p style={{ color: '#6b7280' }}>Loading countries...</p>
+                  </div>
+                ) : (
+                  <div>
+                    {filteredCountries.map((country) => (
+                      <button
+                        key={country.code}
+                        onClick={() => handleCountryCodeSelect(country)}
+                        className="w-full text-left hover:bg-gray-50 flex items-center justify-between"
+                        style={{
+                          padding: '1rem 0',
+                          borderBottom: '1px solid #f3f4f6',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span style={{ fontSize: '1rem', color: '#374151' }}>
+                          {country.name}
+                        </span>
+                        {modalType === 'countryCode' && (
+                          <span style={{ fontSize: '1rem', color: '#6b7280' }}>
+                            ({country.dialCode})
+                          </span>
+                        )}
+                      </button>
+                    ))}
+
+                    {filteredCountries.length === 0 && searchQuery && (
+                      <div
+                        className="text-center"
+                        style={{ padding: '2rem', color: '#6b7280' }}
+                      >
+                        No countries found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Delivery Method Modal */}
+          {showDeliveryModal && (
+            <div
+              className="fixed inset-0 bg-white z-50 flex flex-col"
+              style={{
+                paddingTop: 'var(--nav-height, 60px)',
+              }}
+            >
+              {/* Modal Top Bar */}
+              <div
+                className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
+                style={{
+                  height: 'var(--nav-height, 60px)',
+                  borderBottom: '1px solid #e5e7eb',
+                  padding: '0 1rem',
+                }}
+              >
+                {/* Back Arrow */}
+                <button
+                  onClick={() => setShowDeliveryModal(false)}
+                  className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                  }}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
+
+                {/* Title */}
+                <h2
+                  className="font-semibold flex-1"
+                  style={{ fontSize: '1.1rem', marginLeft: '1rem' }}
+                >
+                  Método de envío
+                </h2>
+
+                {/* Empty space for balance */}
+                <div style={{ width: '40px' }}></div>
+              </div>
+
+              {/* Modal Content */}
+              <div
+                className="flex-1 overflow-y-auto"
+                style={{ padding: '1.5rem', paddingBottom: '8rem' }}
+              >
+                <DeliveryOptionsSection
                   selectedCountry={selectedCountry}
-                  deliveryCost={0}
+                  onDeliveryOptionSelect={handleDeliveryOptionSelect}
+                  isMobile={true}
+                  shipments={selectedPlace?.shipments || []}
                 />
               </div>
-            )}
 
-            {/* Order Confirmation Modal */}
-            <OrderConfirmationModal
-              isOpen={showOrderConfirmationModal}
-              onClose={() => setShowOrderConfirmationModal(false)}
-              onBackToDelivery={handleBackToDelivery}
-              selectedCountry={selectedCountry}
-              selectedDeliveryMethod={selectedDeliveryMethod}
-              formData={formData}
-            />
-          </div>
+              {/* Checkout Cost Summary */}
+              <CheckoutCostSummary
+                subtotal={59.98}
+                selectedCountry={selectedCountry}
+                deliveryCost={0}
+              />
+            </div>
+          )}
+
+          {/* Order Confirmation Modal */}
+          <OrderConfirmationModal
+            isOpen={showOrderConfirmationModal}
+            onClose={() => setShowOrderConfirmationModal(false)}
+            onBackToDelivery={handleBackToDelivery}
+            selectedCountry={selectedCountry}
+            selectedDeliveryMethod={selectedDeliveryMethod}
+            formData={formData}
+          />
         </>
       )}
     </>
