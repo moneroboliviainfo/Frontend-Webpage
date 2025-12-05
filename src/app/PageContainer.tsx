@@ -397,7 +397,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
                     }}
                   >
                     <Image
-                      src="/logos/logo-monero.png"
+                      src="/logos/Logo-Monero.png"
                       alt="Monero Logo"
                       width={isMobile ? 65 : 100}
                       height={isMobile ? 65 : 100}
