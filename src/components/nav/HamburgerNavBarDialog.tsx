@@ -1,14 +1,13 @@
 import React from 'react';
 import Image from 'next/image';
 import { useSelector, useDispatch } from 'react-redux';
-import { FaFacebook, FaInstagram, FaTiktok } from 'react-icons/fa6';
 
 import NavBarDialog from './NavBarDialog';
 import NavBarImageButton from './NavBarImageButton';
+import SocialMediaLinks from '../SocialMediaLinks';
 import { selectClient, logout } from '@/store/clientSlice';
 
 const iconSize = 26;
-const iconStrokeWidth = 1.8;
 
 const HamburgerNavBarDialog: React.FC<{
   open: boolean;
@@ -59,45 +58,7 @@ const HamburgerNavBarDialog: React.FC<{
         className="w-full bg-white flex flex-col items-center"
         style={{ paddingTop: '0.7rem', paddingBottom: '0.7rem' }}
       >
-        <span className="text-gray-700 text-lg font-semibold">Síguenos</span>
-        <div className="flex gap-6">
-          <a
-            href="https://facebook.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Facebook"
-          >
-            <FaFacebook
-              size={iconSize}
-              strokeWidth={iconStrokeWidth}
-              className="text-blue-700"
-            />
-          </a>
-          <a
-            href="https://instagram.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram"
-          >
-            <FaInstagram
-              size={iconSize}
-              strokeWidth={iconStrokeWidth}
-              className="text-pink-500"
-            />
-          </a>
-          <a
-            href="https://tiktok.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="TikTok"
-          >
-            <FaTiktok
-              size={iconSize}
-              strokeWidth={iconStrokeWidth}
-              className="text-black"
-            />
-          </a>
-        </div>
+        <SocialMediaLinks iconSize={iconSize} showLabel={true} />
       </div>
       {/* Auth section */}
       <div

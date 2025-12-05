@@ -425,6 +425,135 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           </div>
         </div>
       </div>
+
+      {/* Store Location Map Section */}
+      <div
+        style={{
+          width: '100%',
+          backgroundColor: '#f9fafb',
+          padding: isMobile ? '2rem 1rem' : '3rem 2rem',
+          marginTop: '2rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '1200px',
+          }}
+        >
+          {/* Section Title */}
+          <h2
+            style={{
+              fontSize: isMobile ? '1.5rem' : '2rem',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              marginBottom: '2rem',
+              color: '#111',
+            }}
+          >
+            Encuéntranos
+          </h2>
+
+          {/* Map Container Wrapper */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+            }}
+          >
+            {/* Map Container */}
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: '900px',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+                border: '2px solid #e5e7eb',
+              }}
+            >
+              {/* Google Maps Iframe */}
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d942.8948035900061!2d-65.24283895078571!3d-19.03825488718221!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTnCsDAyJzE4LjEiUyA2NcKwMTQnMzMuOCJX!5e0!3m2!1ses!2sbo!4v1764953371157!5m2!1ses!2sbo"
+                width="100%"
+                height={isMobile ? '350' : '450'}
+                style={{
+                  border: 0,
+                  display: 'block',
+                }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+
+              {/* Logo and Label Overlay */}
+              <div
+                className="absolute"
+                style={{
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                }}
+              >
+                {/* Logo Container */}
+                <div
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '50%',
+                    padding: isMobile ? '0.75rem' : '1rem',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: isMobile ? '60px' : '80px',
+                    height: isMobile ? '60px' : '80px',
+                  }}
+                >
+                  <Image
+                    src="/logos/logo-monero.png"
+                    alt="Monero Logo"
+                    width={isMobile ? 40 : 50}
+                    height={isMobile ? 40 : 50}
+                    style={{
+                      objectFit: 'contain',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Address Information */}
+          <div
+            style={{
+              textAlign: 'center',
+              marginTop: '1.5rem',
+              color: '#6b7280',
+              fontSize: isMobile ? '0.875rem' : '1rem',
+            }}
+          >
+            <p style={{ marginBottom: '0.5rem' }}>
+              <strong style={{ color: '#111' }}>Dirección:</strong> Destacamento
+              317 N° 1110
+            </p>
+            <p>
+              <strong style={{ color: '#111' }}>Horario:</strong> Lunes a
+              Sábado, 9:00 AM - 7:00 PM
+            </p>
+          </div>
+        </div>
+      </div>
     </React.Fragment>
   );
 };
