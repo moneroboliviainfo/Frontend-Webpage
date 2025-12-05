@@ -1,10 +1,23 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
+export interface UserAddress {
+  id: number;
+  address: string;
+  city: string;
+  country: string;
+  postal_code: string | null;
+  type: 'national' | 'international';
+  place: {
+    id: number;
+    place: string;
+  };
+}
+
 export interface Client {
   clientId: string;
   name: string;
   email: string;
-  address?: string;
+  address?: UserAddress[];
   phone?: string;
   // Add more fields as needed
 }

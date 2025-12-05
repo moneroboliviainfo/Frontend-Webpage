@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import CheckoutCostSummary from './CheckoutCostSummary';
 import OrderConfirmationModal from './OrderConfirmationModal';
@@ -11,7 +11,7 @@ import InsufficientStockModal from '@/components/InsufficientStockModal';
 import ErrorModal from '@/components/ErrorModal';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { selectClient } from '@/store/clientSlice';
+import { selectClient, type UserAddress } from '@/store/clientSlice';
 import {
   setCheckoutFormData,
   setSelectedPlace,
@@ -98,6 +98,13 @@ const CheckoutPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isCreatingAddress, setIsCreatingAddress] = useState(false);
 
+  // Address selection state
+  const [selectedAddressOption, setSelectedAddressOption] = useState<
+    'new' | number
+  >('new');
+  const [isFormReadOnly, setIsFormReadOnly] = useState(false);
+  const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
+
   // Step labels - shared between mobile and desktop
   const stepLabels = {
     1: 'Detalles del destinatario',
@@ -119,7 +126,45 @@ const CheckoutPage: React.FC = () => {
     postalCode: '',
   });
 
-  // Populate form data with client information
+  // Helper function to normalize place names
+  const normalizePlaceName = (place: string): string => {
+    return place
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  // Helper function to populate form with address data
+  const populateFormWithAddress = useCallback((address: UserAddress) => {
+    const placeName = normalizePlaceName(address.place.place);
+    setSelectedCountry(address.country);
+
+    if (address.type === 'national') {
+      setFormData((prev) => ({
+        ...prev,
+        country: address.country,
+        departamento: placeName,
+        cityProvince: address.city,
+        detailedAddress: address.address,
+        city: '',
+        streetNumber: '',
+        postalCode: '',
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        country: address.country,
+        city: address.city,
+        streetNumber: address.address,
+        postalCode: address.postal_code || '',
+        departamento: '',
+        cityProvince: '',
+        detailedAddress: '',
+      }));
+    }
+  }, []);
+
+  // Populate form data with client information and addresses
   useEffect(() => {
     if (client) {
       setFormData((prev) => ({
@@ -128,8 +173,20 @@ const CheckoutPage: React.FC = () => {
         name: client.name || '',
         phone: client.phone || '',
       }));
+
+      // Populate user addresses if they exist
+      if (client.address && client.address.length > 0) {
+        setUserAddresses(client.address);
+        // Select first address by default
+        const firstAddress = client.address[0];
+        setSelectedAddressOption(firstAddress.id);
+        populateFormWithAddress(firstAddress);
+        setIsFormReadOnly(true);
+        // Store the address ID in Redux immediately
+        dispatch(setAddressId(firstAddress.id));
+      }
     }
-  }, [client]);
+  }, [client, dispatch, populateFormWithAddress]);
 
   // Fetch departments/places on component mount
   useEffect(() => {
@@ -150,12 +207,43 @@ const CheckoutPage: React.FC = () => {
     fetchDepartments();
   }, []);
 
-  // Helper function to normalize place names
-  const normalizePlaceName = (place: string): string => {
-    return place
-      .split('_')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  // Helper function to generate address label (first 2 words of address)
+  const getAddressLabel = (address: UserAddress): string => {
+    const addressWords = address.address.split(' ').slice(0, 2).join(' ');
+    const placeName = normalizePlaceName(address.place.place);
+    return `${addressWords} - ${placeName}`;
+  };
+
+  // Handle address dropdown selection
+  const handleAddressSelection = (value: string) => {
+    if (value === 'new') {
+      setSelectedAddressOption('new');
+      setIsFormReadOnly(false);
+      // Clear form fields
+      setFormData((prev) => ({
+        ...prev,
+        country: 'Bolivia',
+        departamento: '',
+        cityProvince: '',
+        detailedAddress: '',
+        city: '',
+        streetNumber: '',
+        postalCode: '',
+      }));
+      setSelectedCountry('Bolivia');
+      // Clear address ID from Redux
+      dispatch(setAddressId(0));
+    } else {
+      const addressId = parseInt(value, 10);
+      const selectedAddr = userAddresses.find((addr) => addr.id === addressId);
+      if (selectedAddr) {
+        setSelectedAddressOption(addressId);
+        setIsFormReadOnly(true);
+        populateFormWithAddress(selectedAddr);
+        // Store address ID in Redux
+        dispatch(setAddressId(selectedAddr.id));
+      }
+    }
   };
 
   // Fetch countries on component mount
@@ -449,43 +537,55 @@ const CheckoutPage: React.FC = () => {
           }
         }
 
-        // Prepare address data for API
-        const isBoliva = selectedCountry === 'Bolivia';
-        const addressData: {
-          address: string;
-          city: string;
-          country: string;
-          type: 'national' | 'international';
-          postal_code?: string;
-          place?: number;
-        } = {
-          address: isBoliva
-            ? formData.detailedAddress
-            : `${formData.streetNumber}`,
-          city: isBoliva ? formData.cityProvince : formData.city,
-          country: selectedCountry,
-          type: isBoliva ? 'national' : 'international',
-        };
+        // Check if user selected an existing address
+        if (
+          selectedAddressOption !== 'new' &&
+          typeof selectedAddressOption === 'number'
+        ) {
+          // Using existing address - address ID already stored in Redux
+          // No need to call address API
+          setCurrentStep(2);
+          setShowDeliveryModal(true);
+        } else {
+          // Creating new address - call API
+          // Prepare address data for API
+          const isBoliva = selectedCountry === 'Bolivia';
+          const addressData: {
+            address: string;
+            city: string;
+            country: string;
+            type: 'national' | 'international';
+            postal_code?: string;
+            place?: number;
+          } = {
+            address: isBoliva
+              ? formData.detailedAddress
+              : `${formData.streetNumber}`,
+            city: isBoliva ? formData.cityProvince : formData.city,
+            country: selectedCountry,
+            type: isBoliva ? 'national' : 'international',
+          };
 
-        // Add postal_code for international addresses
-        if (!isBoliva && formData.postalCode) {
-          addressData.postal_code = formData.postalCode;
+          // Add postal_code for international addresses
+          if (!isBoliva && formData.postalCode) {
+            addressData.postal_code = formData.postalCode;
+          }
+
+          // Add place for Bolivia addresses
+          if (isBoliva && selectedPlaceData) {
+            addressData.place = selectedPlaceData.id;
+          }
+
+          // Call address API
+          const addressResponse = await createAddress(addressData);
+
+          // Store address ID in Redux
+          dispatch(setAddressId(addressResponse.id));
+
+          // Form is valid, show delivery modal and update step
+          setCurrentStep(2);
+          setShowDeliveryModal(true);
         }
-
-        // Add place for Bolivia addresses
-        if (isBoliva && selectedPlaceData) {
-          addressData.place = selectedPlaceData.id;
-        }
-
-        // Call address API
-        const addressResponse = await createAddress(addressData);
-
-        // Store address ID in Redux
-        dispatch(setAddressId(addressResponse.id));
-
-        // Form is valid, show delivery modal and update step
-        setCurrentStep(2);
-        setShowDeliveryModal(true);
       } catch (error) {
         console.error('Error creating address:', error);
         setErrorMessage(
@@ -848,6 +948,41 @@ const CheckoutPage: React.FC = () => {
                           Dirección de entrega
                         </h2>
 
+                        {/* Address Selection Dropdown (if user has addresses) */}
+                        {userAddresses.length > 0 && (
+                          <div style={{ marginBottom: '1rem' }}>
+                            <label
+                              className="block font-medium"
+                              style={{
+                                fontSize: '0.9rem',
+                                marginBottom: '0.5rem',
+                                color: '#374151',
+                              }}
+                            >
+                              Seleccionar dirección
+                            </label>
+                            <select
+                              value={selectedAddressOption}
+                              onChange={(e) =>
+                                handleAddressSelection(e.target.value)
+                              }
+                              className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              style={{
+                                padding: '0.75rem',
+                                border: '1px solid #d1d5db',
+                                fontSize: '1rem',
+                              }}
+                            >
+                              <option value="new">Nueva dirección</option>
+                              {userAddresses.map((address) => (
+                                <option key={address.id} value={address.id}>
+                                  {getAddressLabel(address)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
                         {/* Country Selection */}
                         <div style={{ marginBottom: '1rem' }}>
                           <label
@@ -862,18 +997,26 @@ const CheckoutPage: React.FC = () => {
                           </label>
                           <button
                             onClick={() => {
-                              setModalType('country');
-                              setShowCountryCodeModal(true);
+                              if (!isFormReadOnly) {
+                                setModalType('country');
+                                setShowCountryCodeModal(true);
+                              }
                             }}
                             className="w-full border rounded-lg flex items-center justify-between"
                             style={{
                               padding: '0.75rem',
                               border: '1px solid #d1d5db',
                               fontSize: '1rem',
-                              backgroundColor: 'white',
-                              cursor: 'pointer',
+                              backgroundColor: isFormReadOnly
+                                ? '#f3f4f6'
+                                : 'white',
+                              cursor: isFormReadOnly
+                                ? 'not-allowed'
+                                : 'pointer',
                               textAlign: 'left',
+                              opacity: isFormReadOnly ? 0.6 : 1,
                             }}
+                            disabled={isFormReadOnly}
                           >
                             <span>{selectedCountry}</span>
                             <svg
@@ -920,8 +1063,14 @@ const CheckoutPage: React.FC = () => {
                                     ? '1px solid #ef4444'
                                     : '1px solid #d1d5db',
                                   fontSize: '1rem',
+                                  backgroundColor: isFormReadOnly
+                                    ? '#f3f4f6'
+                                    : 'white',
+                                  opacity: isFormReadOnly ? 0.6 : 1,
                                 }}
-                                disabled={isLoadingDepartments}
+                                disabled={
+                                  isLoadingDepartments || isFormReadOnly
+                                }
                               >
                                 <option value="">
                                   {isLoadingDepartments
@@ -978,8 +1127,13 @@ const CheckoutPage: React.FC = () => {
                                     ? '1px solid #ef4444'
                                     : '1px solid #d1d5db',
                                   fontSize: '1rem',
+                                  backgroundColor: isFormReadOnly
+                                    ? '#f3f4f6'
+                                    : 'white',
+                                  opacity: isFormReadOnly ? 0.6 : 1,
                                 }}
                                 placeholder="Ej. Santa Cruz, La Paz, Cochabamba"
+                                readOnly={isFormReadOnly}
                               />
                               {errors.cityProvince && (
                                 <p
@@ -1022,8 +1176,13 @@ const CheckoutPage: React.FC = () => {
                                     ? '1px solid #ef4444'
                                     : '1px solid #d1d5db',
                                   fontSize: '1rem',
+                                  backgroundColor: isFormReadOnly
+                                    ? '#f3f4f6'
+                                    : 'white',
+                                  opacity: isFormReadOnly ? 0.6 : 1,
                                 }}
                                 placeholder="Calle, número, barrio, referencias adicionales..."
+                                readOnly={isFormReadOnly}
                               />
                               {errors.detailedAddress && (
                                 <p
@@ -1068,8 +1227,13 @@ const CheckoutPage: React.FC = () => {
                                     ? '1px solid #ef4444'
                                     : '1px solid #d1d5db',
                                   fontSize: '1rem',
+                                  backgroundColor: isFormReadOnly
+                                    ? '#f3f4f6'
+                                    : 'white',
+                                  opacity: isFormReadOnly ? 0.6 : 1,
                                 }}
                                 placeholder="Ingresa tu ciudad"
+                                readOnly={isFormReadOnly}
                               />
                               {errors.city && (
                                 <p
@@ -1120,8 +1284,13 @@ const CheckoutPage: React.FC = () => {
                                       ? '1px solid #ef4444'
                                       : '1px solid #d1d5db',
                                     fontSize: '1rem',
+                                    backgroundColor: isFormReadOnly
+                                      ? '#f3f4f6'
+                                      : 'white',
+                                    opacity: isFormReadOnly ? 0.6 : 1,
                                   }}
                                   placeholder="123"
+                                  readOnly={isFormReadOnly}
                                 />
                                 {errors.streetNumber && (
                                   <p
@@ -1163,8 +1332,13 @@ const CheckoutPage: React.FC = () => {
                                       ? '1px solid #ef4444'
                                       : '1px solid #d1d5db',
                                     fontSize: '1rem',
+                                    backgroundColor: isFormReadOnly
+                                      ? '#f3f4f6'
+                                      : 'white',
+                                    opacity: isFormReadOnly ? 0.6 : 1,
                                   }}
                                   placeholder="12345"
+                                  readOnly={isFormReadOnly}
                                 />
                                 {errors.postalCode && (
                                   <p
@@ -1562,6 +1736,39 @@ const CheckoutPage: React.FC = () => {
                   Dirección de entrega
                 </h2>
 
+                {/* Address Selection Dropdown (if user has addresses) */}
+                {userAddresses.length > 0 && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label
+                      className="block font-medium"
+                      style={{
+                        fontSize: '0.9rem',
+                        marginBottom: '0.5rem',
+                        color: '#374151',
+                      }}
+                    >
+                      Seleccionar dirección
+                    </label>
+                    <select
+                      value={selectedAddressOption}
+                      onChange={(e) => handleAddressSelection(e.target.value)}
+                      className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      style={{
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        fontSize: '1rem',
+                      }}
+                    >
+                      <option value="new">Nueva dirección</option>
+                      {userAddresses.map((address) => (
+                        <option key={address.id} value={address.id}>
+                          {getAddressLabel(address)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {/* Country Selection */}
                 <div style={{ marginBottom: '1rem' }}>
                   <label
@@ -1577,16 +1784,21 @@ const CheckoutPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      setModalType('country');
-                      setShowCountryCodeModal(true);
+                      if (!isFormReadOnly) {
+                        setModalType('country');
+                        setShowCountryCodeModal(true);
+                      }
                     }}
                     className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left flex items-center justify-between hover:bg-gray-50"
                     style={{
                       padding: '0.75rem',
                       border: '1px solid #d1d5db',
                       fontSize: '1rem',
-                      backgroundColor: 'white',
+                      backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
+                      cursor: isFormReadOnly ? 'not-allowed' : 'pointer',
+                      opacity: isFormReadOnly ? 0.6 : 1,
                     }}
+                    disabled={isFormReadOnly}
                   >
                     <span>{selectedCountry}</span>
                     <svg
@@ -1629,9 +1841,10 @@ const CheckoutPage: React.FC = () => {
                           ? '1px solid #ef4444'
                           : '1px solid #d1d5db',
                         fontSize: '1rem',
-                        backgroundColor: 'white',
+                        backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
+                        opacity: isFormReadOnly ? 0.6 : 1,
                       }}
-                      disabled={isLoadingDepartments}
+                      disabled={isLoadingDepartments || isFormReadOnly}
                     >
                       <option value="">
                         {isLoadingDepartments
@@ -1692,8 +1905,11 @@ const CheckoutPage: React.FC = () => {
                             ? '1px solid #ef4444'
                             : '1px solid #d1d5db',
                           fontSize: '1rem',
+                          backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
+                          opacity: isFormReadOnly ? 0.6 : 1,
                         }}
                         placeholder="Ej. Santa Cruz, La Paz, Cochabamba"
+                        readOnly={isFormReadOnly}
                       />
                       {errors.cityProvince && (
                         <p
@@ -1736,8 +1952,11 @@ const CheckoutPage: React.FC = () => {
                             ? '1px solid #ef4444'
                             : '1px solid #d1d5db',
                           fontSize: '1rem',
+                          backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
+                          opacity: isFormReadOnly ? 0.6 : 1,
                         }}
                         placeholder="Calle, número, barrio, referencias adicionales..."
+                        readOnly={isFormReadOnly}
                       />
                       {errors.detailedAddress && (
                         <p
@@ -1780,8 +1999,11 @@ const CheckoutPage: React.FC = () => {
                             ? '1px solid #ef4444'
                             : '1px solid #d1d5db',
                           fontSize: '1rem',
+                          backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
+                          opacity: isFormReadOnly ? 0.6 : 1,
                         }}
                         placeholder="Nombre de la ciudad"
+                        readOnly={isFormReadOnly}
                       />
                       {errors.city && (
                         <p
@@ -1824,8 +2046,11 @@ const CheckoutPage: React.FC = () => {
                             ? '1px solid #ef4444'
                             : '1px solid #d1d5db',
                           fontSize: '1rem',
+                          backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
+                          opacity: isFormReadOnly ? 0.6 : 1,
                         }}
                         placeholder="Calle Principal 123"
+                        readOnly={isFormReadOnly}
                       />
                       {errors.streetNumber && (
                         <p
@@ -1866,8 +2091,11 @@ const CheckoutPage: React.FC = () => {
                             ? '1px solid #ef4444'
                             : '1px solid #d1d5db',
                           fontSize: '1rem',
+                          backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
+                          opacity: isFormReadOnly ? 0.6 : 1,
                         }}
                         placeholder="Código postal"
+                        readOnly={isFormReadOnly}
                       />
                       {errors.postalCode && (
                         <p

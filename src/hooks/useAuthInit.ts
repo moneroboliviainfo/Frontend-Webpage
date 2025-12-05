@@ -26,8 +26,8 @@ export const useAuthInit = () => {
             name: profile.name ?? '',
             email: profile.email ?? '',
             address: Array.isArray(profile.address)
-              ? JSON.stringify(profile.address)
-              : profile.address ?? '',
+              ? profile.address
+              : undefined,
             phone: profile.phone ?? undefined,
           };
           dispatch(setClient(client));
