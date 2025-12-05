@@ -39,6 +39,7 @@ import {
 import { createOrder, generateQR } from '@/utils/orderService';
 import type { CartItem } from '@/types/cart';
 import { API_URL } from '@/config/env';
+import { GenderStorage } from '@/utils/genderStorage';
 
 // Types for country data
 interface Country {
@@ -798,7 +799,13 @@ const CheckoutPage: React.FC = () => {
               }}
             >
               <div className="flex items-center gap-4">
-                <span className="text-xl md:text-3xl font-extrabold tracking-widest select-none text-black">
+                <span
+                  onClick={() => {
+                    const lastGender = GenderStorage.getGender();
+                    router.push(`/${lastGender}`);
+                  }}
+                  className="text-xl md:text-3xl font-extrabold tracking-widest select-none text-black cursor-pointer hover:opacity-80 transition-opacity"
+                >
                   MONERO
                 </span>
               </div>
@@ -1699,8 +1706,30 @@ const CheckoutPage: React.FC = () => {
                 Información de envío
               </h1>
 
-              {/* Empty space for balance (no X button) */}
-              <div style={{ width: '40px' }}></div>
+              {/* Close Button - Redirect to Last Gender Page */}
+              <button
+                onClick={() => {
+                  const lastGender = GenderStorage.getGender();
+                  router.push(`/${lastGender}`);
+                }}
+                className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ color: '#374151' }}
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
             {/* Form Content */}
@@ -2344,12 +2373,11 @@ const CheckoutPage: React.FC = () => {
                   {modalType === 'countryCode' ? 'Country code' : 'País'}
                 </h2>
 
-                {/* Close Button */}
+                {/* Close Button - Redirect to Last Gender Page */}
                 <button
                   onClick={() => {
-                    setShowCountryCodeModal(false);
-                    setSearchQuery('');
-                    setFilteredCountries(countries);
+                    const lastGender = GenderStorage.getGender();
+                    router.push(`/${lastGender}`);
                   }}
                   className="flex items-center justify-center hover:bg-gray-100 rounded-full"
                   style={{
@@ -2364,6 +2392,7 @@ const CheckoutPage: React.FC = () => {
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
+                    style={{ color: '#374151' }}
                   >
                     <path d="M18 6L6 18M6 6l12 12" />
                   </svg>
@@ -2500,8 +2529,30 @@ const CheckoutPage: React.FC = () => {
                   Método de envío
                 </h2>
 
-                {/* Empty space for balance */}
-                <div style={{ width: '40px' }}></div>
+                {/* Close Button - Redirect to Last Gender Page */}
+                <button
+                  onClick={() => {
+                    const lastGender = GenderStorage.getGender();
+                    router.push(`/${lastGender}`);
+                  }}
+                  className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                  }}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    style={{ color: '#374151' }}
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
               {/* Modal Content */}

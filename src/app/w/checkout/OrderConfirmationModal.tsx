@@ -1,8 +1,10 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import OrderReviewSection from './OrderReviewSection';
 import { useAppSelector } from '@/store/hooks';
+import { GenderStorage } from '@/utils/genderStorage';
 import {
   selectSelectedShipment,
   selectAddressId,
@@ -40,6 +42,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   selectedDeliveryMethod,
   formData,
 }) => {
+  const router = useRouter();
   const selectedShipment = useAppSelector(selectSelectedShipment);
   const addressId = useAppSelector(selectAddressId);
   const cartToken = useAppSelector(selectCartToken);
@@ -168,8 +171,30 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           Por favor revisa tu orden
         </h2>
 
-        {/* Empty space for balance */}
-        <div style={{ width: '40px' }}></div>
+        {/* Close Button - Redirect to Last Gender Page */}
+        <button
+          onClick={() => {
+            const lastGender = GenderStorage.getGender();
+            router.push(`/${lastGender}`);
+          }}
+          className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+          style={{
+            width: '40px',
+            height: '40px',
+          }}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            style={{ color: '#374151' }}
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* Modal Content */}
