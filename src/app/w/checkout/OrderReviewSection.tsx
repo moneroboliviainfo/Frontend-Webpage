@@ -1,7 +1,9 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { useAppSelector } from '@/store/hooks';
+import TermsAndConditions from '@/components/TermsAndConditions';
+import PrivacyPolicy from '@/components/PrivacyPolicy';
 import {
   selectCheckoutCartItems,
   selectRepriceData,
@@ -67,6 +69,10 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
   isCreatingOrder = false,
   orderError = '',
 }) => {
+  // Modal states
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
   // Use Redux state for cart items and reprice data
   const cartItems = useAppSelector(selectCheckoutCartItems);
   const repriceDataRedux = useAppSelector(selectRepriceData);
@@ -518,14 +524,36 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
               }}
             >
               He leído y acepto las{' '}
-              <span style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+              <button
+                onClick={() => setShowTermsModal(true)}
+                style={{
+                  color: '#3b82f6',
+                  textDecoration: 'underline',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  font: 'inherit',
+                }}
+              >
                 Condiciones de Compra
-              </span>{' '}
+              </button>{' '}
               y entiendo la información sobre el uso de mis datos personales
               explicada en la{' '}
-              <span style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+              <button
+                onClick={() => setShowPrivacyModal(true)}
+                style={{
+                  color: '#3b82f6',
+                  textDecoration: 'underline',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  font: 'inherit',
+                }}
+              >
                 Política de Privacidad
-              </span>
+              </button>
             </div>
           </div>
         </div>
@@ -637,6 +665,196 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
             </svg>
             Volver a método de envío
           </button>
+        </div>
+      )}
+
+      {/* Terms and Conditions Modal */}
+      {showTermsModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+          style={{ zIndex: 70, padding: '1rem' }}
+        >
+          <div
+            className="bg-white rounded-lg flex flex-col"
+            style={{
+              maxWidth: '800px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '1.5rem',
+                borderBottom: '1px solid #e5e7eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 'bold',
+                  color: '#111827',
+                }}
+              >
+                Términos y Condiciones de Compra
+              </h2>
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+                style={{
+                  width: '32px',
+                  height: '32px',
+                }}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content - Scrollable */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '1.5rem',
+              }}
+            >
+              <TermsAndConditions showTitle={false} compact={true} />
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: '1.5rem',
+                borderTop: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'flex-end',
+              }}
+            >
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="font-semibold hover:bg-gray-100"
+                style={{
+                  backgroundColor: '#000',
+                  color: 'white',
+                  padding: '0.75rem 2rem',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Policy Modal */}
+      {showPrivacyModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+          style={{ zIndex: 70, padding: '1rem' }}
+        >
+          <div
+            className="bg-white rounded-lg flex flex-col"
+            style={{
+              maxWidth: '800px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '1.5rem',
+                borderBottom: '1px solid #e5e7eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 'bold',
+                  color: '#111827',
+                }}
+              >
+                Política de Privacidad
+              </h2>
+              <button
+                onClick={() => setShowPrivacyModal(false)}
+                className="flex items-center justify-center hover:bg-gray-100 rounded-full"
+                style={{
+                  width: '32px',
+                  height: '32px',
+                }}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content - Scrollable */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '1.5rem',
+              }}
+            >
+              <PrivacyPolicy showTitle={false} compact={true} />
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: '1.5rem',
+                borderTop: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'flex-end',
+              }}
+            >
+              <button
+                onClick={() => setShowPrivacyModal(false)}
+                className="font-semibold hover:bg-gray-100"
+                style={{
+                  backgroundColor: '#000',
+                  color: 'white',
+                  padding: '0.75rem 2rem',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>
