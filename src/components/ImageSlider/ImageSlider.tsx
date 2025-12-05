@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -10,6 +10,13 @@ import { Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import './ImageSlider.css';
+import { getAdvertisement } from '@/services/advertisementService';
+
+interface Advertisement {
+  id: number;
+  text: string;
+  enabled: boolean;
+}
 
 // Support both legacy and new API slider data
 interface LegacySlide {
@@ -60,6 +67,36 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   const progressCircle = useRef<SVGSVGElement | null>(null);
   const progressContent = useRef<HTMLSpanElement | null>(null);
   const router = useRouter();
+
+  const [advertisement, setAdvertisement] = useState<Advertisement | null>(
+    null
+  );
+  const [isLoadingAd, setIsLoadingAd] = useState(true);
+
+  // Fetch advertisement data
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAdvertisement = async () => {
+      const data = await getAdvertisement();
+      if (isMounted && data) {
+        setAdvertisement(data);
+      }
+      if (isMounted) {
+        setIsLoadingAd(false);
+      }
+    };
+
+    if (showNews) {
+      fetchAdvertisement();
+    } else {
+      setIsLoadingAd(false);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showNews]);
 
   const onAutoplayTimeLeft = (
     s: SwiperType,
@@ -196,38 +233,8 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
           <span ref={progressContent}></span>
         </div>
       </Swiper>
-
-      {/* API Slider Labels - positioned above pagination dots */}
-      {currentSlide && isApiSlide(currentSlide) && (
-        <div className="absolute bottom-16 left-0 w-full flex flex-col items-center z-10 pointer-events-none">
-          <div
-            className="text-center max-w-lg"
-            style={{ paddingLeft: '1rem', paddingRight: '1rem' }}
-          >
-            {/* Button text - smaller, on top */}
-            <div
-              className="text-white text-sm md:text-lg lg:text-xl font-medium drop-shadow-lg mb-1 opacity-90"
-              style={{ marginBottom: '1rem' }}
-            >
-              {currentSlide.button_text}
-            </div>
-            {/* Name - larger, below button text */}
-            <div
-              className="text-white text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold drop-shadow-lg leading-tight"
-              style={{ marginBottom: '1rem' }}
-            >
-              {currentSlide.name}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showNews && (
-        <NewsRoulette
-          messages={[
-            '¡Prueba suerte en nuestra ruleta y gana descuentos exclusivos!',
-          ]}
-        />
+      {showNews && !isLoadingAd && advertisement && advertisement.enabled && (
+        <NewsRoulette messages={[advertisement.text]} />
       )}
     </div>
   );
