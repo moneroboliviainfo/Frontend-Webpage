@@ -79,7 +79,6 @@ const CheckoutPage: React.FC = () => {
     useState(false);
   const [outOfStockItems, setOutOfStockItems] = useState<CartItem[]>([]);
   const [hasRemainingItems, setHasRemainingItems] = useState(false);
-  const [cartToken, setCartToken] = useState<string>('');
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -183,7 +182,6 @@ const CheckoutPage: React.FC = () => {
 
         // Step 1: Create cart in backend
         const cartResponse = await createBackendCart(cartApiRequest.items);
-        setCartToken(cartResponse.token);
 
         // Step 2: Get repricing and validate stock
         const repriceResponse = await repriceCart(cartResponse.token);
@@ -249,7 +247,6 @@ const CheckoutPage: React.FC = () => {
       };
 
       const cartResponse = await createBackendCart(cartApiRequest.items);
-      setCartToken(cartResponse.token);
 
       const repriceResponse = await repriceCart(cartResponse.token);
 
