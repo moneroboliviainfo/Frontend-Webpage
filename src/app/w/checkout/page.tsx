@@ -10,8 +10,14 @@ import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import InsufficientStockModal from '@/components/InsufficientStockModal';
 import ErrorModal from '@/components/ErrorModal';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectClient } from '@/store/clientSlice';
+import {
+  setCheckoutFormData,
+  setSelectedPlace,
+  selectSelectedPlace,
+  type Place,
+} from '@/store/checkoutSlice';
 import { getCart } from '@/utils/cartStorage';
 import {
   createBackendCart,
@@ -22,6 +28,7 @@ import {
   getAvailableCartItems,
 } from '@/utils/checkoutCart';
 import type { CartItem } from '@/types/cart';
+import { API_URL } from '@/config/env';
 
 // Types for country data
 interface Country {
@@ -55,7 +62,9 @@ interface FormErrors {
 
 const CheckoutPage: React.FC = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const client = useAppSelector(selectClient);
+  const selectedPlace = useAppSelector(selectSelectedPlace);
   const [selectedCountry, setSelectedCountry] = useState('Bolivia');
   const [showCountryCodeModal, setShowCountryCodeModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
@@ -69,6 +78,8 @@ const CheckoutPage: React.FC = () => {
   const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [departments, setDepartments] = useState<Place[]>([]);
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(true);
   const [errors, setErrors] = useState<FormErrors>({});
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1); // 1: Detalles, 2: Método de envío, 3: Pago
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
@@ -114,6 +125,33 @@ const CheckoutPage: React.FC = () => {
       }));
     }
   }, [client]);
+
+  // Fetch departments/places on component mount
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        setIsLoadingDepartments(true);
+        const response = await fetch(`${API_URL}places`);
+        const data: Place[] = await response.json();
+        setDepartments(data);
+      } catch (error) {
+        console.error('Failed to fetch departments:', error);
+        setDepartments([]);
+      } finally {
+        setIsLoadingDepartments(false);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
+
+  // Helper function to normalize place names
+  const normalizePlaceName = (place: string): string => {
+    return place
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   // Fetch countries on component mount
   React.useEffect(() => {
@@ -387,6 +425,19 @@ const CheckoutPage: React.FC = () => {
 
   const handleContinue = () => {
     if (validateForm()) {
+      // Store form data in Redux
+      dispatch(setCheckoutFormData(formData));
+
+      // Find and store the selected place with its shipments
+      if (selectedCountry === 'Bolivia' && formData.departamento) {
+        const place = departments.find(
+          (dept) => normalizePlaceName(dept.place) === formData.departamento
+        );
+        if (place) {
+          dispatch(setSelectedPlace(place));
+        }
+      }
+
       // Form is valid, show delivery modal and update step
       setCurrentStep(2);
       setShowDeliveryModal(true);
@@ -806,19 +857,21 @@ const CheckoutPage: React.FC = () => {
                                     : '1px solid #d1d5db',
                                   fontSize: '1rem',
                                 }}
+                                disabled={isLoadingDepartments}
                               >
                                 <option value="">
-                                  Selecciona un departamento
+                                  {isLoadingDepartments
+                                    ? 'Cargando...'
+                                    : 'Selecciona un departamento'}
                                 </option>
-                                <option value="La Paz">La Paz</option>
-                                <option value="Cochabamba">Cochabamba</option>
-                                <option value="Santa Cruz">Santa Cruz</option>
-                                <option value="Oruro">Oruro</option>
-                                <option value="Potosí">Potosí</option>
-                                <option value="Tarija">Tarija</option>
-                                <option value="Sucre">Sucre</option>
-                                <option value="Beni">Beni</option>
-                                <option value="Pando">Pando</option>
+                                {departments.map((dept) => (
+                                  <option
+                                    key={dept.id}
+                                    value={normalizePlaceName(dept.place)}
+                                  >
+                                    {normalizePlaceName(dept.place)}
+                                  </option>
+                                ))}
                               </select>
                               {errors.departamento && (
                                 <p
@@ -1107,6 +1160,7 @@ const CheckoutPage: React.FC = () => {
                           selectedCountry={selectedCountry}
                           onDeliveryOptionSelect={handleDeliveryOptionSelect}
                           isMobile={false}
+                          shipments={selectedPlace?.shipments || []}
                         />
 
                         {/* Back Button */}
@@ -1476,17 +1530,21 @@ const CheckoutPage: React.FC = () => {
                         fontSize: '1rem',
                         backgroundColor: 'white',
                       }}
+                      disabled={isLoadingDepartments}
                     >
-                      <option value="">Selecciona un departamento</option>
-                      <option value="La Paz">La Paz</option>
-                      <option value="Santa Cruz">Santa Cruz</option>
-                      <option value="Cochabamba">Cochabamba</option>
-                      <option value="Oruro">Oruro</option>
-                      <option value="Potosí">Potosí</option>
-                      <option value="Chuquisaca">Chuquisaca</option>
-                      <option value="Tarija">Tarija</option>
-                      <option value="Beni">Beni</option>
-                      <option value="Pando">Pando</option>
+                      <option value="">
+                        {isLoadingDepartments
+                          ? 'Cargando...'
+                          : 'Selecciona un departamento'}
+                      </option>
+                      {departments.map((dept) => (
+                        <option
+                          key={dept.id}
+                          value={normalizePlaceName(dept.place)}
+                        >
+                          {normalizePlaceName(dept.place)}
+                        </option>
+                      ))}
                     </select>
                     {errors.departamento && (
                       <p
@@ -1943,6 +2001,7 @@ const CheckoutPage: React.FC = () => {
                     selectedCountry={selectedCountry}
                     onDeliveryOptionSelect={handleDeliveryOptionSelect}
                     isMobile={true}
+                    shipments={selectedPlace?.shipments || []}
                   />
                 </div>
 

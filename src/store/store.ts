@@ -3,6 +3,7 @@ import cartReducer from './cartSlice';
 import clientReducer from './clientSlice';
 import adReducer from './adSlice';
 import clothingReducer from './clothingSlice';
+import checkoutReducer from './checkoutSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     client: clientReducer,
     ads: adReducer,
     clothing: clothingReducer,
+    checkout: checkoutReducer,
   },
 });
 

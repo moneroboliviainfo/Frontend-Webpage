@@ -7,19 +7,38 @@ interface DeliveryOption {
   price: string;
 }
 
+interface Shipment {
+  id: number;
+  name: string;
+  price: string;
+  enabled: boolean;
+}
+
 interface DeliveryOptionsProps {
   selectedCountry: string;
   onDeliveryOptionSelect: (option: string) => void;
   isMobile?: boolean;
+  shipments?: Shipment[];
 }
 
 export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
   selectedCountry,
   onDeliveryOptionSelect,
   isMobile = false,
+  shipments = [],
 }) => {
+  // Use API shipments if available, otherwise use fallback options
   const deliveryOptions =
-    selectedCountry === 'Bolivia'
+    selectedCountry === 'Bolivia' && shipments.length > 0
+      ? shipments
+          .filter((shipment) => shipment.enabled)
+          .map((shipment) => ({
+            id: shipment.id.toString(),
+            title: shipment.name,
+            description: 'Disponible',
+            price: `Bs. ${shipment.price}`,
+          }))
+      : selectedCountry === 'Bolivia'
       ? [
           {
             id: 'terminal',
