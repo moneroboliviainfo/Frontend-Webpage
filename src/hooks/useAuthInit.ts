@@ -29,6 +29,7 @@ export const useAuthInit = () => {
               ? profile.address
               : undefined,
             phone: profile.phone ?? undefined,
+            orders: Array.isArray(profile.orders) ? profile.orders : undefined,
           };
           dispatch(setClient(client));
         } else {

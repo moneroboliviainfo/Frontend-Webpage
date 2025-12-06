@@ -59,3 +59,27 @@ export const createAddress = async (
 
   return response.json();
 };
+
+/**
+ * Normalize place name from snake_case to Title Case
+ * Example: "la_paz" -> "La Paz"
+ */
+export const normalizePlaceName = (place: string): string => {
+  return place
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+/**
+ * Format address label for display in dropdowns
+ * Shows first 2 words of address and normalized place name
+ */
+export const formatAddressLabel = (
+  address: string,
+  placeName: string
+): string => {
+  const addressWords = address.split(' ').slice(0, 2).join(' ');
+  const normalizedPlace = normalizePlaceName(placeName);
+  return `${addressWords} - ${normalizedPlace}`;
+};

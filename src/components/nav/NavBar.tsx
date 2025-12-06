@@ -1,6 +1,7 @@
 // This file has been moved to the nav folder and is no longer available here.
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { FiUser, FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { motion, useAnimation } from 'framer-motion';
 import { getCartItemCount } from '@/utils/cartStorage';
@@ -11,6 +12,7 @@ import NavBarIconText from './NavBarIconText';
 import NavBarDropdown from './NavBarDropdown';
 import { usePathname } from 'next/navigation';
 import { FEATURE_FLAGS } from '@/config/features';
+import { selectClient } from '@/store/clientSlice';
 
 import HamburgerButton from './HamburgerButton';
 import HamburgerNavBarDialog from './HamburgerNavBarDialog';
@@ -35,8 +37,8 @@ export default function NavBar({
   const [profileOpen, setProfileOpen] = useState(false);
   const controls = useAnimation();
   const [cartLength, setCartLength] = useState(0);
-  // TODO: Replace with real client name from redux
-  const clientName = null;
+  const client = useSelector(selectClient);
+  const clientName = client?.name || null;
   const pathname = usePathname();
 
   // Load cart count from localStorage

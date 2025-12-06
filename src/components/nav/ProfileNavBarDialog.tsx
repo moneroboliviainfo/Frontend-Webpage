@@ -13,19 +13,20 @@ import {
 import NavBarDialog from './NavBarDialog';
 import GoogleLoginButton from '../GoogleLoginButton';
 import { selectClient, logout } from '@/store/clientSlice';
+import { normalizePlaceName } from '@/utils/addressService';
 
 interface Order {
-  orderId: string;
-  date: string;
-  total: number;
-}
-
-interface Address {
-  addressId: string;
-  streetName: string;
-  streetNumber: string;
-  city?: string;
-  isDefault?: boolean;
+  id: number;
+  type: string;
+  status: 'expired' | 'pending' | 'paid' | 'sent';
+  payment_type: string;
+  enabled: boolean;
+  shipment_price: number;
+  totalPrice: string;
+  address_data: unknown;
+  dhl_code: string | null;
+  expiresAt: string;
+  createdAt: string | null;
 }
 
 const ProfileNavBarDialog: React.FC<{
@@ -63,36 +64,41 @@ const ProfileNavBarDialog: React.FC<{
     );
   }
 
-  // Mock data - replace with real data from your store/API
-  const orders: Order[] = [
-    { orderId: 'ORD-001234', date: '2024-11-20', total: 150.99 },
-    { orderId: 'ORD-001235', date: '2024-11-18', total: 89.5 },
-    { orderId: 'ORD-001236', date: '2024-11-15', total: 245.0 },
-  ];
+  // Get orders and addresses from authenticated user
+  const orders: Order[] = client?.orders || [];
+  const savedAddresses = client?.address || [];
 
-  const savedAddresses: Address[] = [
-    {
-      addressId: 'addr-1',
-      streetName: 'Calle Principal',
-      streetNumber: '123',
-      city: 'Madrid',
-      isDefault: true,
-    },
-    {
-      addressId: 'addr-2',
-      streetName: 'Avenida de la Libertad',
-      streetNumber: '456',
-      city: 'Barcelona',
-      isDefault: false,
-    },
-    {
-      addressId: 'addr-3',
-      streetName: 'Plaza Mayor',
-      streetNumber: '789',
-      city: 'Sevilla',
-      isDefault: false,
-    },
-  ];
+  // Helper function to get status label
+  const getOrderStatusLabel = (status: Order['status']): string => {
+    switch (status) {
+      case 'expired':
+        return 'Cancelado por falta de pago';
+      case 'pending':
+        return 'Pendiente de pago';
+      case 'paid':
+        return 'Pagada - En preparación para envío';
+      case 'sent':
+        return 'Enviado';
+      default:
+        return status;
+    }
+  };
+
+  // Helper function to get status color
+  const getOrderStatusColor = (status: Order['status']): string => {
+    switch (status) {
+      case 'expired':
+        return '#ef4444'; // red
+      case 'pending':
+        return '#f59e0b'; // amber
+      case 'paid':
+        return '#3b82f6'; // blue
+      case 'sent':
+        return '#10b981'; // green
+      default:
+        return '#6b7280'; // gray
+    }
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -113,6 +119,7 @@ const ProfileNavBarDialog: React.FC<{
           style={{
             padding: '20px 24px',
             justifyContent: 'space-between',
+            cursor: 'pointer',
           }}
           onClick={() => toggleSection(sectionKey)}
         >
@@ -190,39 +197,63 @@ const ProfileNavBarDialog: React.FC<{
             sectionKey="purchases"
           >
             <div style={{ paddingTop: '16px' }}>
-              {orders.map((order) => (
-                <button
-                  key={order.orderId}
-                  className="flex items-center w-full text-left hover:bg-gray-100 transition-colors"
+              {orders.length > 0 ? (
+                orders.map((order) => (
+                  <button
+                    key={order.id}
+                    className="flex items-center w-full text-left hover:bg-gray-100 transition-colors"
+                    style={{
+                      gap: '12px',
+                      marginBottom: '16px',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => handleOrderClick(order.id.toString())}
+                  >
+                    <FiShoppingCart size={18} className="text-gray-400" />
+                    <div className="flex-1">
+                      <p className="text-black font-medium text-sm">
+                        N° de pedido: {order.id}
+                      </p>
+                      {order.createdAt && (
+                        <p
+                          className="text-gray-500"
+                          style={{
+                            fontSize: '12px',
+                            marginTop: '2px',
+                          }}
+                        >
+                          {new Date(order.createdAt).toLocaleDateString(
+                            'es-ES'
+                          )}
+                        </p>
+                      )}
+                      <p
+                        style={{
+                          fontSize: '12px',
+                          marginTop: '4px',
+                          color: getOrderStatusColor(order.status),
+                          fontWeight: '500',
+                        }}
+                      >
+                        {getOrderStatusLabel(order.status)}
+                      </p>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <p
+                  className="text-gray-500"
                   style={{
-                    gap: '12px',
-                    marginBottom: '16px',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
+                    fontSize: '14px',
                   }}
-                  onClick={() => handleOrderClick(order.orderId)}
                 >
-                  <FiShoppingCart size={18} className="text-gray-400" />
-                  <div>
-                    <p className="text-black font-medium text-sm">
-                      N° de pedido: {order.orderId}
-                    </p>
-                    <p
-                      className="text-gray-500"
-                      style={{
-                        fontSize: '12px',
-                        marginTop: '2px',
-                      }}
-                    >
-                      {new Date(order.date).toLocaleDateString('es-ES')}
-                      {order.total.toFixed(2)}
-                    </p>
-                  </div>
-                </button>
-              ))}
+                  No hay órdenes disponibles
+                </p>
+              )}
             </div>
           </ExpandableCard>
 
@@ -309,21 +340,21 @@ const ProfileNavBarDialog: React.FC<{
             sectionKey="addresses"
           >
             <div style={{ paddingTop: '16px' }}>
-              {savedAddresses.map((address) => (
-                <div
-                  key={address.addressId}
-                  className="flex items-center"
-                  style={{
-                    gap: '12px',
-                    marginBottom: '16px',
-                  }}
-                >
-                  <FiMapPin size={18} className="text-gray-400" />
-                  <div className="flex-1">
-                    <p className="text-black font-medium text-sm">
-                      {address.streetName} {address.streetNumber}
-                    </p>
-                    {address.city && (
+              {savedAddresses.length > 0 ? (
+                savedAddresses.map((address, index) => (
+                  <div
+                    key={address.id}
+                    className="flex items-center"
+                    style={{
+                      gap: '12px',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <FiMapPin size={18} className="text-gray-400" />
+                    <div className="flex-1">
+                      <p className="text-black font-medium text-sm">
+                        {address.address}
+                      </p>
                       <p
                         className="text-gray-500"
                         style={{
@@ -331,24 +362,53 @@ const ProfileNavBarDialog: React.FC<{
                           marginTop: '2px',
                         }}
                       >
-                        {address.city}
+                        {address.city}, {address.country}
                       </p>
-                    )}
-                    {address.isDefault && (
-                      <span
-                        className="inline-block bg-blue-100 text-blue-800 rounded-full"
+                      <p
+                        className="text-gray-500"
                         style={{
-                          fontSize: '10px',
-                          padding: '2px 8px',
-                          marginTop: '4px',
+                          fontSize: '12px',
+                          marginTop: '2px',
                         }}
                       >
-                        Predeterminada
-                      </span>
-                    )}
+                        {normalizePlaceName(address.place.place)}
+                      </p>
+                      {address.postal_code && (
+                        <p
+                          className="text-gray-500"
+                          style={{
+                            fontSize: '12px',
+                            marginTop: '2px',
+                          }}
+                        >
+                          CP: {address.postal_code}
+                        </p>
+                      )}
+                      {index === 0 && (
+                        <span
+                          className="inline-block bg-blue-100 text-blue-800 rounded-full"
+                          style={{
+                            fontSize: '10px',
+                            padding: '2px 8px',
+                            marginTop: '4px',
+                          }}
+                        >
+                          Predeterminada
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p
+                  className="text-gray-500"
+                  style={{
+                    fontSize: '14px',
+                  }}
+                >
+                  No hay direcciones guardadas
+                </p>
+              )}
             </div>
           </ExpandableCard>
         </div>

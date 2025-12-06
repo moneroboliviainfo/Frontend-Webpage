@@ -13,12 +13,27 @@ export interface UserAddress {
   };
 }
 
+export interface ClientOrder {
+  id: number;
+  type: string;
+  status: 'expired' | 'pending' | 'paid' | 'sent';
+  payment_type: string;
+  enabled: boolean;
+  shipment_price: number;
+  totalPrice: string;
+  address_data: unknown;
+  dhl_code: string | null;
+  expiresAt: string;
+  createdAt: string | null;
+}
+
 export interface Client {
   clientId: string;
   name: string;
   email: string;
   address?: UserAddress[];
   phone?: string;
+  orders?: ClientOrder[];
   // Add more fields as needed
 }
 
