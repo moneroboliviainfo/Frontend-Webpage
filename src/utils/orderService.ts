@@ -3,6 +3,8 @@ import { AuthStorage } from './authStorage';
 
 interface CreateOrderRequest {
   items: string; // cart token
+  name: string;
+  phone: string;
   shipment: number;
   address: number;
 }
