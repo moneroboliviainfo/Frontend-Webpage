@@ -1,14 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { API_URL } from '@/config/env';
 import { calculatePrice } from '@/utils/price';
 import { Product } from '@/components/ProductsGallery';
-
-type SearchsResult = Array<{
-  id: number;
-  name: string;
-  count?: number;
-  gender?: string;
-}>;
+import type { RootState } from '@/store/store';
 
 export type InterestItem = {
   id: number;
@@ -21,6 +16,11 @@ export type InterestItem = {
 export default function useInterestRecommendations(gender?: string, limit = 8) {
   const [items, setItems] = useState<InterestItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Get search recommendations from Redux
+  const searchRecommendations = useSelector(
+    (state: RootState) => state.clothing.searchRecommendations
+  );
 
   useEffect(() => {
     if (!gender) {
@@ -36,12 +36,10 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
     async function load() {
       setLoading(true);
       try {
-        // first call to get category-like search hints
-        const resp = await fetch(
-          `${API_URL}searchs?type=${encodeURIComponent(String(gender))}`
+        // Use search recommendations from Redux instead of fetching
+        const searchs = searchRecommendations.filter(
+          (s) => !gender || s.gender === gender
         );
-        if (!resp.ok) throw new Error('searchs failed');
-        const searchs: SearchsResult = await resp.json();
 
         for (const s of searchs) {
           if (!mounted) break;
@@ -107,7 +105,7 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
     return () => {
       mounted = false;
     };
-  }, [gender, limit]);
+  }, [gender, limit, searchRecommendations]);
 
   return { items, loading };
 }

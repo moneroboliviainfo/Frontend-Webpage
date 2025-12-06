@@ -49,6 +49,13 @@ export interface MostSearchedItem {
   searchCount: number;
 }
 
+export interface SearchRecommendation {
+  id: number;
+  name: string;
+  count?: number;
+  gender?: string;
+}
+
 // Outfit type matching actual API response
 export interface Outfit {
   id: number;
@@ -70,12 +77,14 @@ interface ClothingState {
   legacyCategories: LegacyCategory[];
   subcategories: LegacySubcategory[];
   mostSearched: MostSearchedItem[];
+  searchRecommendations: SearchRecommendation[];
   loading: boolean;
   error: string | null;
   // Loading states for different data types
   slidersLoading: boolean;
   categoriesLoading: boolean;
   outfitsLoading: boolean;
+  searchRecommendationsLoading: boolean;
 }
 
 const initialState: ClothingState = {
@@ -86,12 +95,14 @@ const initialState: ClothingState = {
   legacyCategories: [],
   subcategories: [],
   mostSearched: [],
+  searchRecommendations: [],
   loading: false,
   error: null,
   // Loading states for different data types
   slidersLoading: false,
   categoriesLoading: false,
   outfitsLoading: false,
+  searchRecommendationsLoading: false,
 };
 
 // Async thunk to fetch sliders
@@ -145,6 +156,19 @@ export const fetchMostSearched = createAsyncThunk(
     }
     // Expected response: MostSearchedItem[] or { mostSearched: MostSearchedItem[] }
     return response.json();
+  }
+);
+
+// Async thunk to fetch search recommendations
+export const fetchSearchRecommendations = createAsyncThunk(
+  'clothing/fetchSearchRecommendations',
+  async (gender: 'male' | 'female') => {
+    const url = `${API_URL}searchs?type=${encodeURIComponent(gender)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch search recommendations');
+    }
+    return response.json() as Promise<SearchRecommendation[]>;
   }
 );
 
@@ -222,6 +246,20 @@ const clothingSlice = createSlice({
         state.loading = false;
         state.error =
           action.error.message || 'Failed to fetch most searched items';
+      })
+      // Search recommendations
+      .addCase(fetchSearchRecommendations.pending, (state) => {
+        state.searchRecommendationsLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchSearchRecommendations.fulfilled, (state, action) => {
+        state.searchRecommendations = action.payload;
+        state.searchRecommendationsLoading = false;
+      })
+      .addCase(fetchSearchRecommendations.rejected, (state, action) => {
+        state.searchRecommendationsLoading = false;
+        state.error =
+          action.error.message || 'Failed to fetch search recommendations';
       });
   },
 });

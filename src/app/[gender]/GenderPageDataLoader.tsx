@@ -8,6 +8,7 @@ import {
   fetchSliders,
   fetchCategories,
   fetchOutfits,
+  fetchSearchRecommendations,
 } from '@/store/clothingSlice';
 
 interface GenderPageDataLoaderProps {
@@ -37,6 +38,7 @@ const GenderPageDataLoader: React.FC<GenderPageDataLoaderProps> = ({
     sliders: new Set<string>(),
     categories: new Set<string>(),
     outfits: new Set<string>(),
+    searchRecommendations: new Set<string>(),
   });
 
   // Convert gender string to API format
@@ -96,6 +98,12 @@ const GenderPageDataLoader: React.FC<GenderPageDataLoaderProps> = ({
       currentHasCategoryData
     ) {
       setHasInitialized(true);
+    }
+
+    // Load search recommendations (only once for male gender)
+    if (!dispatchedRef.current.searchRecommendations.has('male')) {
+      dispatch(fetchSearchRecommendations('male'));
+      dispatchedRef.current.searchRecommendations.add('male');
     }
 
     // Load outfits after a short delay (lower priority)

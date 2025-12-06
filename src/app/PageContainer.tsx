@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import GalleryTile from '@/components/GalleryTile';
 import Image from 'next/image';
@@ -49,6 +49,10 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   // Map interaction state
   const [isMapInteracted, setIsMapInteracted] = React.useState(false);
 
+  // Most searched term state
+  const [mostSearchedTerm, setMostSearchedTerm] =
+    useState<string>('most-searched');
+
   // Get outfits from Redux store
   const allOutfits = useSelector((state: RootState) => state.clothing.outfits);
 
@@ -90,6 +94,25 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
 
   // Recommendations for "Te podría interesar"
   const { items: interestItems } = useInterestRecommendations(apiGender);
+
+  // Get search recommendations from Redux
+  const searchRecommendations = useSelector(
+    (state: RootState) => state.clothing.searchRecommendations
+  );
+
+  // Update most searched term when Redux data changes
+  useEffect(() => {
+    if (searchRecommendations.length > 0) {
+      // Filter by male gender and get the first result
+      const maleSearches = searchRecommendations.filter(
+        (s) => s.gender === CLOTHING_API_CONSTANTS.GENDERS.MALE
+      );
+
+      if (maleSearches.length > 0 && maleSearches[0].name) {
+        setMostSearchedTerm(maleSearches[0].name);
+      }
+    }
+  }, [searchRecommendations]);
 
   return (
     <React.Fragment>
@@ -231,7 +254,9 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           title="LO MÁS BUSCADO"
           subtitle="Moda Másculina"
           buttonText="Comprar"
-          buttonUrl="/men/results?search=most-searched"
+          buttonUrl={`/men/results?search=${encodeURIComponent(
+            mostSearchedTerm
+          )}`}
           mobileImage="/images/monero-model-ver.jpg"
           desktopImage1="/images/monero-model-hor-1.jpg"
           desktopImage2="/images/monero-model-hor-2.jpg"
