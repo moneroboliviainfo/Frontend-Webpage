@@ -48,6 +48,12 @@ const ProfileNavBarDialog: React.FC<{
     setOpen(false);
   };
 
+  // Get orders and addresses from authenticated user - with safe fallbacks
+  const orders: Order[] =
+    client?.orders && Array.isArray(client.orders) ? client.orders : [];
+  const savedAddresses =
+    client?.address && Array.isArray(client.address) ? client.address : [];
+
   // If user is not logged in, show only Google login button
   if (!client) {
     return (
@@ -63,10 +69,6 @@ const ProfileNavBarDialog: React.FC<{
       </NavBarDialog>
     );
   }
-
-  // Get orders and addresses from authenticated user
-  const orders: Order[] = client?.orders || [];
-  const savedAddresses = client?.address || [];
 
   // Helper function to get status label
   const getOrderStatusLabel = (status: Order['status']): string => {
