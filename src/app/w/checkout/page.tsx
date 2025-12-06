@@ -26,7 +26,11 @@ import {
   selectCartToken,
   type Place,
 } from '@/store/checkoutSlice';
-import { createAddress } from '@/utils/addressService';
+import {
+  createAddress,
+  formatAddressLabel,
+  normalizePlaceName,
+} from '@/utils/addressService';
 import { getCart } from '@/utils/cartStorage';
 import {
   createBackendCart,
@@ -155,14 +159,6 @@ const CheckoutPage: React.FC = () => {
     postalCode: '',
   });
 
-  // Helper function to normalize place names
-  const normalizePlaceName = (place: string): string => {
-    return place
-      .split('_')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
   // Helper function to populate form with address data
   const populateFormWithAddress = useCallback((address: UserAddress) => {
     const placeName = normalizePlaceName(address.place.place);
@@ -238,9 +234,7 @@ const CheckoutPage: React.FC = () => {
 
   // Helper function to generate address label (first 2 words of address)
   const getAddressLabel = (address: UserAddress): string => {
-    const addressWords = address.address.split(' ').slice(0, 2).join(' ');
-    const placeName = normalizePlaceName(address.place.place);
-    return `${addressWords} - ${placeName}`;
+    return formatAddressLabel(address.address, address.place.place);
   };
 
   // Handle address dropdown selection
@@ -700,6 +694,8 @@ const CheckoutPage: React.FC = () => {
       // Step 1: Create the order
       const orderResponse = await createOrder({
         items: cartToken,
+        name: formData.name,
+        phone: `${formData.countryCode}${formData.phone}`,
         shipment: selectedShipment.id,
         address: addressId,
       });

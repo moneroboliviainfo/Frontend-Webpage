@@ -74,6 +74,8 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
       // Step 1: Create the order
       const orderResponse = await createOrder({
         items: cartToken,
+        name: formData.name,
+        phone: `${formData.countryCode}${formData.phone}`,
         shipment: selectedShipment.id,
         address: addressId,
       });
