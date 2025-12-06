@@ -233,6 +233,32 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
           <span ref={progressContent}></span>
         </div>
       </Swiper>
+
+      {/* API Slider Labels - positioned above pagination dots */}
+      {currentSlide && isApiSlide(currentSlide) && (
+        <div className="absolute bottom-16 left-0 w-full flex flex-col items-center z-10 pointer-events-none">
+          <div
+            className="text-center max-w-lg"
+            style={{ paddingLeft: '1rem', paddingRight: '1rem' }}
+          >
+            {/* Button text - smaller, on top */}
+            <div
+              className="text-white text-sm md:text-lg lg:text-xl font-medium drop-shadow-lg mb-1 opacity-90"
+              style={{ marginBottom: '1rem' }}
+            >
+              {currentSlide.button_text}
+            </div>
+            {/* Name - larger, below button text */}
+            <div
+              className="text-white text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold drop-shadow-lg leading-tight"
+              style={{ marginBottom: '1rem' }}
+            >
+              {currentSlide.name}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showNews && !isLoadingAd && advertisement && advertisement.enabled && (
         <NewsRoulette messages={[advertisement.text]} />
       )}
