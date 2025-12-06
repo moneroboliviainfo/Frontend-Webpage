@@ -85,21 +85,28 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
     : 0;
   const finalDeliveryCost = deliveryCostFromRedux || deliveryCost;
   const formatDeliveryDetails = () => {
+    const price = selectedShipment ? parseFloat(selectedShipment.price) : 0;
+    const priceText = price > 0 ? `Bs. ${price.toFixed(2)}` : '';
+
     if (selectedCountry === 'Bolivia') {
       switch (selectedDeliveryMethod) {
         case 'Envío a terminal':
-          return 'Recibelo en 24 horas - Bs. 30';
+          return `Recíbelo por encomienda${priceText ? ` - ${priceText}` : ''}`;
         case 'Envío a domicilio':
-          return 'Recibelo en 48 horas - Bs. 50';
+          return `Recíbelo en casa ${priceText ? ` - ${priceText}` : ''}`;
         case 'Envío a provincia':
-          return 'Recibelo en 72 horas - Bs. 50';
+          return `Recíbelo por encomienda${priceText ? ` - ${priceText}` : ''}`;
         case 'Envío por avión':
-          return 'Recibelo lo más pronto posible hasta su domicilio - Bs. 60';
+          return `Recógelo lo más pronto posible${
+            priceText ? ` - ${priceText}` : ''
+          }`;
         default:
-          return '';
+          return priceText;
       }
     } else {
-      return 'Tiempo y costo determinado por DHL';
+      return `Tiempo y costo determinado por DHL${
+        priceText ? ` - ${priceText}` : ''
+      }`;
     }
   };
 
