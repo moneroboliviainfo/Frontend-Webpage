@@ -47,6 +47,12 @@ export const createOrder = async (
 export const generateQR = async (
   orderId: number
 ): Promise<GenerateQRResponse> => {
+  // Temporarily disabled - backend work in progress
+  throw new Error(
+    'La generación de código QR está temporalmente deshabilitada. Por favor, intenta otro método de pago.'
+  );
+
+  /* Disabled until backend is ready
   const token = AuthStorage.getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -70,4 +76,5 @@ export const generateQR = async (
   }
 
   return response.json();
+  */
 };
