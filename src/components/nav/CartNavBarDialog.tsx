@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import NavBarDialog from './NavBarDialog';
 import useIsMobile from '@/hooks/useIsMobile';
 import {
@@ -8,11 +9,13 @@ import {
   removeFromCart,
 } from '@/utils/cartStorage';
 import type { CartItem } from '@/types/cart';
+import buildProductSlug from '@/utils/buildProductSlug';
 
 const CartNavBarDialog: React.FC<{
   open: boolean;
   setOpen: (open: boolean) => void;
 }> = ({ open, setOpen }) => {
+  const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [removedItems, setRemovedItems] = useState<{ [key: string]: boolean }>(
     {}
@@ -169,6 +172,19 @@ const CartNavBarDialog: React.FC<{
                       width: '50%',
                       paddingRight: '1rem',
                       height: '100%',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => {
+                      const slug = buildProductSlug(
+                        item.productName,
+                        item.productId
+                      );
+                      setOpen(false);
+                      router.push(
+                        `/w/${encodeURIComponent(
+                          slug
+                        )}?colorCode=${encodeURIComponent(item.colorCode)}`
+                      );
                     }}
                   >
                     {item.imageUrl ? (

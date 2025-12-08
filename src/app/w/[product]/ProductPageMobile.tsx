@@ -37,6 +37,7 @@ type Props = {
   currentProductIndex?: number; // Current product index
   onProductChange?: (index: number) => void; // Callback when product changes
   enableSwipeNavigation?: boolean;
+  initialColorCode?: string; // Color code from query parameter
 };
 
 const ProductPageMobile: React.FC<Props> = ({
@@ -45,6 +46,7 @@ const ProductPageMobile: React.FC<Props> = ({
   currentProductIndex = 0,
   onProductChange,
   enableSwipeNavigation = true,
+  initialColorCode,
 }) => {
   const [showVideo, setShowVideo] = useState(false);
   // Helper function to check if a color has any available sizes
@@ -61,8 +63,21 @@ const ProductPageMobile: React.FC<Props> = ({
     return productDetails.colorsWithSizes[selectedColorIndex]?.sizes || [];
   };
 
-  // selected color index (first color selected by default)
-  const [selectedColorIndex, setSelectedColorIndex] = useState<number>(0);
+  // Find initial color index based on colorCode prop
+  const getInitialColorIndex = () => {
+    if (initialColorCode && productDetails.colorsWithSizes.length > 0) {
+      const index = productDetails.colorsWithSizes.findIndex(
+        (colorData) => colorData.color === initialColorCode
+      );
+      return index >= 0 ? index : 0;
+    }
+    return 0;
+  };
+
+  // selected color index (first color or matched color selected by default)
+  const [selectedColorIndex, setSelectedColorIndex] = useState<number>(() =>
+    getInitialColorIndex()
+  );
   // selected size index (no size selected by default)
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
     null
@@ -200,6 +215,23 @@ const ProductPageMobile: React.FC<Props> = ({
     }, 0);
     return () => clearTimeout(t);
   }, [productDetails.description, sheetExpanded]);
+
+  // Slide to the correct image when initial color code is provided
+  useEffect(() => {
+    if (initialColorCode && sliderControlsRef.current) {
+      const colorIndex = productDetails.colorsWithSizes.findIndex(
+        (colorData) => colorData.color === initialColorCode
+      );
+      if (colorIndex >= 0) {
+        const colorData = productDetails.colorsWithSizes[colorIndex];
+        const slideIndex = colorData.firstMultimediaIndex ?? 0;
+        // Small delay to ensure slider is ready
+        setTimeout(() => {
+          sliderControlsRef.current?.slideTo(slideIndex);
+        }, 100);
+      }
+    }
+  }, [initialColorCode, productDetails.colorsWithSizes]);
 
   return (
     <div

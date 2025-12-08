@@ -4,7 +4,7 @@ import useIsMobile from '@/hooks/useIsMobile';
 import React, { useState, useEffect } from 'react';
 import { calculatePrice, DiscountShape } from '@/utils/price';
 import buildProductSlug from '@/utils/buildProductSlug';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import ProductPageMobile from './ProductPageMobile';
 import ProductPageDesktop from './ProductPageDesktop';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
@@ -219,11 +219,14 @@ const ProductPage = () => {
   const isMobile = useIsMobile();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
 
   const currentSlug = Array.isArray(params?.product)
     ? params.product[0]
     : params?.product || '';
 
+  // Get colorCode from query parameters
+  const colorCode = searchParams.get('colorCode') || undefined;
   const getCurrentProductIndex = () => {
     const index = allProductsData.findIndex(
       (product) =>
@@ -324,9 +327,13 @@ const ProductPage = () => {
               currentProductIndex={currentProductIndex}
               onProductChange={handleProductChange}
               enableSwipeNavigation={false}
+              initialColorCode={colorCode}
             />
           ) : (
-            <ProductPageDesktop productDetails={currentProduct} />
+            <ProductPageDesktop
+              productDetails={currentProduct}
+              initialColorCode={colorCode}
+            />
           )}
         </>
       )}

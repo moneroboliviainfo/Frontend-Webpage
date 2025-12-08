@@ -31,10 +31,27 @@ type ProductDetails = {
 
 type Props = {
   productDetails: ProductDetails;
+  initialColorCode?: string;
 };
 
-const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
-  const [selectedColorIndex, setSelectedColorIndex] = useState<number>(0);
+const ProductPageDesktop: React.FC<Props> = ({
+  productDetails,
+  initialColorCode,
+}) => {
+  // Find initial color index based on colorCode prop
+  const getInitialColorIndex = () => {
+    if (initialColorCode && productDetails.colorsWithSizes.length > 0) {
+      const index = productDetails.colorsWithSizes.findIndex(
+        (colorData) => colorData.color === initialColorCode
+      );
+      return index >= 0 ? index : 0;
+    }
+    return 0;
+  };
+
+  const [selectedColorIndex, setSelectedColorIndex] = useState<number>(() =>
+    getInitialColorIndex()
+  );
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
     null
   );
@@ -58,6 +75,35 @@ const ProductPageDesktop: React.FC<Props> = ({ productDetails }) => {
     }, 0);
     return () => clearTimeout(t);
   }, [productDetails.description]);
+
+  // Scroll to the correct image when initial color code is provided
+  useEffect(() => {
+    if (initialColorCode) {
+      const colorIndex = productDetails.colorsWithSizes.findIndex(
+        (colorData) => colorData.color === initialColorCode
+      );
+      if (colorIndex >= 0) {
+        const index =
+          productDetails.colorsWithSizes[colorIndex]?.firstMultimediaIndex;
+        if (typeof index === 'number') {
+          // Delay to ensure DOM is ready
+          setTimeout(() => {
+            try {
+              const el = document.getElementById(`product-image-${index}`);
+              if (el) {
+                el.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center',
+                });
+              }
+            } catch {
+              // ignore
+            }
+          }, 300);
+        }
+      }
+    }
+  }, [initialColorCode, productDetails.colorsWithSizes]);
 
   const isColorAvailable = (colorIndex: number) => {
     return (
