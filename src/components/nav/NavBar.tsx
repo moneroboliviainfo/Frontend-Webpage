@@ -40,6 +40,12 @@ export default function NavBar({
   const client = useSelector(selectClient);
   const clientName = client?.name || null;
   const pathname = usePathname();
+  const [gender, setGender] = useState<string>('men'); // Default to 'men' for SSR
+
+  // Hydrate gender from localStorage after mount
+  useEffect(() => {
+    setGender(GenderStorage.getGender());
+  }, []);
 
   // Load cart count from localStorage
   useEffect(() => {
@@ -153,7 +159,7 @@ export default function NavBar({
             iconsStrokeWidth={iconsStrokeWidth}
           />
           <Link
-            href={`/${GenderStorage.getGender()}`}
+            href={`/${gender}`}
             className="text-xl md:text-3xl font-extrabold tracking-widest select-none cursor-pointer hover:opacity-80 transition-opacity"
           >
             MONERO
@@ -170,7 +176,7 @@ export default function NavBar({
               </NavBarLink>
             )}
             <NavBarLink
-              href={`/${GenderStorage.getGender()}/about_us`}
+              href={`/${gender}/about_us`}
               active={pathname.includes('/about_us')}
             >
               SOBRE NOSOTROS
