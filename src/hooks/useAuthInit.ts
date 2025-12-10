@@ -9,6 +9,14 @@ export const useAuthInit = () => {
 
   useEffect(() => {
     const initializeAuth = async () => {
+      // Don't run on auth callback page - let the callback handle it
+      if (
+        typeof window !== 'undefined' &&
+        window.location.pathname === '/auth/callback'
+      ) {
+        return;
+      }
+
       const token = AuthStorage.getToken();
 
       if (!token) return;

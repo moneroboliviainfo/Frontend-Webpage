@@ -45,9 +45,12 @@ function AuthCallbackContent() {
                   name: profile.name ?? '',
                   email: profile.email ?? '',
                   address: Array.isArray(profile.address)
-                    ? JSON.stringify(profile.address)
-                    : profile.address ?? '',
+                    ? profile.address
+                    : undefined,
                   phone: profile.phone ?? undefined,
+                  orders: Array.isArray(profile.orders)
+                    ? profile.orders
+                    : undefined,
                 };
                 // Store client details in Redux
                 dispatch(setClient(client));
