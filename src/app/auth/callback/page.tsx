@@ -17,9 +17,11 @@ function AuthCallbackContent() {
       const code = searchParams.get('code');
       const error = searchParams.get('error');
 
+      // Get redirect URL before starting async operations
+      const redirectUrl = AuthStorage.getAndClearRedirectUrl();
+
       if (error) {
         console.error('OAuth error:', error);
-        const redirectUrl = AuthStorage.getAndClearRedirectUrl();
         router.push(redirectUrl);
         return;
       }
@@ -60,16 +62,20 @@ function AuthCallbackContent() {
             } catch (err) {
               console.error('Error fetching profile:', err);
             }
-          }
 
-          // Redirect to the original page
-          const redirectUrl = AuthStorage.getAndClearRedirectUrl();
-          router.push(redirectUrl);
+            // After exchange is complete, redirect to the stored URL
+            router.push(redirectUrl);
+          } else {
+            // No token received, redirect anyway
+            router.push(redirectUrl);
+          }
         } catch (error) {
           console.error('Error during token exchange:', error);
-          const redirectUrl = AuthStorage.getAndClearRedirectUrl();
           router.push(redirectUrl);
         }
+      } else {
+        // No code parameter, redirect to stored URL or home
+        router.push(redirectUrl);
       }
     };
 
