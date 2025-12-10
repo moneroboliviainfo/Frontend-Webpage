@@ -192,11 +192,27 @@ const CheckoutPage: React.FC = () => {
   // Populate form data with client information and addresses
   useEffect(() => {
     if (client) {
+      // Parse phone number to split country code and phone
+      let phoneNumber = '';
+      let countryCode = '+591'; // Default for Bolivia
+
+      if (client.phone) {
+        const phoneMatch = client.phone.match(/^(\+\d+)\s*(.*)$/);
+        if (phoneMatch) {
+          countryCode = phoneMatch[1]; // e.g., "+591", "+54", "+1", etc.
+          phoneNumber = phoneMatch[2]; // e.g., "79301442"
+        } else {
+          // If no country code in phone, use the entire phone as number
+          phoneNumber = client.phone;
+        }
+      }
+
       setFormData((prev) => ({
         ...prev,
         email: client.email || '',
         name: client.name || '',
-        phone: client.phone || '',
+        phone: phoneNumber,
+        countryCode: countryCode,
       }));
 
       // Populate user addresses if they exist
@@ -695,7 +711,7 @@ const CheckoutPage: React.FC = () => {
       const orderResponse = await createOrder({
         items: cartToken,
         name: formData.name,
-        phone: `${formData.countryCode}${formData.phone}`,
+        phone: `${formData.countryCode} ${formData.phone}`,
         shipment: selectedShipment.id,
         address: addressId,
       });
