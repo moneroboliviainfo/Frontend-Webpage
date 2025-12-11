@@ -108,7 +108,17 @@ export async function repriceCart(
   const data = await response.json();
 
   if (!response.ok) {
-    return data as RepriceErrorResponse;
+    // Parse variant IDs from message: "Insufficient stock for variants: [643, 644]"
+    let variants: number[] = [];
+    if (data.message && typeof data.message === 'string') {
+      const match = data.message.match(/\[(\d+(?:,\s*\d+)*)\]/);
+      if (match && match[1]) {
+        variants = match[1]
+          .split(',')
+          .map((id: string) => parseInt(id.trim(), 10));
+      }
+    }
+    return { ...data, variants } as RepriceErrorResponse;
   }
 
   return data as RepriceSuccessResponse;

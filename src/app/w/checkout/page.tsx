@@ -32,6 +32,7 @@ import {
   normalizePlaceName,
 } from '@/utils/addressService';
 import { getCart } from '@/utils/cartStorage';
+import { clearCart } from '@/utils/cartStorage';
 import {
   createBackendCart,
   repriceCart,
@@ -107,6 +108,7 @@ const CheckoutPage: React.FC = () => {
   const [showInsufficientStockModal, setShowInsufficientStockModal] =
     useState(false);
   const [outOfStockItems, setOutOfStockItems] = useState<CartItem[]>([]);
+  const [availableItems, setAvailableItems] = useState<CartItem[]>([]);
   const [hasRemainingItems, setHasRemainingItems] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -367,6 +369,7 @@ const CheckoutPage: React.FC = () => {
           );
 
           setOutOfStockItems(outOfStockCartItems);
+          setAvailableItems(availableItems);
           setHasRemainingItems(availableItems.length > 0);
           setShowInsufficientStockModal(true);
           setIsValidatingCart(false);
@@ -399,67 +402,21 @@ const CheckoutPage: React.FC = () => {
   }, [router, dispatch]);
 
   // Handle proceeding without out-of-stock items
-  const handleProceedWithoutOutOfStock = async () => {
-    try {
-      setShowInsufficientStockModal(false);
-      setIsValidatingCart(true);
+  const handleProceedWithoutOutOfStock = () => {
+    // Remove out of stock items from cart
+    const outOfStockVariantIds = outOfStockItems.map((item) => item.variantId);
+    removeOutOfStockVariants(outOfStockVariantIds);
 
-      // Remove out of stock items
-      const outOfStockVariantIds = outOfStockItems.map(
-        (item) => item.variantId
-      );
-      removeOutOfStockVariants(outOfStockVariantIds);
+    // Close modal and reload page to restart validation flow
+    setShowInsufficientStockModal(false);
+    window.location.reload();
+  };
 
-      // Get updated cart
-      const updatedCart = getCart();
-
-      if (updatedCart.items.length === 0) {
-        router.push('/');
-        return;
-      }
-
-      // Recreate cart with remaining items
-      const cartApiRequest = {
-        items: updatedCart.items.map((item) => ({
-          variantId: item.variantId,
-          quantity: item.quantity,
-        })),
-      };
-
-      const cartResponse = await createBackendCart(cartApiRequest.items);
-
-      const repriceResponse = await repriceCart(cartResponse.token);
-
-      if (isRepriceError(repriceResponse)) {
-        // If still issues, show error
-        setIsValidatingCart(false);
-        setErrorMessage(
-          'Unable to process remaining items. Please try again or contact support.'
-        );
-        setShowErrorModal(true);
-      } else {
-        // Success: Update cart and continue
-        updateCartWithRepriceData(repriceResponse);
-
-        // Load updated cart from localStorage and dispatch to Redux
-        const updatedCart = getCart();
-        dispatch(setCheckoutCartItems(updatedCart.items));
-        dispatch(setRepriceDataRedux(repriceResponse));
-
-        // Store cart token in Redux
-        dispatch(setCartToken(cartResponse.token));
-        // Store reprice data for local state (can be removed later)
-        setRepriceData(repriceResponse);
-        setIsValidatingCart(false);
-      }
-    } catch (error) {
-      console.error('Error proceeding without out-of-stock items:', error);
-      setIsValidatingCart(false);
-      setErrorMessage(
-        'An error occurred while updating your cart. Please try again.'
-      );
-      setShowErrorModal(true);
-    }
+  // Handle canceling purchase - clear cart and go to gender page
+  const handleCancelPurchase = () => {
+    clearCart();
+    const lastGender = GenderStorage.getGender();
+    router.push(`/${lastGender}`);
   };
 
   // Handle going to homepage
@@ -782,9 +739,10 @@ const CheckoutPage: React.FC = () => {
       <InsufficientStockModal
         isOpen={showInsufficientStockModal}
         outOfStockItems={outOfStockItems}
+        availableItems={availableItems}
         hasRemainingItems={hasRemainingItems}
         onProceed={handleProceedWithoutOutOfStock}
-        onGoHome={handleGoToHomepage}
+        onCancel={handleCancelPurchase}
       />
 
       {/* Authentication Guard */}
