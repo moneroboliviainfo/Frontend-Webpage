@@ -32,6 +32,9 @@ const CartNavBarDialog: React.FC<{
     const loadCart = () => {
       const cart = getCart();
       setCartItems(cart.items);
+
+      // Reset removed items when cart is reloaded to avoid stale state
+      setRemovedItems({});
     };
 
     loadCart();

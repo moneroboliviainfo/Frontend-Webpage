@@ -766,6 +766,9 @@ const ProductPageMobile: React.FC<Props> = ({
                             cartItem,
                           });
 
+                          // Dispatch custom event to notify cart dialog to update
+                          window.dispatchEvent(new Event('cartUpdated'));
+
                           // Auto-hide after 5 seconds
                           setTimeout(() => {
                             setBasketConfirmation(null);
