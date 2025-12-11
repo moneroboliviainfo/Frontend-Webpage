@@ -1,9 +1,17 @@
 'use client';
 import BasketConfirmation from '@/components/BasketConfirmation';
+import AccessoriesSlider from '@/components/AccessoriesSlider';
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { addToCart } from '@/utils/cartStorage';
 import type { CartItem } from '@/types/cart';
+import {
+  extractProductsFromCategory,
+  ACCESSORIES_CATEGORY_IDS,
+  type CategoryResponse,
+} from '@/utils/categoryProducts';
+import { Product } from '@/components/ProductsGallery';
+import { API_URL } from '@/config/env';
 
 type ProductDetails = {
   multimedia: Array<{ image: string; label: string }>;
@@ -27,6 +35,7 @@ type ProductDetails = {
   description: string;
   sizeGuidePdf?: string | null;
   sizeGuideVideo?: string | null;
+  gender?: 'male' | 'female';
 };
 
 type Props = {
@@ -61,11 +70,14 @@ const ProductPageDesktop: React.FC<Props> = ({
   } | null>(null);
 
   const [showVideo, setShowVideo] = useState(false);
+  const [accessories, setAccessories] = useState<Product[]>([]);
+  const accessoriesFetchedRef = useRef(false);
 
   // Description modal + overflow detection
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
   const [descOverflow, setDescOverflow] = useState(false);
   const descRef = useRef<HTMLDivElement | null>(null);
+  const detailsSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const el = descRef.current;
@@ -75,6 +87,32 @@ const ProductPageDesktop: React.FC<Props> = ({
     }, 0);
     return () => clearTimeout(t);
   }, [productDetails.description]);
+
+  // Fetch accessories based on product gender
+  useEffect(() => {
+    if (!productDetails.gender || accessoriesFetchedRef.current) return;
+
+    const fetchAccessories = async () => {
+      try {
+        accessoriesFetchedRef.current = true;
+        const categoryId =
+          productDetails.gender === 'male'
+            ? ACCESSORIES_CATEGORY_IDS.men
+            : ACCESSORIES_CATEGORY_IDS.women;
+
+        const response = await fetch(`${API_URL}categories/${categoryId}`);
+        if (!response.ok) return;
+
+        const categoryData: CategoryResponse = await response.json();
+        const products = extractProductsFromCategory(categoryData);
+        setAccessories(products);
+      } catch (error) {
+        console.error('Error fetching accessories:', error);
+      }
+    };
+
+    fetchAccessories();
+  }, [productDetails.gender]);
 
   // Scroll to the correct image when initial color code is provided
   useEffect(() => {
@@ -115,6 +153,48 @@ const ProductPageDesktop: React.FC<Props> = ({
 
   const getCurrentSizes = () => {
     return productDetails.colorsWithSizes[selectedColorIndex]?.sizes || [];
+  };
+
+  const handleAddAccessoryToCart = (
+    productId: number,
+    productName: string,
+    colorId: number,
+    colorCode: string,
+    colorName: string,
+    sizeId: number,
+    sizeName: string,
+    price: number,
+    discount: number,
+    finalPrice: number,
+    imageUrl: string
+  ) => {
+    // Add to cart
+    const cartItem = addToCart({
+      productId,
+      productName,
+      variantId: colorId,
+      sizeName,
+      price,
+      discount,
+      finalPrice,
+      imageUrl,
+      colorCode,
+      colorName,
+    });
+
+    // Show basket confirmation
+    setBasketConfirmation({
+      show: true,
+      cartItem,
+    });
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      setBasketConfirmation(null);
+    }, 5000);
+
+    // Dispatch custom event to notify cart dialog to update
+    window.dispatchEvent(new Event('cartUpdated'));
   };
 
   return (
@@ -284,6 +364,7 @@ const ProductPageDesktop: React.FC<Props> = ({
 
         {/* Right section: Product Details (34% width) */}
         <div
+          ref={detailsSectionRef}
           className="fixed right-0 bottom-0 bg-white details-section"
           style={{
             width: '34%',
@@ -451,12 +532,30 @@ const ProductPageDesktop: React.FC<Props> = ({
                     onClick={() => {
                       if (isAvailable) {
                         setSelectedSizeIndex(i);
+                        // Scroll to bottom to show "Añadir al carrito" button
+                        setTimeout(() => {
+                          if (detailsSectionRef.current) {
+                            detailsSectionRef.current.scrollTo({
+                              top: detailsSectionRef.current.scrollHeight,
+                              behavior: 'smooth',
+                            });
+                          }
+                        }, 100);
                       }
                     }}
                     onKeyDown={(e) => {
                       if (isAvailable && (e.key === 'Enter' || e.key === ' ')) {
                         e.preventDefault();
                         setSelectedSizeIndex(i);
+                        // Scroll to bottom to show "Añadir al carrito" button
+                        setTimeout(() => {
+                          if (detailsSectionRef.current) {
+                            detailsSectionRef.current.scrollTo({
+                              top: detailsSectionRef.current.scrollHeight,
+                              behavior: 'smooth',
+                            });
+                          }
+                        }, 100);
                       }
                     }}
                     style={{
@@ -511,6 +610,16 @@ const ProductPageDesktop: React.FC<Props> = ({
               </span>
             </div>
           </div>
+
+          {/* Accessories Slider */}
+          {accessories.length > 0 && (
+            <div style={{ marginBottom: '2rem' }}>
+              <AccessoriesSlider
+                products={accessories}
+                onAddToCart={handleAddAccessoryToCart}
+              />
+            </div>
+          )}
 
           {/* Description section */}
           <div

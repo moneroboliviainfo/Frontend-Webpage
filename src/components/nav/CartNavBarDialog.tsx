@@ -39,6 +39,16 @@ const CartNavBarDialog: React.FC<{
     if (open) {
       loadCart();
     }
+
+    // Listen for cart updates from other components
+    const handleCartUpdate = () => {
+      loadCart();
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
   }, [open]);
 
   const getItemKey = (item: CartItem) => `${item.variantId}-${item.sizeName}`;

@@ -2,9 +2,17 @@
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BottomSheet from '@/components/BottomSheet/BottomSheet';
 import BasketConfirmation from '@/components/BasketConfirmation';
+import AccessoriesSlider from '@/components/AccessoriesSlider';
 import React, { useRef, useState, useEffect } from 'react';
 import { addToCart } from '@/utils/cartStorage';
 import type { CartItem } from '@/types/cart';
+import {
+  extractProductsFromCategory,
+  ACCESSORIES_CATEGORY_IDS,
+  type CategoryResponse,
+} from '@/utils/categoryProducts';
+import { Product } from '@/components/ProductsGallery';
+import { API_URL } from '@/config/env';
 
 type ProductDetails = {
   multimedia: Array<{ image: string; label: string }>;
@@ -29,6 +37,7 @@ type ProductDetails = {
   sizeGuidePdf?: string | null;
   sizeGuideVideo?: string | null;
   slug?: string;
+  gender?: 'male' | 'female';
 };
 
 type Props = {
@@ -98,6 +107,8 @@ const ProductPageMobile: React.FC<Props> = ({
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
   const [descOverflow, setDescOverflow] = useState(false);
   const descRef = useRef<HTMLDivElement | null>(null);
+  const [accessories, setAccessories] = useState<Product[]>([]);
+  const accessoriesFetchedRef = useRef(false);
   const [basketConfirmation, setBasketConfirmation] = useState<{
     show: boolean;
     cartItem: CartItem;
@@ -114,7 +125,21 @@ const ProductPageMobile: React.FC<Props> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Handle swipe start
-  const handleSwipeStart = (clientX: number, clientY: number) => {
+  const handleSwipeStart = (
+    clientX: number,
+    clientY: number,
+    event?: TouchEvent | MouseEvent
+  ) => {
+    // Check if touch started within AccessoriesSlider
+    if (event) {
+      const target = event.target as HTMLElement;
+      const accessoriesSlider = target.closest('.accessories-slider-container');
+      if (accessoriesSlider) {
+        // Touch started in AccessoriesSlider, don't handle horizontal swipes
+        return;
+      }
+    }
+
     // Check if touch is within BottomSheet area
     const containerHeight =
       containerRef.current?.offsetHeight || window.innerHeight * 0.8;
@@ -233,6 +258,74 @@ const ProductPageMobile: React.FC<Props> = ({
     }
   }, [initialColorCode, productDetails.colorsWithSizes]);
 
+  // Fetch accessories based on product gender
+  useEffect(() => {
+    if (!productDetails.gender || accessoriesFetchedRef.current) return;
+
+    const fetchAccessories = async () => {
+      try {
+        accessoriesFetchedRef.current = true;
+        const categoryId =
+          productDetails.gender === 'male'
+            ? ACCESSORIES_CATEGORY_IDS.men
+            : ACCESSORIES_CATEGORY_IDS.women;
+
+        const response = await fetch(`${API_URL}categories/${categoryId}`);
+        if (!response.ok) return;
+
+        const categoryData: CategoryResponse = await response.json();
+        const products = extractProductsFromCategory(categoryData);
+        setAccessories(products);
+      } catch (error) {
+        console.error('Error fetching accessories:', error);
+      }
+    };
+
+    fetchAccessories();
+  }, [productDetails.gender]);
+
+  const handleAddAccessoryToCart = (
+    productId: number,
+    productName: string,
+    colorId: number,
+    colorCode: string,
+    colorName: string,
+    sizeId: number,
+    sizeName: string,
+    price: number,
+    discount: number,
+    finalPrice: number,
+    imageUrl: string
+  ) => {
+    // Add to cart
+    const cartItem = addToCart({
+      productId,
+      productName,
+      variantId: colorId,
+      sizeName,
+      price,
+      discount,
+      finalPrice,
+      imageUrl,
+      colorCode,
+      colorName,
+    });
+
+    // Show basket confirmation
+    setBasketConfirmation({
+      show: true,
+      cartItem,
+    });
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      setBasketConfirmation(null);
+    }, 5000);
+
+    // Dispatch custom event to notify cart dialog to update
+    window.dispatchEvent(new Event('cartUpdated'));
+  };
+
   return (
     <div
       className="w-full"
@@ -246,13 +339,19 @@ const ProductPageMobile: React.FC<Props> = ({
         style={{ height: '100%' }}
         className="relative"
         onTouchStart={(e) =>
-          handleSwipeStart(e.touches[0].clientX, e.touches[0].clientY)
+          handleSwipeStart(
+            e.touches[0].clientX,
+            e.touches[0].clientY,
+            e.nativeEvent
+          )
         }
         onTouchMove={(e) =>
           handleSwipeMove(e.touches[0].clientX, e.touches[0].clientY)
         }
         onTouchEnd={handleSwipeEnd}
-        onMouseDown={(e) => handleSwipeStart(e.clientX, e.clientY)}
+        onMouseDown={(e) =>
+          handleSwipeStart(e.clientX, e.clientY, e.nativeEvent)
+        }
         onMouseMove={(e) =>
           e.buttons === 1 && handleSwipeMove(e.clientX, e.clientY)
         }
@@ -295,7 +394,7 @@ const ProductPageMobile: React.FC<Props> = ({
       <BottomSheet
         ref={bottomSheetRef}
         initialHeightVh={21}
-        expandedHeightVh={41}
+        expandedHeightVh={80}
         onExpandedChange={(expanded) => {
           setSheetExpanded(expanded);
           const el = document.getElementById('product-slider-container');
@@ -309,7 +408,7 @@ const ProductPageMobile: React.FC<Props> = ({
         <div
           className="w-full"
           style={{
-            height: sheetExpanded ? '35vh' : '20vh',
+            height: sheetExpanded ? '80vh' : '20vh',
             paddingTop: '0.1rem',
             paddingLeft: '0.7rem',
             paddingRight: '0.7rem',
@@ -715,6 +814,16 @@ const ProductPageMobile: React.FC<Props> = ({
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Accessories Slider - only visible when sheet is expanded */}
+          {sheetExpanded && accessories.length > 0 && (
+            <div style={{ marginTop: '1rem' }}>
+              <AccessoriesSlider
+                products={accessories}
+                onAddToCart={handleAddAccessoryToCart}
+              />
             </div>
           )}
 

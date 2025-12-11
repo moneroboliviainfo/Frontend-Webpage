@@ -36,6 +36,7 @@ type ProductDetails = {
   sizeGuidePdf?: string | null;
   sizeGuideVideo?: string | null;
   slug: string;
+  gender?: 'male' | 'female';
 };
 
 // Minimal demo products kept for navigation when API data not available
@@ -103,7 +104,12 @@ type ApiProduct = {
       availableStock?: number;
     }>;
   }>;
-  subcategory?: { videos?: string[] } | null;
+  subcategory?: {
+    videos?: string[];
+    category?: {
+      gender?: 'male' | 'female';
+    };
+  } | null;
 };
 
 function transformApiProduct(
@@ -198,6 +204,7 @@ function transformApiProduct(
 
   const description = api.description || '';
   const slug = slugFromUrl || buildProductSlug(name, productId);
+  const gender = api.subcategory?.category?.gender;
 
   return {
     multimedia,
@@ -212,6 +219,7 @@ function transformApiProduct(
     sizeGuidePdf,
     sizeGuideVideo,
     slug,
+    gender,
   };
 }
 

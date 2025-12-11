@@ -1,0 +1,348 @@
+/* Accessories Slider Container */
+.accessories-slider-container {
+  border-top: 1px solid #e5e7eb;
+  background-color: white;
+}
+
+.accessories-slider-wrapper {
+  padding: 0.75rem 1rem;
+}
+
+.accessories-slider-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.75rem;
+}
+
+.accessories-slider-with-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.accessories-slider-nav-button {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 24px;
+  color: #111827;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.accessories-slider-nav-button:hover {
+  background: #f9fafb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.accessories-slider-nav-button:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.accessories-slider-nav-left {
+  left: -20px;
+}
+
+.accessories-slider-nav-right {
+  right: -20px;
+}
+
+/* Show navigation buttons on desktop */
+@media (min-width: 768px) {
+  .accessories-slider-nav-button {
+    display: flex;
+  }
+}
+
+.accessories-slider-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.accessories-slider-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.accessories-slider-items {
+  display: flex;
+  gap: 0.75rem;
+  min-width: max-content;
+}
+
+/* Product Card */
+.accessory-card {
+  flex-shrink: 0;
+  width: 140px;
+}
+
+.accessory-card-inner {
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.accessory-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background-color: #f3f4f6;
+}
+
+.accessory-discount-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.accessory-info {
+  padding: 0.5rem;
+}
+
+.accessory-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.25rem;
+  min-height: 2.5rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.accessory-price-container {
+  margin-bottom: 0.5rem;
+}
+
+.accessory-price {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.accessory-original-price {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-decoration: line-through;
+}
+
+.accessory-size-button {
+  width: 100%;
+  background-color: #000;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.accessory-size-button:hover {
+  background-color: #1f2937;
+}
+
+/* Modal Overlay */
+.accessories-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.accessories-modal {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 28rem;
+  width: 100%;
+  margin: 0 1rem;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+/* Modal Header */
+.accessories-modal-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.accessories-modal-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.accessories-modal-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.accessories-modal-close {
+  color: #9ca3af;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.accessories-modal-close:hover {
+  color: #4b5563;
+}
+
+/* Modal Content */
+.accessories-modal-content {
+  padding: 1rem 1.5rem;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.accessories-modal-product-name {
+  margin-bottom: 1rem;
+}
+
+.accessories-modal-product-title {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.accessories-modal-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.accessories-modal-loading-text {
+  color: #6b7280;
+}
+
+.accessories-modal-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.accessories-modal-error-text {
+  color: #6b7280;
+}
+
+/* Color Selection */
+.accessories-color-section {
+  margin-bottom: 1rem;
+}
+
+.accessories-color-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.accessories-color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.accessories-color-button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.accessories-color-button.selected {
+  border-color: #000;
+  transform: scale(1.1);
+}
+
+.accessories-color-button:not(.selected) {
+  border-color: #d1d5db;
+}
+
+/* Size Selection */
+.accessories-size-section {
+  margin-bottom: 0;
+}
+
+.accessories-size-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.accessories-size-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.accessories-size-option {
+  padding: 0.75rem 1rem;
+  border: 1px solid;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.accessories-size-option.available {
+  background-color: white;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.accessories-size-option.available:hover {
+  border-color: #000;
+  background-color: #f9fafb;
+}
+
+.accessories-size-option.unavailable {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+}

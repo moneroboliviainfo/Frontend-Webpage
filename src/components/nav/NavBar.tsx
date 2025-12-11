@@ -57,7 +57,14 @@ export default function NavBar({
 
     // Listen for cart updates (when dialog closes or items change)
     const interval = setInterval(updateCartCount, 500);
-    return () => clearInterval(interval);
+
+    // Also listen for immediate cart update events
+    window.addEventListener('cartUpdated', updateCartCount);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('cartUpdated', updateCartCount);
+    };
   }, []);
 
   // Update cart count when cart dialog closes

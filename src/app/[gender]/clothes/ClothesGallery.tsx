@@ -4,6 +4,10 @@ import { useSearchParams } from 'next/navigation';
 import ProductsGallery, { Product } from '@/components/ProductsGallery';
 import ClothesPageNavBar from './ClothesPageNavBar';
 import { API_URL } from '@/config/env';
+import {
+  extractProductsFromCategory,
+  CategoryResponse,
+} from '@/utils/categoryProducts';
 
 interface Subcategory {
   id: number;
@@ -11,16 +15,6 @@ interface Subcategory {
   enabled: boolean;
   videos: string[];
   products: Product[];
-}
-
-interface CategoryResponse {
-  id: number;
-  name: string;
-  gender: 'male' | 'female';
-  displayOrder: number;
-  enabled: boolean;
-  image: string;
-  subcategories: Subcategory[];
 }
 
 export default function ClothesGallery() {
@@ -86,19 +80,7 @@ export default function ClothesGallery() {
 
   // Transform API data to get all products
   const allProducts = useMemo(() => {
-    if (!categoryData) return [];
-
-    const products: Product[] = [];
-    categoryData.subcategories.forEach((subcategory) => {
-      if (!subcategory.enabled) return;
-      subcategory.products.forEach((product) => {
-        if (product.enabled && product.productColors.length > 0) {
-          products.push(product);
-        }
-      });
-    });
-
-    return products;
+    return extractProductsFromCategory(categoryData);
   }, [categoryData]);
 
   // Pills (subcategories) logic
