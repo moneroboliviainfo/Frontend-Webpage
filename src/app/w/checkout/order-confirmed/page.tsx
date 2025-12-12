@@ -1,56 +1,194 @@
 'use client';
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import CheckoutCostSummary from '../CheckoutCostSummary';
 import DesktopCartSummary from '../DesktopCartSummary';
 import NavBar from '@/components/nav/NavBar';
+import { API_URL } from '@/config/env';
+import { GenderStorage } from '@/utils/genderStorage';
+import { AuthStorage } from '@/utils/authStorage';
+
+interface OrderItem {
+  id: number;
+  image: string;
+  name: string;
+  quantity: number;
+  color: string;
+  size: string;
+  price: number;
+}
+
+interface ApiOrderItem {
+  id: number;
+  quantity: number;
+  unit_price: string;
+  discountValue: number;
+  totalPrice: string;
+  variant?: {
+    id: number;
+    size?: {
+      id: number;
+      name: string;
+    };
+    productColor?: {
+      id: number;
+      multimedia: string[];
+      color?: {
+        id: number;
+        name: string;
+        code: string;
+      };
+    };
+  };
+}
+
+interface OrderData {
+  orderNumber: string;
+  selectedCountry: string;
+  selectedDeliveryMethod: string;
+  formData: {
+    name: string;
+    email: string;
+    phone: string;
+    countryCode: string;
+    country: string;
+    departamento: string;
+    cityProvince: string;
+    detailedAddress: string;
+    city: string;
+    streetNumber: string;
+    postalCode: string;
+  };
+}
 
 const OrderConfirmedContent: React.FC = () => {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId') || '12345678'; // Fallback to default if no orderId
+  const router = useRouter();
+  const orderId = searchParams.get('orderId');
 
-  // Mock order data - in real app this would come from URL params or API
-  const orderData = {
-    orderNumber: orderId,
-    selectedCountry: 'Bolivia',
-    selectedDeliveryMethod: 'Envío a terminal',
-    formData: {
-      name: 'Juan Pérez',
-      email: 'juan@example.com',
-      phone: '70123456',
-      countryCode: '+591',
-      country: 'Bolivia',
-      departamento: 'La Paz',
-      cityProvince: 'La Paz',
-      detailedAddress: 'Av. 6 de Agosto #123, Zona San Miguel',
-      city: '',
-      streetNumber: '',
-      postalCode: '',
-    },
-  };
+  const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const [cartItems, setCartItems] = useState<OrderItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string>('');
 
-  // Mock cart items with additional details
-  const cartItems = [
-    {
-      id: 1,
-      image: '/clothes/jacket-1.jpg',
-      name: 'Blue Jacket',
-      quantity: 1,
-      color: 'Azul',
-      size: 'M',
-      price: 29.99,
-    },
-    {
-      id: 2,
-      image: '/clothes/pants-1.jpg',
-      name: 'Black Pants',
-      quantity: 1,
-      color: 'Negro',
-      size: 'L',
-      price: 29.99,
-    },
-  ];
+  useEffect(() => {
+    const fetchOrderData = async () => {
+      if (!orderId) {
+        setError('No se encontró el ID del pedido');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const token = AuthStorage.getToken();
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_URL}customers/order/${orderId}`, {
+          headers,
+        });
+
+        if (!response.ok) {
+          throw new Error('No se pudo cargar la información del pedido');
+        }
+
+        const data = await response.json();
+
+        // Transform API data to match component structure
+        setOrderData({
+          orderNumber: data.id || orderId,
+          selectedCountry: data.address?.country || 'Bolivia',
+          selectedDeliveryMethod: data.shipment?.name || 'Envío a terminal',
+          formData: {
+            name: data.customer?.name || '',
+            email: data.customer?.email || '',
+            phone: data.customer?.phone || '',
+            countryCode: '+591',
+            country: data.address?.country || 'Bolivia',
+            departamento: '',
+            cityProvince: data.address?.city || '',
+            detailedAddress: data.address?.address || '',
+            city: data.address?.city || '',
+            streetNumber: data.address?.address || '',
+            postalCode: data.address?.postal_code || '',
+          },
+        });
+
+        // Transform cart items
+        if (data.items && Array.isArray(data.items)) {
+          const transformedItems = data.items.map((item: ApiOrderItem) => ({
+            id: item.id,
+            image:
+              item.variant?.productColor?.multimedia?.[0] ||
+              '/clothes/default.jpg',
+            name: 'Producto', // Product name not in API response
+            quantity: item.quantity || 1,
+            color: item.variant?.productColor?.color?.name || '',
+            size: item.variant?.size?.name || '',
+            price: parseFloat(item.unit_price) || 0,
+          }));
+          setCartItems(transformedItems);
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching order data:', error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : 'Error al cargar la información del pedido'
+        );
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrderData();
+  }, [orderId]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">
+            Cargando información del pedido...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !orderData) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <div className="text-red-500 mb-4" style={{ fontSize: '3rem' }}>
+            ⚠️
+          </div>
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">
+            Error al cargar el pedido
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => {
+              const lastGender = GenderStorage.getGender();
+              router.push(`/${lastGender}`);
+            }}
+            className="bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800"
+          >
+            Volver a la tienda
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const formatDeliveryAddress = () => {
     if (orderData.selectedCountry === 'Bolivia') {

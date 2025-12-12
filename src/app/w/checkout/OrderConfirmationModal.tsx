@@ -7,6 +7,7 @@ import { useAppSelector } from '@/store/hooks';
 import { GenderStorage } from '@/utils/genderStorage';
 import TermsAndConditions from '@/components/TermsAndConditions';
 import PrivacyPolicy from '@/components/PrivacyPolicy';
+import QRPaymentModal from '@/components/QRPaymentModal';
 import {
   selectSelectedShipment,
   selectAddressId,
@@ -53,12 +54,13 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
 
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [showQRPayment, setShowQRPayment] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
   const [qrImageBase64, setQrImageBase64] = useState<string>('');
+  const [qrGloss, setQrGloss] = useState<string>('');
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string>('');
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
   const handlePayOrder = async () => {
     if (!hasAcceptedTerms) return;
@@ -84,9 +86,10 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
       const qrResponse = await generateQR(orderResponse.id);
 
       // Step 3: Show QR payment modal
+      setCreatedOrderId(orderResponse.id);
       setQrImageBase64(qrResponse.qr);
+      setQrGloss(qrResponse.gloss || '');
       setShowQRPayment(true);
-      setTimeLeft(15 * 60); // Reset timer to 15 minutes
     } catch (error) {
       console.error('Error creating order or generating QR:', error);
       setOrderError(
@@ -99,35 +102,14 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     }
   };
 
-  // Countdown timer effect
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (showQRPayment && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
-            setShowQRPayment(false);
-            // TODO: Handle timeout - cancel order
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000);
+  const handlePaymentConfirmed = () => {
+    const orderId = createdOrderId;
+    setShowQRPayment(false);
+    setCreatedOrderId(null);
+    // Redirect to order confirmation page with order ID
+    if (orderId) {
+      router.push(`/order-confirmed?orderId=${orderId}`);
     }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [showQRPayment, timeLeft]);
-
-  // Format time display (MM:SS)
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds
-      .toString()
-      .padStart(2, '0')}`;
   };
 
   if (!isOpen) return null;
@@ -748,128 +730,15 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
       )}
 
       {/* QR Payment Popup */}
-      {showQRPayment && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-          style={{ zIndex: 60 }}
-        >
-          <div
-            className="bg-white rounded-lg flex flex-col items-center"
-            style={{
-              padding: '2rem',
-              maxWidth: '400px',
-              width: '90%',
-              maxHeight: '80vh',
-            }}
-          >
-            {/* Countdown Timer */}
-            <div
-              className="font-bold text-center"
-              style={{
-                fontSize: '2rem',
-                color: timeLeft < 300 ? '#ef4444' : '#374151', // Red if less than 5 minutes
-                marginBottom: '2rem',
-              }}
-            >
-              {formatTime(timeLeft)}
-            </div>
-
-            {/* QR Code */}
-            <div
-              className="flex items-center justify-center bg-white"
-              style={{
-                width: '250px',
-                height: '250px',
-                marginBottom: '1.5rem',
-              }}
-            >
-              {qrImageBase64 ? (
-                <Image
-                  src={`data:image/png;base64,${qrImageBase64}`}
-                  alt="QR Code for Payment"
-                  width={250}
-                  height={250}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                  }}
-                />
-              ) : (
-                <div className="text-center">
-                  <svg
-                    className="animate-spin"
-                    width="40"
-                    height="40"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    style={{ color: '#3b82f6', margin: '0 auto' }}
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  <div
-                    style={{
-                      fontSize: '0.875rem',
-                      color: '#6b7280',
-                      marginTop: '1rem',
-                    }}
-                  >
-                    Cargando QR...
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Status Messages */}
-            <div className="text-center">
-              <div
-                className="font-medium"
-                style={{
-                  fontSize: '1.125rem',
-                  color: '#374151',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                Esperando el pago...
-              </div>
-              <div
-                style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginBottom: '1.5rem',
-                }}
-              >
-                Serás redireccionado cuando se reciba el pago
-              </div>
-            </div>
-
-            {/* Cancel Button */}
-            <button
-              onClick={() => setShowQRPayment(false)}
-              className="border border-gray-300 rounded-lg hover:bg-gray-50"
-              style={{
-                padding: '0.75rem 1.5rem',
-                fontSize: '0.875rem',
-                color: '#374151',
-              }}
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
+      {showQRPayment && createdOrderId && (
+        <QRPaymentModal
+          isOpen={showQRPayment}
+          onClose={() => setShowQRPayment(false)}
+          qrImageBase64={qrImageBase64}
+          orderId={createdOrderId}
+          onPaymentConfirmed={handlePaymentConfirmed}
+          gloss={qrGloss}
+        />
       )}
     </div>
   );

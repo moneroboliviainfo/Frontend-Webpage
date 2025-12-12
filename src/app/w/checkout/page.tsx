@@ -10,6 +10,7 @@ import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import InsufficientStockModal from '@/components/InsufficientStockModal';
 import ErrorModal from '@/components/ErrorModal';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
+import QRPaymentModal from '@/components/QRPaymentModal';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectClient, type UserAddress } from '@/store/clientSlice';
 import {
@@ -136,9 +137,10 @@ const CheckoutPage: React.FC = () => {
   // Desktop QR modal state
   const [showDesktopQRModal, setShowDesktopQRModal] = useState(false);
   const [qrImageBase64, setQrImageBase64] = useState<string>('');
-  const [qrTimeLeft, setQrTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+  const [qrGloss, setQrGloss] = useState<string>('');
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string>('');
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
   // Step labels - shared between mobile and desktop
   const stepLabels = {
@@ -676,10 +678,11 @@ const CheckoutPage: React.FC = () => {
       // Step 2: Generate QR code
       const qrResponse = await generateQR(orderResponse.id);
 
-      // Step 3: Show QR payment modal
+      // Step 3: Show QR payment modal and store order ID
+      setCreatedOrderId(orderResponse.id);
       setQrImageBase64(qrResponse.qr);
+      setQrGloss(qrResponse.gloss || '');
       setShowDesktopQRModal(true);
-      setQrTimeLeft(15 * 60); // Reset timer to 15 minutes
     } catch (error) {
       console.error('Error creating order or generating QR:', error);
       setOrderError(
@@ -692,35 +695,14 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  // QR countdown timer effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (showDesktopQRModal && qrTimeLeft > 0) {
-      interval = setInterval(() => {
-        setQrTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
-            setShowDesktopQRModal(false);
-            // TODO: Handle timeout - cancel order
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000);
+  const handlePaymentConfirmed = () => {
+    const orderId = createdOrderId;
+    setShowDesktopQRModal(false);
+    setCreatedOrderId(null);
+    // Redirect to order confirmation page with order ID
+    if (orderId) {
+      router.push(`/w/checkout/order-confirmed?orderId=${orderId}`);
     }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [showDesktopQRModal, qrTimeLeft]);
-
-  // Format time display (MM:SS)
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds
-      .toString()
-      .padStart(2, '0')}`;
   };
 
   return (
@@ -2561,145 +2543,15 @@ const CheckoutPage: React.FC = () => {
           />
 
           {/* Desktop QR Payment Modal */}
-          {showDesktopQRModal && (
-            <div
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-              style={{ zIndex: 60 }}
-            >
-              <div
-                className="bg-white rounded-lg flex flex-col items-center"
-                style={{
-                  padding: '2rem',
-                  maxWidth: '400px',
-                  width: '90%',
-                  maxHeight: '80vh',
-                }}
-              >
-                {/* Countdown Timer */}
-                <div
-                  className="font-bold text-center"
-                  style={{
-                    fontSize: '2rem',
-                    color: qrTimeLeft < 300 ? '#ef4444' : '#374151',
-                    marginBottom: '2rem',
-                  }}
-                >
-                  {formatTime(qrTimeLeft)}
-                </div>
-
-                {/* QR Code */}
-                <div
-                  className="flex items-center justify-center bg-white"
-                  style={{
-                    width: '250px',
-                    height: '250px',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  {qrImageBase64 ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={`data:image/png;base64,${qrImageBase64}`}
-                      alt="QR Code for Payment"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                      }}
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <svg
-                        className="animate-spin"
-                        width="40"
-                        height="40"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        style={{ color: '#3b82f6', margin: '0 auto' }}
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      <div
-                        style={{
-                          fontSize: '0.875rem',
-                          color: '#6b7280',
-                          marginTop: '1rem',
-                        }}
-                      >
-                        Cargando QR...
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Status Messages */}
-                <div className="text-center">
-                  <div
-                    className="font-medium"
-                    style={{
-                      fontSize: '1.125rem',
-                      color: '#374151',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Esperando el pago...
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.875rem',
-                      color: '#6b7280',
-                      marginBottom: '1.5rem',
-                    }}
-                  >
-                    Serás redireccionado cuando se reciba el pago
-                  </div>
-                </div>
-
-                {/* Error Message */}
-                {orderError && (
-                  <div
-                    style={{
-                      padding: '1rem',
-                      backgroundColor: '#fef2f2',
-                      borderLeft: '4px solid #ef4444',
-                      marginBottom: '1rem',
-                      width: '100%',
-                      borderRadius: '0.375rem',
-                    }}
-                  >
-                    <p style={{ color: '#991b1b', fontSize: '0.875rem' }}>
-                      {orderError}
-                    </p>
-                  </div>
-                )}
-
-                {/* Cancel Button */}
-                <button
-                  onClick={() => setShowDesktopQRModal(false)}
-                  className="border border-gray-300 rounded-lg hover:bg-gray-50"
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    fontSize: '0.875rem',
-                    color: '#374151',
-                  }}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
+          {showDesktopQRModal && createdOrderId && (
+            <QRPaymentModal
+              isOpen={showDesktopQRModal}
+              onClose={() => setShowDesktopQRModal(false)}
+              qrImageBase64={qrImageBase64}
+              orderId={createdOrderId}
+              onPaymentConfirmed={handlePaymentConfirmed}
+              gloss={qrGloss}
+            />
           )}
         </>
       )}
