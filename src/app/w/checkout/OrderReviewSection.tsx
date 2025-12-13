@@ -1,9 +1,12 @@
 'use client';
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { useAppSelector } from '@/store/hooks';
 import TermsAndConditions from '@/components/TermsAndConditions';
 import PrivacyPolicy from '@/components/PrivacyPolicy';
+import DeliveryMethodDisplay from './DeliveryMethodDisplay';
+import DeliveryAddressDisplay from './DeliveryAddressDisplay';
+import OrderItemsList from './OrderItemsList';
+import OrderTotalDisplay from './OrderTotalDisplay';
 import {
   selectCheckoutCartItems,
   selectRepriceData,
@@ -159,6 +162,16 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
     <>
       {/* Cart Summary Section */}
       {cartItems.length > 0 && repriceData && (
+        <OrderItemsList
+          items={cartItems}
+          layout="vertical"
+          showTitle={showSectionTitles}
+          title="Resumen de la orden:"
+        />
+      )}
+
+      {/* Cart Summary Section - Order Totals */}
+      {cartItems.length > 0 && repriceData && (
         <div
           className="border-b"
           style={{
@@ -167,239 +180,32 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
             borderBottom: '1px solid #e5e7eb',
           }}
         >
-          {showSectionTitles && (
-            <h3
-              className="font-medium"
-              style={{
-                fontSize: '1rem',
-                marginBottom: '1rem',
-                color: '#374151',
-                fontWeight: 'bold',
-              }}
-            >
-              Resumen de la orden:
-            </h3>
-          )}
-
-          {/* Cart Items */}
-          <div style={{ marginBottom: '1rem' }}>
-            {cartItems.map((item) => (
-              <div
-                key={item.variantId}
-                className="flex"
-                style={{
-                  gap: '1rem',
-                  marginBottom: '1rem',
-                  paddingBottom: '1rem',
-                  borderBottom: '1px solid #f3f4f6',
-                }}
-              >
-                {/* Product Image */}
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '60px',
-                    height: '80px',
-                    flexShrink: 0,
-                    borderRadius: '0.375rem',
-                    overflow: 'hidden',
-                    backgroundColor: '#f3f4f6',
-                  }}
-                >
-                  {item.imageUrl ? (
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.productName}
-                      fill
-                      sizes="60px"
-                      style={{ objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.75rem',
-                        color: '#9ca3af',
-                      }}
-                    >
-                      Sin imagen
-                    </div>
-                  )}
-                </div>
-
-                {/* Product Details */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    className="font-medium"
-                    style={{
-                      fontSize: '0.875rem',
-                      color: '#111827',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {item.productName}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    Talla: {item.sizeName} | Color: {item.colorName}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                    }}
-                  >
-                    Cantidad: {item.quantity}
-                  </div>
-                </div>
-
-                {/* Price */}
-                <div
-                  className="font-medium"
-                  style={{
-                    fontSize: '0.875rem',
-                    color: item.finalPrice < item.price ? '#ef4444' : '#111827',
-                    flexShrink: 0,
-                  }}
-                >
-                  Bs. {item.finalPrice.toFixed(2)}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pricing Breakdown */}
-          <div style={{ marginTop: '1rem' }}>
-            {/* Subtotal */}
-            <div
-              className="flex justify-between"
-              style={{
-                fontSize: '0.875rem',
-                color: '#6b7280',
-                marginBottom: '0.5rem',
-              }}
-            >
-              <span>Subtotal:</span>
-              <span>Bs. {subtotalAfterDiscount.toFixed(2)}</span>
-            </div>
-
-            {/* Delivery Cost */}
-            <div
-              className="flex justify-between"
-              style={{
-                fontSize: '0.875rem',
-                color: '#6b7280',
-                marginBottom: '0.5rem',
-              }}
-            >
-              <span>Costo de envío:</span>
-              <span>Bs. {finalDeliveryCost.toFixed(2)}</span>
-            </div>
-
-            {/* Total */}
-            <div
-              className="flex justify-between font-bold"
-              style={{
-                fontSize: '1rem',
-                color: '#111827',
-                paddingTop: '0.5rem',
-                borderTop: '1px solid #e5e7eb',
-                marginTop: '0.5rem',
-              }}
-            >
-              <span>Total:</span>
-              <span>Bs. {total.toFixed(2)}</span>
-            </div>
-          </div>
+          <OrderTotalDisplay
+            subtotal={subtotalAfterDiscount}
+            deliveryCost={finalDeliveryCost}
+            total={total}
+            showDeliveryCostMessage={selectedCountry !== 'Bolivia'}
+            deliveryCostMessage="Costo determinado por DHL cuando lo recibas"
+          />
         </div>
       )}
 
       {/* Selected Delivery Method Display */}
       {selectedDeliveryMethod && (
-        <div
-          className="border-b"
-          style={{
-            paddingBottom: '1.5rem',
-            marginBottom: '1.5rem',
-            borderBottom: '1px solid #e5e7eb',
-          }}
-        >
-          {showSectionTitles && (
-            <h3
-              className="font-medium"
-              style={{
-                fontSize: '1rem',
-                marginBottom: '0.5rem',
-                color: '#374151',
-                fontWeight: 'bold',
-              }}
-            >
-              Método de envío seleccionado:
-            </h3>
-          )}
-          <div
-            className="font-semibold"
-            style={{
-              fontSize: '1rem',
-              color: '#111827',
-              marginBottom: '0.5rem',
-            }}
-          >
-            {selectedDeliveryMethod}
-          </div>
-          <div
-            style={{
-              fontSize: '0.875rem',
-              color: '#6b7280',
-            }}
-          >
-            {formatDeliveryDetails()}
-          </div>
-        </div>
+        <DeliveryMethodDisplay
+          deliveryMethod={selectedDeliveryMethod}
+          country={selectedCountry}
+          price={finalDeliveryCost}
+          showTitle={showSectionTitles}
+        />
       )}
 
       {/* Delivery Address Display */}
-      <div
-        className="border-b"
-        style={{
-          paddingBottom: '1.5rem',
-          marginBottom: '1.5rem',
-          borderBottom: '1px solid #e5e7eb',
-        }}
-      >
-        {showSectionTitles && (
-          <h3
-            className="font-medium"
-            style={{
-              fontSize: '1rem',
-              marginBottom: '0.5rem',
-              color: '#374151',
-              fontWeight: 'bold',
-            }}
-          >
-            Dirección de entrega:
-          </h3>
-        )}
-        <div
-          style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            whiteSpace: 'pre-line',
-            lineHeight: '1.5',
-          }}
-        >
-          {formatAddress()}
-        </div>
-      </div>
+      <DeliveryAddressDisplay
+        formData={formData}
+        country={selectedCountry}
+        showTitle={showSectionTitles}
+      />
 
       {/* Payment Method */}
       {showPaymentMethod && (
