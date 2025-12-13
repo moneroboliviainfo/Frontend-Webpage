@@ -30,7 +30,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
     const interval = setInterval(() => {
       setTimeLeft((prevTime) => {
         if (prevTime <= 1) {
-          onClose();
+          // Do not close modal when timer expires
           // TODO: Handle timeout - cancel order
           return 0;
         }
@@ -39,7 +39,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   // Payment verification polling effect
   useEffect(() => {
@@ -104,6 +104,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      onClick={(e) => e.stopPropagation()}
     >
       <div
         className="bg-white rounded-lg relative"
@@ -114,31 +115,8 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
           overflow: 'auto',
           padding: '2rem',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 hover:bg-gray-100 rounded-full"
-          style={{
-            width: '32px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-        </button>
-
         {/* Title */}
         <h2
           className="font-bold text-center"

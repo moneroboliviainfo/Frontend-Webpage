@@ -165,10 +165,12 @@ const CheckoutPage: React.FC = () => {
 
   // Helper function to populate form with address data
   const populateFormWithAddress = useCallback((address: UserAddress) => {
-    const placeName = normalizePlaceName(address.place.place);
     setSelectedCountry(address.country);
 
     if (address.type === 'national') {
+      const placeName = address.place
+        ? normalizePlaceName(address.place.place)
+        : '';
       setFormData((prev) => ({
         ...prev,
         country: address.country,
@@ -254,6 +256,11 @@ const CheckoutPage: React.FC = () => {
 
   // Helper function to generate address label (first 2 words of address)
   const getAddressLabel = (address: UserAddress): string => {
+    if (address.type === 'international' || !address.place) {
+      // For international addresses, show address and city
+      const addressWords = address.address.split(' ').slice(0, 2).join(' ');
+      return `${addressWords} - ${address.city}`;
+    }
     return formatAddressLabel(address.address, address.place.place);
   };
 
@@ -423,7 +430,8 @@ const CheckoutPage: React.FC = () => {
 
   // Handle going to homepage
   const handleGoToHomepage = () => {
-    router.push('/');
+    const lastGender = GenderStorage.getGender();
+    router.push(`/${lastGender}`);
   };
 
   const handleInputChange = (

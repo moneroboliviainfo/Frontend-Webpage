@@ -223,7 +223,7 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                       item.discount && item.discount > 0 ? '#dc2626' : '#000',
                   }}
                 >
-                  Bs. {item.price}
+                  Bs. {item.finalPrice ?? item.price}
                 </div>
 
                 {/* Size selector - same as mobile */}

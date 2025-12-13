@@ -16,6 +16,7 @@ interface CreateOrderResponse {
 
 interface GenerateQRResponse {
   qr: string; // base64 image string
+  gloss?: string; // optional gloss field
 }
 
 export const createOrder = async (

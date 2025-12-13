@@ -366,15 +366,17 @@ const ProfileNavBarDialog: React.FC<{
                       >
                         {address.city}, {address.country}
                       </p>
-                      <p
-                        className="text-gray-500"
-                        style={{
-                          fontSize: '12px',
-                          marginTop: '2px',
-                        }}
-                      >
-                        {normalizePlaceName(address.place.place)}
-                      </p>
+                      {address.place && (
+                        <p
+                          className="text-gray-500"
+                          style={{
+                            fontSize: '12px',
+                            marginTop: '2px',
+                          }}
+                        >
+                          {normalizePlaceName(address.place.place)}
+                        </p>
+                      )}
                       {address.postal_code && (
                         <p
                           className="text-gray-500"

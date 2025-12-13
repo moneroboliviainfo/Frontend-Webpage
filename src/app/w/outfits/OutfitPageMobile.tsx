@@ -213,7 +213,7 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                       item.discount && item.discount > 0 ? '#dc2626' : '#000',
                   }}
                 >
-                  Bs. {item.price}
+                  Bs. {item.finalPrice ?? item.price}
                 </div>
               </div>
 

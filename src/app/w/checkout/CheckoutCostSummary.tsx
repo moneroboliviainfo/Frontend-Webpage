@@ -55,14 +55,14 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
       )
     : subtotal;
 
+  // Calculate total discount based on the difference between subtotal and reprice total
   const totalDiscount = repriceData
-    ? repriceData.items.reduce(
-        (sum, item) => sum + item.discountValue * item.quantity,
-        0
-      )
+    ? itemsSubtotal - parseFloat(repriceData.total)
     : 0;
 
-  const subtotalAfterDiscount = itemsSubtotal - totalDiscount;
+  const subtotalAfterDiscount = repriceData
+    ? parseFloat(repriceData.total)
+    : itemsSubtotal;
   const total = subtotalAfterDiscount + (deliveryCost || 0);
 
   return (
@@ -87,23 +87,8 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
             }}
           >
             <span style={{ fontWeight: 'bold' }}>Subtotal</span>
-            <span>{formatPrice(itemsSubtotal)}</span>
+            <span>{formatPrice(subtotalAfterDiscount)}</span>
           </div>
-
-          {/* Discounts - Only show if there are discounts */}
-          {totalDiscount > 0 && (
-            <div
-              className="flex justify-between items-center"
-              style={{
-                marginBottom: '0.75rem',
-                fontSize: '1rem',
-                color: '#10b981',
-              }}
-            >
-              <span style={{ fontWeight: 'bold' }}>Descuentos</span>
-              <span>-{formatPrice(totalDiscount)}</span>
-            </div>
-          )}
 
           {/* Delivery Cost */}
           <div

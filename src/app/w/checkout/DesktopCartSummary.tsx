@@ -46,11 +46,9 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
       )
     : cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  // Calculate total discount based on the difference between subtotal and reprice total
   const totalDiscount = repriceData
-    ? repriceData.items.reduce(
-        (sum, item) => sum + item.discountValue * item.quantity,
-        0
-      )
+    ? itemsSubtotal - parseFloat(repriceData.total)
     : 0;
 
   return (
@@ -158,7 +156,7 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
                   className="font-semibold"
                   style={{
                     fontSize: '0.875rem',
-                    color: '#111827',
+                    color: item.finalPrice < item.price ? '#ef4444' : '#111827',
                   }}
                 >
                   Bs. {(item.finalPrice * item.quantity).toFixed(2)}
@@ -187,25 +185,13 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
         >
           <span style={{ color: '#6b7280' }}>Subtotal</span>
           <span style={{ color: '#111827' }}>
-            Bs. {itemsSubtotal.toFixed(2)}
+            Bs.{' '}
+            {(repriceData
+              ? parseFloat(repriceData.total)
+              : itemsSubtotal
+            ).toFixed(2)}
           </span>
         </div>
-
-        {/* Discounts - Only show if there are discounts */}
-        {totalDiscount > 0 && (
-          <div
-            className="flex justify-between"
-            style={{
-              marginBottom: '0.75rem',
-              fontSize: '0.875rem',
-            }}
-          >
-            <span style={{ color: '#10b981' }}>Descuentos</span>
-            <span style={{ color: '#10b981' }}>
-              -Bs. {totalDiscount.toFixed(2)}
-            </span>
-          </div>
-        )}
 
         {/* Delivery Costs */}
         <div
@@ -236,7 +222,10 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
         >
           <span style={{ color: '#111827' }}>Total</span>
           <span style={{ color: '#111827' }}>
-            Bs. {(itemsSubtotal - totalDiscount + deliveryCost).toFixed(2)}
+            Bs.{' '}
+            {repriceData
+              ? (parseFloat(repriceData.total) + deliveryCost).toFixed(2)
+              : (itemsSubtotal + deliveryCost).toFixed(2)}
           </span>
         </div>
       </div>

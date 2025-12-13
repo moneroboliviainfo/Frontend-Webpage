@@ -145,14 +145,14 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
       )
     : 0;
 
+  // Calculate total discount based on the difference between subtotal and reprice total
   const totalDiscount = repriceData
-    ? repriceData.items.reduce(
-        (sum, item) => sum + item.discountValue * item.quantity,
-        0
-      )
+    ? itemsSubtotal - parseFloat(repriceData.total)
     : 0;
 
-  const subtotalAfterDiscount = itemsSubtotal - totalDiscount;
+  const subtotalAfterDiscount = repriceData
+    ? parseFloat(repriceData.total)
+    : itemsSubtotal;
   const total = subtotalAfterDiscount + finalDeliveryCost;
 
   return (
@@ -267,7 +267,7 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
                   className="font-medium"
                   style={{
                     fontSize: '0.875rem',
-                    color: '#111827',
+                    color: item.finalPrice < item.price ? '#ef4444' : '#111827',
                     flexShrink: 0,
                   }}
                 >
@@ -289,23 +289,8 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
               }}
             >
               <span>Subtotal:</span>
-              <span>Bs. {itemsSubtotal.toFixed(2)}</span>
+              <span>Bs. {subtotalAfterDiscount.toFixed(2)}</span>
             </div>
-
-            {/* Discount */}
-            {totalDiscount > 0 && (
-              <div
-                className="flex justify-between"
-                style={{
-                  fontSize: '0.875rem',
-                  color: '#10b981',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                <span>Descuento:</span>
-                <span>- Bs. {totalDiscount.toFixed(2)}</span>
-              </div>
-            )}
 
             {/* Delivery Cost */}
             <div
