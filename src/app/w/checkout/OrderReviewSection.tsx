@@ -32,6 +32,7 @@ interface OrderReviewSectionProps {
     email: string;
     phone: string;
     countryCode: string;
+    country: string;
     departamento: string;
     cityProvince: string;
     detailedAddress: string;
