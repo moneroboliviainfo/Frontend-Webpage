@@ -6,6 +6,7 @@ import { setClient, type Client } from '@/store/clientSlice';
 import { AuthStorage } from '@/utils/authStorage';
 import { GoogleAuthService } from '@/services/googleAuth';
 import { API_URL } from '@/config/env';
+import { restoreEncodedCart, saveCart } from '@/utils/cartStorage';
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -33,6 +34,15 @@ function AuthCallbackContent() {
           // Store the token in localStorage
           if (data.token) {
             AuthStorage.storeToken(data.token);
+
+            // Restore pre-auth cart (replaces any existing cart)
+            const preAuthCartEncoded = AuthStorage.getAndClearPreAuthCart();
+            if (preAuthCartEncoded) {
+              const preAuthCart = restoreEncodedCart(preAuthCartEncoded);
+              if (preAuthCart && preAuthCart.items.length > 0) {
+                saveCart(preAuthCart);
+              }
+            }
 
             // Fetch user profile using the token
             try {

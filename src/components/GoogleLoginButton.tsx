@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { AuthStorage } from '@/utils/authStorage';
 import { GoogleAuthService } from '@/services/googleAuth';
+import { getRawEncodedCart } from '@/utils/cartStorage';
 
 interface GoogleLoginButtonProps {
   onClick?: () => void;
@@ -20,6 +21,12 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
     try {
       // Store the current page URL for redirect after login
       AuthStorage.storeRedirectUrl(window.location.href);
+
+      // Save current cart to sessionStorage to preserve across domain change
+      const currentCart = getRawEncodedCart();
+      if (currentCart) {
+        AuthStorage.storePreAuthCart(currentCart);
+      }
 
       // Generate callback URL and initiate Google login
       const callbackUrl = GoogleAuthService.generateCallbackUrl();

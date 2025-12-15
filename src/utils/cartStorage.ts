@@ -162,3 +162,20 @@ export function getCartItemCount(): number {
   const cart = getCart();
   return cart.items.reduce((sum, item) => sum + item.quantity, 0);
 }
+
+/**
+ * Get raw encoded cart string from localStorage
+ * Used for preserving cart during OAuth flow
+ */
+export function getRawEncodedCart(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(CART_STORAGE_KEY);
+}
+
+/**
+ * Restore cart from encoded string
+ * Used after OAuth flow to restore pre-login cart
+ */
+export function restoreEncodedCart(encoded: string): Cart | null {
+  return decodeCart(encoded);
+}

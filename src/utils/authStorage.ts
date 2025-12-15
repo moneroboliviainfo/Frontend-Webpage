@@ -1,5 +1,7 @@
 import { AUTH_STORAGE_KEYS, DEFAULT_ROUTES } from '@/constants/auth';
 
+const PRE_AUTH_CART_KEY = 'mng_pre_auth_cart';
+
 /**
  * Utility class for handling authentication-related localStorage operations
  */
@@ -42,5 +44,25 @@ export class AuthStorage {
    */
   static clearToken(): void {
     localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+  }
+
+  /**
+   * Store pre-authentication cart in sessionStorage
+   * This preserves the cart across domain changes during OAuth flow
+   */
+  static storePreAuthCart(encodedCart: string): void {
+    if (encodedCart && encodedCart.trim()) {
+      sessionStorage.setItem(PRE_AUTH_CART_KEY, encodedCart);
+    }
+  }
+
+  /**
+   * Retrieve and clear pre-authentication cart
+   * @returns The encoded cart string or null
+   */
+  static getAndClearPreAuthCart(): string | null {
+    const cart = sessionStorage.getItem(PRE_AUTH_CART_KEY);
+    sessionStorage.removeItem(PRE_AUTH_CART_KEY);
+    return cart;
   }
 }
