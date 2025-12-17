@@ -28,6 +28,12 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
         AuthStorage.storePreAuthCart(currentCart);
       }
 
+      // Save current gender to sessionStorage to preserve across domain change
+      const currentGender = localStorage.getItem('last_gender');
+      if (currentGender) {
+        AuthStorage.storePreAuthGender(currentGender);
+      }
+
       // Generate callback URL and initiate Google login
       const callbackUrl = GoogleAuthService.generateCallbackUrl();
       GoogleAuthService.initiateLogin(callbackUrl);

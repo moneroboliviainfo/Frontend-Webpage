@@ -44,6 +44,12 @@ function AuthCallbackContent() {
               }
             }
 
+            // Restore pre-auth gender
+            const preAuthGender = AuthStorage.getAndClearPreAuthGender();
+            if (preAuthGender) {
+              localStorage.setItem('last_gender', preAuthGender);
+            }
+
             // Fetch user profile using the token
             try {
               const profileRes = await fetch(`${API_URL}customers/me`, {
