@@ -18,8 +18,13 @@ function AuthCallbackContent() {
       const code = searchParams.get('code');
       const error = searchParams.get('error');
 
-      // Get redirect URL before starting async operations
-      const redirectUrl = AuthStorage.getAndClearRedirectUrl();
+      // Extract state parameters passed through OAuth flow
+      const stateCart = searchParams.get('state_cart');
+      const stateGender = searchParams.get('state_gender');
+      const stateRedirect = searchParams.get('state_redirect');
+
+      // Determine redirect URL
+      const redirectUrl = stateRedirect || AuthStorage.getAndClearRedirectUrl();
 
       if (error) {
         console.error('OAuth error:', error);
@@ -35,19 +40,17 @@ function AuthCallbackContent() {
           if (data.token) {
             AuthStorage.storeToken(data.token);
 
-            // Restore pre-auth cart (replaces any existing cart)
-            const preAuthCartEncoded = AuthStorage.getAndClearPreAuthCart();
-            if (preAuthCartEncoded) {
-              const preAuthCart = restoreEncodedCart(preAuthCartEncoded);
+            // Restore pre-auth cart from URL parameter
+            if (stateCart) {
+              const preAuthCart = restoreEncodedCart(stateCart);
               if (preAuthCart && preAuthCart.items.length > 0) {
                 saveCart(preAuthCart);
               }
             }
 
-            // Restore pre-auth gender
-            const preAuthGender = AuthStorage.getAndClearPreAuthGender();
-            if (preAuthGender) {
-              localStorage.setItem('last_gender', preAuthGender);
+            // Restore pre-auth gender from URL parameter
+            if (stateGender) {
+              localStorage.setItem('last_gender', stateGender);
             }
 
             // Fetch user profile using the token

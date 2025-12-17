@@ -19,23 +19,23 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
 }) => {
   const handleGoogleLogin = async () => {
     try {
-      // Store the current page URL for redirect after login
-      AuthStorage.storeRedirectUrl(window.location.href);
-
-      // Save current cart to sessionStorage to preserve across domain change
+      // Get current state to pass through OAuth flow
       const currentCart = getRawEncodedCart();
-      if (currentCart) {
-        AuthStorage.storePreAuthCart(currentCart);
-      }
-
-      // Save current gender to sessionStorage to preserve across domain change
       const currentGender = localStorage.getItem('last_gender');
-      if (currentGender) {
-        AuthStorage.storePreAuthGender(currentGender);
-      }
 
-      // Generate callback URL and initiate Google login
-      const callbackUrl = GoogleAuthService.generateCallbackUrl();
+      // Extract only pathname to avoid domain issues
+      const currentPath =
+        window.location.pathname +
+        window.location.search +
+        window.location.hash;
+
+      // Generate callback URL with state parameters
+      const callbackUrl = GoogleAuthService.generateCallbackUrl({
+        cart: currentCart || undefined,
+        gender: currentGender || undefined,
+        redirect: currentPath,
+      });
+
       GoogleAuthService.initiateLogin(callbackUrl);
 
       if (onClick) {

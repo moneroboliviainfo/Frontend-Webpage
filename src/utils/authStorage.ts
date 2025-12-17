@@ -70,44 +70,4 @@ export class AuthStorage {
   static clearToken(): void {
     localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
   }
-
-  /**
-   * Store pre-authentication cart in sessionStorage
-   * This preserves the cart across domain changes during OAuth flow
-   */
-  static storePreAuthCart(encodedCart: string): void {
-    if (encodedCart && encodedCart.trim()) {
-      sessionStorage.setItem(PRE_AUTH_CART_KEY, encodedCart);
-    }
-  }
-
-  /**
-   * Retrieve and clear pre-authentication cart
-   * @returns The encoded cart string or null
-   */
-  static getAndClearPreAuthCart(): string | null {
-    const cart = sessionStorage.getItem(PRE_AUTH_CART_KEY);
-    sessionStorage.removeItem(PRE_AUTH_CART_KEY);
-    return cart;
-  }
-
-  /**
-   * Store pre-authentication gender in sessionStorage
-   * This preserves the gender across domain changes during OAuth flow
-   */
-  static storePreAuthGender(gender: string): void {
-    if (gender && gender.trim()) {
-      sessionStorage.setItem(PRE_AUTH_GENDER_KEY, gender);
-    }
-  }
-
-  /**
-   * Retrieve and clear pre-authentication gender
-   * @returns The gender string or null
-   */
-  static getAndClearPreAuthGender(): string | null {
-    const gender = sessionStorage.getItem(PRE_AUTH_GENDER_KEY);
-    sessionStorage.removeItem(PRE_AUTH_GENDER_KEY);
-    return gender;
-  }
 }
