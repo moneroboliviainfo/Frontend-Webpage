@@ -47,23 +47,9 @@ export class GoogleAuthService {
   }
 
   /**
-   * Generate callback URL for the current origin with optional state parameters
-   * @param state - Optional state object to pass through OAuth flow
+   * Generate callback URL for the current origin
    */
-  static generateCallbackUrl(state?: {
-    cart?: string;
-    gender?: string;
-    redirect?: string;
-  }): string {
-    const baseUrl = `${window.location.origin}${DEFAULT_ROUTES.AUTH_CALLBACK}`;
-
-    if (!state) return baseUrl;
-
-    const params = new URLSearchParams();
-    if (state.cart) params.set('state_cart', state.cart);
-    if (state.gender) params.set('state_gender', state.gender);
-    if (state.redirect) params.set('state_redirect', state.redirect);
-
-    return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+  static generateCallbackUrl(): string {
+    return `${window.location.origin}${DEFAULT_ROUTES.AUTH_CALLBACK}`;
   }
 }

@@ -6,7 +6,6 @@ import { setClient, type Client } from '@/store/clientSlice';
 import { AuthStorage } from '@/utils/authStorage';
 import { GoogleAuthService } from '@/services/googleAuth';
 import { API_URL } from '@/config/env';
-import { restoreEncodedCart, saveCart } from '@/utils/cartStorage';
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -18,13 +17,8 @@ function AuthCallbackContent() {
       const code = searchParams.get('code');
       const error = searchParams.get('error');
 
-      // Extract state parameters passed through OAuth flow
-      const stateCart = searchParams.get('state_cart');
-      const stateGender = searchParams.get('state_gender');
-      const stateRedirect = searchParams.get('state_redirect');
-
-      // Determine redirect URL
-      const redirectUrl = stateRedirect || AuthStorage.getAndClearRedirectUrl();
+      // Get stored redirect URL
+      const redirectUrl = AuthStorage.getAndClearRedirectUrl();
 
       if (error) {
         console.error('OAuth error:', error);
@@ -39,19 +33,6 @@ function AuthCallbackContent() {
           // Store the token in localStorage
           if (data.token) {
             AuthStorage.storeToken(data.token);
-
-            // Restore pre-auth cart from URL parameter
-            if (stateCart) {
-              const preAuthCart = restoreEncodedCart(stateCart);
-              if (preAuthCart && preAuthCart.items.length > 0) {
-                saveCart(preAuthCart);
-              }
-            }
-
-            // Restore pre-auth gender from URL parameter
-            if (stateGender) {
-              localStorage.setItem('last_gender', stateGender);
-            }
 
             // Fetch user profile using the token
             try {

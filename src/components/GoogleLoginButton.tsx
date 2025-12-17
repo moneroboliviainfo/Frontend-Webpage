@@ -2,7 +2,6 @@ import React from 'react';
 import Image from 'next/image';
 import { AuthStorage } from '@/utils/authStorage';
 import { GoogleAuthService } from '@/services/googleAuth';
-import { getRawEncodedCart } from '@/utils/cartStorage';
 
 interface GoogleLoginButtonProps {
   onClick?: () => void;
@@ -19,22 +18,11 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
 }) => {
   const handleGoogleLogin = async () => {
     try {
-      // Get current state to pass through OAuth flow
-      const currentCart = getRawEncodedCart();
-      const currentGender = localStorage.getItem('last_gender');
+      // Store current URL for post-login redirect
+      AuthStorage.storeRedirectUrl(window.location.href);
 
-      // Extract only pathname to avoid domain issues
-      const currentPath =
-        window.location.pathname +
-        window.location.search +
-        window.location.hash;
-
-      // Generate callback URL with state parameters
-      const callbackUrl = GoogleAuthService.generateCallbackUrl({
-        cart: currentCart || undefined,
-        gender: currentGender || undefined,
-        redirect: currentPath,
-      });
+      // Generate callback URL
+      const callbackUrl = GoogleAuthService.generateCallbackUrl();
 
       GoogleAuthService.initiateLogin(callbackUrl);
 
