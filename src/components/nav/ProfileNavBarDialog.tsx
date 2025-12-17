@@ -40,7 +40,7 @@ const ProfileNavBarDialog: React.FC<{
 
   const handleOrderClick = (orderId: string) => {
     setOpen(false); // Close the dialog first
-    router.push(`/w/checkout/order-confirmed?orderid=${orderId}`);
+    router.push(`/w/checkout/order-confirmed?orderId=${orderId}`);
   };
 
   const handleLogout = () => {
