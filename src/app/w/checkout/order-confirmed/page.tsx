@@ -7,6 +7,7 @@ import OrderItemsList from '../OrderItemsList';
 import OrderTotalDisplay from '../OrderTotalDisplay';
 import DeliveryMethodDisplay from '../DeliveryMethodDisplay';
 import DeliveryAddressDisplay from '../DeliveryAddressDisplay';
+import OrderProgressIndicator from '../OrderProgressIndicator';
 import NavBar from '@/components/nav/NavBar';
 import { API_URL } from '@/config/env';
 import { GenderStorage } from '@/utils/genderStorage';
@@ -258,8 +259,8 @@ const OrderConfirmedContent: React.FC = () => {
         className="hidden lg:flex"
         style={{ minHeight: 'calc(100vh - 60px)' }}
       >
-        {/* Left Content Area - 80% */}
-        <div className="flex-1" style={{ width: '80%' }}>
+        {/* Content Area - Full Width */}
+        <div className="flex-1" style={{ width: '100%' }}>
           {/* Centered Content */}
           <div className="flex justify-center" style={{ padding: '2rem' }}>
             <div style={{ maxWidth: '600px', width: '100%' }}>
@@ -290,6 +291,9 @@ const OrderConfirmedContent: React.FC = () => {
                   Pedido: #{orderData.orderNumber}
                 </div>
               </div>
+
+              {/* Order Progress Indicator */}
+              <OrderProgressIndicator status={orderData.status} />
 
               {/* Order Items Summary */}
               <OrderItemsList
@@ -361,14 +365,6 @@ const OrderConfirmedContent: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Right Cart Summary - 20% */}
-        <div style={{ width: '20%' }}>
-          <DesktopCartSummary
-            selectedCountry={orderData.selectedCountry}
-            selectedDeliveryMethod={orderData.selectedDeliveryMethod}
-          />
-        </div>
       </div>
 
       {/* Mobile Layout */}
@@ -406,6 +402,9 @@ const OrderConfirmedContent: React.FC = () => {
                 Pedido: #{orderData.orderNumber}
               </div>
             </div>
+
+            {/* Order Progress Indicator */}
+            <OrderProgressIndicator status={orderData.status} />
 
             {/* Cart Items - Horizontal Scrollable */}
             <OrderItemsList

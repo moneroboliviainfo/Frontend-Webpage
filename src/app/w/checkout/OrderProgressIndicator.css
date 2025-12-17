@@ -1,0 +1,81 @@
+.order-progress-container {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: var(--color-secondary);
+  border-radius: 8px;
+}
+
+.order-progress-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.order-progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.order-progress-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.order-progress-icon.active {
+  background-color: var(--color-primary);
+}
+
+.order-progress-icon.inactive {
+  background-color: var(--color-gray-border);
+}
+
+.order-progress-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.order-progress-label.active {
+  color: var(--color-primary);
+}
+
+.order-progress-label.inactive {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.order-progress-line {
+  width: 80px;
+  height: 2px;
+  margin: 0 1rem;
+  margin-bottom: 1.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.order-progress-line.active {
+  background-color: var(--color-primary);
+}
+
+.order-progress-line.inactive {
+  background-color: var(--color-gray-border);
+}
+
+/* Mobile adjustments */
+@media (max-width: 1024px) {
+  .order-progress-line {
+    width: 40px;
+    margin: 0 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .order-progress-label {
+    font-size: 0.75rem;
+  }
+}
