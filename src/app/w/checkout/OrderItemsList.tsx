@@ -31,7 +31,7 @@ const OrderItemsList: React.FC<OrderItemsListProps> = ({
 }) => {
   if (layout === 'horizontal') {
     return (
-      <div>
+      <div style={{ marginBottom: '2rem' }}>
         {showTitle && (
           <div
             style={{
@@ -44,45 +44,89 @@ const OrderItemsList: React.FC<OrderItemsListProps> = ({
           </div>
         )}
         <div
-          className="flex gap-4 overflow-x-auto pb-4"
+          className="flex gap-3 overflow-x-auto pb-4"
           style={{
-            marginBottom: '2rem',
             scrollSnapType: 'x mandatory',
           }}
         >
           {items.map((item, index) => (
             <div
               key={item.variantId || item.id || index}
-              className="flex-shrink-0 rounded-lg overflow-hidden"
+              className="flex-shrink-0"
               style={{
-                width: '120px',
-                height: '120px',
+                width: '140px',
                 scrollSnapAlign: 'start',
-                position: 'relative',
-                backgroundColor: '#f3f4f6',
               }}
             >
-              {item.imageUrl ? (
-                <Image
-                  src={item.imageUrl}
-                  alt={item.productName}
-                  fill
-                  sizes="120px"
-                  style={{ objectFit: 'cover' }}
-                />
-              ) : (
+              {/* Image */}
+              <div
+                className="rounded-lg overflow-hidden"
+                style={{
+                  width: '140px',
+                  height: '140px',
+                  position: 'relative',
+                  backgroundColor: '#f3f4f6',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                {item.imageUrl ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.productName}
+                    fill
+                    sizes="140px"
+                    style={{ objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center"
+                    style={{
+                      fontSize: '0.75rem',
+                      color: '#6b7280',
+                      textAlign: 'center',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {item.productName}
+                  </div>
+                )}
+              </div>
+
+              {/* Details */}
+              <div>
                 <div
-                  className="w-full h-full flex items-center justify-center"
                   style={{
                     fontSize: '0.75rem',
-                    color: '#6b7280',
-                    textAlign: 'center',
-                    padding: '0.5rem',
+                    color: '#374151',
+                    marginBottom: '0.25rem',
+                    lineHeight: '1rem',
                   }}
                 >
-                  {item.productName}
+                  <span style={{ fontWeight: '500' }}>Talla:</span>{' '}
+                  {item.sizeName}
                 </div>
-              )}
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#374151',
+                    marginBottom: '0.25rem',
+                    lineHeight: '1rem',
+                  }}
+                >
+                  <span style={{ fontWeight: '500' }}>Color:</span>{' '}
+                  {item.colorName}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#374151',
+                    lineHeight: '1rem',
+                  }}
+                >
+                  <span style={{ fontWeight: '500' }}>Cant:</span>{' '}
+                  {item.quantity}
+                </div>
+              </div>
             </div>
           ))}
         </div>

@@ -8,7 +8,7 @@ interface OrderProgressIndicatorProps {
 interface ProgressStep {
   id: string;
   label: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   isActive: (status: string) => boolean;
 }
 
