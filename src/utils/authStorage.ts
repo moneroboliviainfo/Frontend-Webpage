@@ -11,10 +11,20 @@ export class AuthStorage {
   /**
    * Store the current page URL for post-login redirection
    * Stores in both localStorage (for same domain) and sessionStorage (for cross-domain)
+   * Extracts only pathname + search + hash to avoid domain mismatch issues
    */
   static storeRedirectUrl(url: string): void {
-    localStorage.setItem(AUTH_STORAGE_KEYS.REDIRECT_URL, url);
-    sessionStorage.setItem(PRE_AUTH_REDIRECT_KEY, url);
+    try {
+      // Extract only the path part (pathname + search + hash) to avoid domain issues
+      const urlObj = new URL(url);
+      const pathOnly = urlObj.pathname + urlObj.search + urlObj.hash;
+      localStorage.setItem(AUTH_STORAGE_KEYS.REDIRECT_URL, pathOnly);
+      sessionStorage.setItem(PRE_AUTH_REDIRECT_KEY, pathOnly);
+    } catch {
+      // Fallback if URL parsing fails - store as-is
+      localStorage.setItem(AUTH_STORAGE_KEYS.REDIRECT_URL, url);
+      sessionStorage.setItem(PRE_AUTH_REDIRECT_KEY, url);
+    }
   }
 
   /**
