@@ -2,6 +2,10 @@
   "name": "clothing-store",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "copy src\\config\\env.qa.ts src\\config\\env.ts && next dev --turbopack",
     "build": "cp src/config/env.prod.ts src/config/env.ts && next build",
