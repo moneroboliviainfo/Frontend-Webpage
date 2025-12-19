@@ -217,7 +217,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
 
               {/* Legacy label display */}
               {!isApiSlide(slide) && slide.label && (
-                <div className="absolute bottom-10 left-0 w-full flex flex-col items-center">
+                <div className="absolute bottom-24 left-0 w-full flex flex-col items-center">
                   <span className="text-white text-3xl font-bold drop-shadow-lg">
                     {slide.label}
                   </span>
