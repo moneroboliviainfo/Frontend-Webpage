@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import useIsMobile from '@/hooks/useIsMobile';
 import CategoryGalleryItem from './CategoryGalleryItem';
+import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import { CLOTHING_API_CONSTANTS } from '@/services/clothingService';
 import { API_URL } from '@/config/env';
 
@@ -78,12 +79,11 @@ export default function CategoriesGallery({
 
   if (loading) {
     return (
-      <section className="w-full flex items-center justify-center py-8">
-        <div className="text-gray-500 text-center">
-          <div className="animate-spin h-8 w-8 border-2 border-gray-400 border-t-blue-500 rounded-full mx-auto mb-2"></div>
-          <p>Cargando categorías...</p>
-        </div>
-      </section>
+      <LoadingScreen
+        message="Cargando categorías..."
+        enhancedSpinner={true}
+        logoPulse={true}
+      />
     );
   }
 

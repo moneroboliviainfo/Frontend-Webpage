@@ -1,7 +1,8 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 type CategoryGalleryItemProps = {
   categoryId: string;
@@ -19,6 +20,7 @@ const CategoryGalleryItem: React.FC<CategoryGalleryItemProps> = ({
   gender = 'women',
 }) => {
   const router = useRouter();
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const handleClick = () => {
     // Navigate to clothes page with category filter
@@ -52,13 +54,24 @@ const CategoryGalleryItem: React.FC<CategoryGalleryItemProps> = ({
       }}
     >
       {src && src.trim() ? (
-        <Image
-          src={src}
-          alt={name}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes={isMobile ? '50vw' : '25vw'}
-        />
+        <>
+          {/* Skeleton loader - shown while image is loading */}
+          {!imageLoaded && (
+            <SkeletonLoader variant="shimmer" showIcon={false} />
+          )}
+          <Image
+            src={src}
+            alt={name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes={isMobile ? '50vw' : '25vw'}
+            style={{
+              opacity: imageLoaded ? 1 : 0,
+              transition: 'opacity 0.3s ease-in-out',
+            }}
+            onLoadingComplete={() => setImageLoaded(true)}
+          />
+        </>
       ) : (
         <div
           aria-hidden
