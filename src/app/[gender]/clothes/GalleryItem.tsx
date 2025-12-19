@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import buildProductSlug from '@/utils/buildProductSlug';
 import Image from 'next/image';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 type Props = {
   src: string;
@@ -36,6 +37,7 @@ const GalleryItem: React.FC<Props> = ({
   const hasDiscount = discount && discount > 0;
 
   const [hovered, setHovered] = useState<number | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const router = useRouter();
   const slug = buildProductSlug(name, productId);
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -110,7 +112,19 @@ const GalleryItem: React.FC<Props> = ({
       ) : null}
       {/* aspect-ratio ensures height is derived from width so it always keeps the same relation */}
       <div className="relative" style={{ width: '100%', aspectRatio: aspect }}>
-        <Image src={src} alt={name} fill style={{ objectFit: 'cover' }} />
+        {/* Skeleton loader - shown while image is loading */}
+        {!imageLoaded && <SkeletonLoader variant="shimmer" showIcon={false} />}
+        <Image
+          src={src}
+          alt={name}
+          fill
+          style={{
+            objectFit: 'cover',
+            opacity: imageLoaded ? 1 : 0,
+            transition: 'opacity 0.3s ease-in-out',
+          }}
+          onLoadingComplete={() => setImageLoaded(true)}
+        />
       </div>
 
       <div

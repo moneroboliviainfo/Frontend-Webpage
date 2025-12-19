@@ -1,0 +1,117 @@
+/* Skeleton Loader Styles */
+
+.skeleton-loader {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #e0e0e0 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  overflow: hidden;
+}
+
+.skeleton-loader::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  animation: shimmer-shine 2s ease-in-out infinite;
+}
+
+.skeleton-loader::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes shimmer-shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+/* Skeleton variants */
+.skeleton-loader.skeleton-light {
+  background: linear-gradient(
+    90deg,
+    #fafafa 0%,
+    #f0f0f0 20%,
+    #fafafa 40%,
+    #fafafa 100%
+  );
+}
+
+.skeleton-loader.skeleton-dark {
+  background: linear-gradient(
+    90deg,
+    #d1d5db 0%,
+    #c7ccd1 20%,
+    #d1d5db 40%,
+    #d1d5db 100%
+  );
+}
+
+/* Pulse variant */
+.skeleton-loader.skeleton-pulse {
+  background: #e5e7eb;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeleton-loader.skeleton-pulse::before {
+  display: none;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Image skeleton specific styling */
+.skeleton-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 2rem;
+}
+
+.skeleton-image svg {
+  opacity: 0.3;
+  width: 3rem;
+  height: 3rem;
+}

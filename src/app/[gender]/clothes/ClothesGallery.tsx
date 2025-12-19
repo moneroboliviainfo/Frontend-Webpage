@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProductsGallery, { Product } from '@/components/ProductsGallery';
 import ClothesPageNavBar from './ClothesPageNavBar';
+import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import { API_URL } from '@/config/env';
 import {
   extractProductsFromCategory,
@@ -112,7 +113,17 @@ export default function ClothesGallery() {
     );
   }, [selectedSubcategoryId, allProducts, categoryData]);
 
-  // Main render — always show the PageNavBar; if no clothes for selected subcategory show friendly message
+  // Main render — show full page loader during API call, then show content
+  if (loading) {
+    return (
+      <LoadingScreen
+        message="Cargando productos..."
+        enhancedSpinner={true}
+        logoPulse={true}
+      />
+    );
+  }
+
   return (
     <>
       <ClothesPageNavBar
@@ -124,7 +135,7 @@ export default function ClothesGallery() {
       />
       <ProductsGallery
         products={filteredProducts}
-        loading={loading}
+        loading={false}
         error={error}
       />
     </>
