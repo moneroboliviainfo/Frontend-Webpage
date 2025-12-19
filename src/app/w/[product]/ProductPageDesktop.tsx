@@ -513,7 +513,7 @@ const ProductPageDesktop: React.FC<Props> = ({
             className="font-semibold"
             style={{ fontSize: '1rem', marginBottom: '1.5rem' }}
           >
-            Selecciona talla
+            Selecciona la talla
           </h3>
 
           {/* Size selection */}
@@ -845,7 +845,7 @@ const ProductPageDesktop: React.FC<Props> = ({
             }}
           >
             {selectedSizeIndex === null
-              ? 'SELECCIONA TALLA'
+              ? 'SELECCIONAR TALLA'
               : 'AÑADIR AL CARRITO'}
           </button>
         </div>
