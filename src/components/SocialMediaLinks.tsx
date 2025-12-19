@@ -20,16 +20,16 @@ const SocialMediaLinks: React.FC<SocialMediaLinksProps> = ({
         </span>
       )}
       <div className="flex" style={{ gap }}>
-        {/* <a
-          href="https://www.facebook.com/profile.php?id=61571175343733"
+        <a
+          href="https://www.facebook.com/profile.php?id=61577714284167"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Facebook"
         >
           <FaFacebook size={iconSize} className="text-blue-700" />
-        </a> */}
+        </a>
         <a
-          href="https://www.instagram.com/m0ner0_/?igsh=MTcybjBkd2Zpdnp4bQ%3D%3D&utm_source=qr"
+          href="https://www.instagram.com/moneroget/"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Instagram"
@@ -37,7 +37,7 @@ const SocialMediaLinks: React.FC<SocialMediaLinksProps> = ({
           <FaInstagram size={iconSize} className="text-pink-500" />
         </a>
         <a
-          href="https://www.tiktok.com/@monero750?_r=1&_t=ZM-91ulRBqMbng"
+          href="https://www.tiktok.com/@moneroget"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="TikTok"
