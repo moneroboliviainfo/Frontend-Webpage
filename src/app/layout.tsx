@@ -53,7 +53,28 @@ export default function RootLayout({
               url: 'https://www.moneroget.com',
               logo: 'https://www.moneroget.com/logos/Logo-Monero.png',
               description:
-                'Monero - Tienda de ropa Monero para hombres y mujeres en Bolivia. Las últimas tendencias de moda y prendas premium.',
+                'Monero - Tienda de ropa en Sucre, Bolivia. Moda para hombres y mujeres. Las últimas tendencias y prendas premium.',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Sucre',
+                addressRegion: 'Chuquisaca',
+                addressCountry: 'BO',
+              },
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: -19.0333,
+                longitude: -65.2627,
+              },
+              areaServed: [
+                {
+                  '@type': 'City',
+                  name: 'Sucre',
+                },
+                {
+                  '@type': 'Country',
+                  name: 'Bolivia',
+                },
+              ],
               potentialAction: {
                 '@type': 'SearchAction',
                 target:
