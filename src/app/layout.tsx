@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import ReduxProvider from '../store/Provider';
 import AuthProvider from '../components/AuthProvider';
@@ -40,23 +41,41 @@ export default function RootLayout({
         />
         <link rel="apple-touch-icon" href="/logos/Logo-Monero.png" />
         {isProduction && (
-          <script
-            type="text/javascript"
-            dangerouslySetInnerHTML={{
-              __html: `
-                (function(c,l,a,r,i,t,y){
-                  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-                })(window, document, "clarity", "script", "uj4u9y5mht");
-              `,
-            }}
-          />
+          <>
+            <script
+              type="text/javascript"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  (function(c,l,a,r,i,t,y){
+                    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                  })(window, document, "clarity", "script", "uj4u9y5mht");
+                `,
+              }}
+            />
+          </>
         )}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {isProduction && (
+          <>
+            <Script
+              src="https://www.googletagmanager.com/gtag/js?id=G-9V15LRZ0PM"
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-9V15LRZ0PM');
+              `}
+            </Script>
+          </>
+        )}
         <ReduxProvider>
           <AuthProvider>{children}</AuthProvider>
         </ReduxProvider>
