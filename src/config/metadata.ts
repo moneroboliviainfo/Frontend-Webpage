@@ -3,12 +3,15 @@ import type { Metadata } from 'next';
 // Shared metadata configuration following DRY principles
 export const baseMetadata: Metadata = {
   title: {
-    default: 'Monero',
-    template: '%s | Monero',
+    default: 'Monero | Tienda de Moda Online',
+    template: '%s | MoneroGet',
   },
   description:
-    'Monero - Tienda de ropa para hombres y mujeres. Descubre las últimas tendencias de moda, colecciones exclusivas y compra prendas premium en línea.',
+    'Monero - Tienda de ropa Monero para hombres y mujeres en Bolivia. Descubre las últimas tendencias de moda, colecciones exclusivas y compra prendas premium en línea.',
   keywords: [
+    'moneroget',
+    'monero',
+    'tienda monero',
     'moda',
     'ropa',
     'hombres',
@@ -16,6 +19,8 @@ export const baseMetadata: Metadata = {
     'tienda online',
     'fashion',
     'tendencias',
+    'ropa Bolivia',
+    'tienda de ropa online Bolivia',
   ],
   authors: [{ name: 'Monero' }],
   creator: 'Monero',
@@ -60,11 +65,11 @@ export const baseMetadata: Metadata = {
   },
   manifest: '/manifest.json',
   openGraph: {
-    title: 'Monero - Tienda de Moda Online',
+    title: 'Monero - Tienda de Moda Monero Online',
     description:
-      'Descubre las últimas tendencias de moda para hombres y mujeres en Monero.',
+      'Monero - Descubre las últimas tendencias de moda para hombres y mujeres en Monero. Ropa premium y accesorios en Bolivia.',
     url: 'https://moneroget.com',
-    siteName: 'Monero',
+    siteName: 'MoneroGet',
     images: [
       {
         url: '/logos/Logo-Monero.png',

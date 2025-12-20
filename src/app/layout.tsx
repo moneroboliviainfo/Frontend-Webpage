@@ -40,6 +40,35 @@ export default function RootLayout({
           type="image/png"
         />
         <link rel="apple-touch-icon" href="/logos/Logo-Monero.png" />
+
+        {/* Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ClothingStore',
+              name: 'MoneroGet',
+              alternateName: 'Monero',
+              url: 'https://www.moneroget.com',
+              logo: 'https://www.moneroget.com/logos/Logo-Monero.png',
+              description:
+                'Monero - Tienda de ropa Monero para hombres y mujeres en Bolivia. Las últimas tendencias de moda y prendas premium.',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target:
+                  'https://www.moneroget.com/search?q={search_term_string}',
+                'query-input': 'required name=search_term_string',
+              },
+              sameAs: [
+                'https://www.facebook.com/profile.php?id=61577714284167',
+                'https://www.instagram.com/moneroget',
+                'https://www.tiktok.com/@moneroget',
+              ],
+            }),
+          }}
+        />
+
         {isProduction && (
           <>
             <script

@@ -1,0 +1,10 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow admin and checkout pages from search engines
+Disallow: /w/checkout
+Disallow: /auth/callback
+
+# Sitemap location
+Sitemap: https://moneroget.com/sitemap.xml
