@@ -611,16 +611,6 @@ const ProductPageDesktop: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Accessories Slider */}
-          {accessories.length > 0 && (
-            <div style={{ marginBottom: '2rem' }}>
-              <AccessoriesSlider
-                products={accessories}
-                onAddToCart={handleAddAccessoryToCart}
-              />
-            </div>
-          )}
-
           {/* Description section */}
           <div
             style={{
@@ -771,6 +761,16 @@ const ProductPageDesktop: React.FC<Props> = ({
               </button>
             </div>
           </div>
+
+          {/* Accessories Slider */}
+          {accessories.length > 0 && (
+            <div style={{ marginBottom: '2rem' }}>
+              <AccessoriesSlider
+                products={accessories}
+                onAddToCart={handleAddAccessoryToCart}
+              />
+            </div>
+          )}
 
           {/* Add to cart button */}
           <button
