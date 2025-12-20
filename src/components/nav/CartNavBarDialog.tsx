@@ -1,3 +1,4 @@
+import SkeletonLoader from '@/components/SkeletonLoader';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -26,6 +27,12 @@ const CartNavBarDialog: React.FC<{
   } | null>(null);
   const [showUndoToast, setShowUndoToast] = useState(false);
   const isMobile = useIsMobile();
+
+  // Track image loading state for each cart item by index
+  const [imageLoaded, setImageLoaded] = useState<Record<number, boolean>>({});
+  const handleImageLoad = (idx: number) => {
+    setImageLoaded((prev) => ({ ...prev, [idx]: true }));
+  };
 
   // Load cart items from localStorage
   useEffect(() => {
@@ -211,13 +218,35 @@ const CartNavBarDialog: React.FC<{
                           justifyContent: 'center',
                         }}
                       >
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.productName}
-                          fill
-                          className="object-contain rounded-r-sm"
-                          sizes="25vw"
-                        />
+                        <>
+                          {/* Skeleton loader - shown while image is loading */}
+                          {!imageLoaded[index] && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                inset: 0,
+                                zIndex: 1,
+                              }}
+                            >
+                              <SkeletonLoader
+                                variant="shimmer"
+                                showIcon={false}
+                              />
+                            </div>
+                          )}
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.productName}
+                            fill
+                            className="object-contain rounded-r-sm"
+                            sizes="25vw"
+                            style={{
+                              opacity: imageLoaded[index] ? 1 : 0,
+                              transition: 'opacity 0.3s ease-in-out',
+                            }}
+                            onLoadingComplete={() => handleImageLoad(index)}
+                          />
+                        </>
                       </div>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -407,7 +436,7 @@ const CartNavBarDialog: React.FC<{
           {/* Left side: Image and text */}
           <div className="flex items-center" style={{ gap: '0.75rem' }}>
             {/* Item image */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <Image
                 src={undoData.item.imageUrl || '/images/placeholder.jpg'}
                 alt={undoData.item.productName}
