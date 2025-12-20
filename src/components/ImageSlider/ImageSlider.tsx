@@ -2,6 +2,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 import NewsRoulette from '@/components/NewsRoulette';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -128,6 +129,12 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   const [activeSlide, setActiveSlide] = React.useState(0);
   // Keep reference to swiper instance to expose controls
   const swiperRef = React.useRef<SwiperType | null>(null);
+  // Track loaded images
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
+
+  const handleImageLoad = (idx: number) => {
+    setLoadedImages((prev) => new Set(prev).add(idx));
+  };
 
   // Safely get current slide with bounds checking
   const getCurrentSlide = () => {
@@ -206,6 +213,11 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
               style={{ minHeight: 400 }}
               onClick={() => handleSlideClick(slide)}
             >
+              {!loadedImages.has(idx) && (
+                <div className="absolute inset-0">
+                  <SkeletonLoader variant="shimmer" showIcon={false} />
+                </div>
+              )}
               <Image
                 src={slide.image}
                 alt={isApiSlide(slide) ? slide.name : slide.label}
@@ -213,6 +225,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
                 className="object-cover"
                 sizes="100vw"
                 priority={idx === 0}
+                onLoad={() => handleImageLoad(idx)}
               />
 
               {/* Legacy label display */}

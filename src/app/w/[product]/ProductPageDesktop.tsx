@@ -3,6 +3,7 @@ import BasketConfirmation from '@/components/BasketConfirmation';
 import AccessoriesSlider from '@/components/AccessoriesSlider';
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import SkeletonLoader from '@/components/SkeletonLoader';
 import { addToCart } from '@/utils/cartStorage';
 import type { CartItem } from '@/types/cart';
 import {
@@ -72,6 +73,11 @@ const ProductPageDesktop: React.FC<Props> = ({
   const [showVideo, setShowVideo] = useState(false);
   const [accessories, setAccessories] = useState<Product[]>([]);
   const accessoriesFetchedRef = useRef(false);
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
+
+  const handleImageLoad = (idx: number) => {
+    setLoadedImages((prev) => new Set(prev).add(idx));
+  };
 
   // Description modal + overflow detection
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
@@ -242,6 +248,14 @@ const ProductPageDesktop: React.FC<Props> = ({
                           borderBottom: '1px solid #fff',
                         }}
                       >
+                        {!loadedImages.has(leftImageIndex) && (
+                          <div className="absolute inset-0">
+                            <SkeletonLoader
+                              variant="shimmer"
+                              showIcon={false}
+                            />
+                          </div>
+                        )}
                         <Image
                           src={images[leftImageIndex].image}
                           alt={
@@ -251,6 +265,7 @@ const ProductPageDesktop: React.FC<Props> = ({
                           fill
                           className="object-cover"
                           sizes="33vw"
+                          onLoad={() => handleImageLoad(leftImageIndex)}
                         />
                       </div>
                     )}
@@ -273,6 +288,14 @@ const ProductPageDesktop: React.FC<Props> = ({
                           borderBottom: '1px solid #fff',
                         }}
                       >
+                        {!loadedImages.has(rightImageIndex) && (
+                          <div className="absolute inset-0">
+                            <SkeletonLoader
+                              variant="shimmer"
+                              showIcon={false}
+                            />
+                          </div>
+                        )}
                         <Image
                           src={images[rightImageIndex].image}
                           alt={
@@ -282,6 +305,7 @@ const ProductPageDesktop: React.FC<Props> = ({
                           fill
                           className="object-cover"
                           sizes="33vw"
+                          onLoad={() => handleImageLoad(rightImageIndex)}
                         />
                       </div>
                     )}

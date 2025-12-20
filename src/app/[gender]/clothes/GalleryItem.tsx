@@ -40,6 +40,19 @@ const GalleryItem: React.FC<Props> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const router = useRouter();
   const slug = buildProductSlug(name, productId);
+
+  const handleColorClick = (
+    e: React.MouseEvent | React.KeyboardEvent,
+    colorCode: string
+  ) => {
+    e.stopPropagation();
+    router.push(
+      `/w/${encodeURIComponent(slug)}?colorCode=${encodeURIComponent(
+        colorCode
+      )}`
+    );
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -167,6 +180,12 @@ const GalleryItem: React.FC<Props> = ({
                 key={c + i}
                 role="button"
                 tabIndex={0}
+                onClick={(e) => handleColorClick(e, c)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleColorClick(e, c);
+                  }
+                }}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 onFocus={() => setHovered(i)}

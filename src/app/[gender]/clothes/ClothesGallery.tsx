@@ -103,14 +103,26 @@ export default function ClothesGallery() {
   }, [subcategories.length]);
 
   const filteredProducts = useMemo(() => {
-    if (!selectedSubcategoryId) return allProducts;
-    const subcat = categoryData?.subcategories?.find(
-      (s) => s.id === selectedSubcategoryId
-    );
-    if (!subcat) return [];
-    return subcat.products.filter(
-      (product) => product.enabled && product.productColors.length > 0
-    );
+    let products: Product[];
+
+    if (!selectedSubcategoryId) {
+      products = allProducts;
+    } else {
+      const subcat = categoryData?.subcategories?.find(
+        (s) => s.id === selectedSubcategoryId
+      );
+      if (!subcat) return [];
+      products = subcat.products.filter(
+        (product) => product.enabled && product.productColors.length > 0
+      );
+    }
+
+    // Sort by createdAt descending (newest first)
+    return products.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA;
+    });
   }, [selectedSubcategoryId, allProducts, categoryData]);
 
   // Main render — show full page loader during API call, then show content
