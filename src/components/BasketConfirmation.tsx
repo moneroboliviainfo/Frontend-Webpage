@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import type { CartItem } from '@/types/cart';
 
@@ -18,6 +18,8 @@ const BasketConfirmation: React.FC<BasketConfirmationProps> = ({
   onProceedToCheckout,
   isMobile = false,
 }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   if (!show) return null;
 
   const containerStyle = isMobile
@@ -106,14 +108,27 @@ const BasketConfirmation: React.FC<BasketConfirmationProps> = ({
             marginRight: '12px',
             borderRadius: 4,
             overflow: 'hidden',
+            position: 'relative',
           }}
         >
+          {/* Skeleton loader */}
+          {!imageLoaded && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundColor: '#e5e7eb',
+                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              }}
+            />
+          )}
           <Image
             src={cartItem.imageUrl}
             alt={cartItem.productName}
             width={60}
             height={80}
             style={{ objectFit: 'cover' }}
+            onLoad={() => setImageLoaded(true)}
           />
         </div>
 
@@ -174,6 +189,18 @@ const BasketConfirmation: React.FC<BasketConfirmationProps> = ({
           PROCESAR ORDEN
         </button>
       </div>
+
+      <style jsx>{`
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+      `}</style>
     </div>
   );
 };
