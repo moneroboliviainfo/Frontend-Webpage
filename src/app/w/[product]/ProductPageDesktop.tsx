@@ -622,7 +622,7 @@ const ProductPageDesktop: React.FC<Props> = ({
             </div>
 
             {/* Size availability info */}
-            <div className="mt-2">
+            {/* <div className="mt-2">
               <span
                 style={{
                   fontSize: '12px',
@@ -638,7 +638,7 @@ const ProductPageDesktop: React.FC<Props> = ({
                     }`
                   : ''}
               </span>
-            </div>
+            </div> */}
           </div>
 
           {/* Description section */}
