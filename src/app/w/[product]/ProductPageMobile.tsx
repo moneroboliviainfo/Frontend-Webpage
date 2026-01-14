@@ -4,6 +4,7 @@ import BottomSheet from '@/components/BottomSheet/BottomSheet';
 import BasketConfirmation from '@/components/BasketConfirmation';
 import AccessoriesSlider from '@/components/AccessoriesSlider';
 import React, { useRef, useState, useEffect } from 'react';
+import styles from './ProductPageDesktop.module.css';
 import { addToCart } from '@/utils/cartStorage';
 import type { CartItem } from '@/types/cart';
 import {
@@ -91,6 +92,21 @@ const ProductPageMobile: React.FC<Props> = ({
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
     null
   );
+  // Mobile: visible tooltip index and timer
+  const [visibleTooltipIndex, setVisibleTooltipIndex] = useState<number | null>(
+    null
+  );
+  const tooltipTimerRef = useRef<number | null>(null);
+
+  // Clear tooltip timer on unmount
+  useEffect(() => {
+    return () => {
+      if (tooltipTimerRef.current) {
+        window.clearTimeout(tooltipTimerRef.current);
+        tooltipTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const bottomSheetRef = useRef<{
     expand: () => void;
@@ -490,7 +506,22 @@ const ProductPageMobile: React.FC<Props> = ({
                     role="button"
                     tabIndex={0}
                     aria-pressed={isSelected}
+                    className={
+                      visibleTooltipIndex === i
+                        ? `${styles.colorSwatch} ${styles.showTooltip}`
+                        : styles.colorSwatch
+                    }
                     onClick={() => {
+                      // Show tooltip on mobile for 3s (or until another color pressed)
+                      setVisibleTooltipIndex(i);
+                      if (tooltipTimerRef.current) {
+                        window.clearTimeout(tooltipTimerRef.current);
+                      }
+                      tooltipTimerRef.current = window.setTimeout(() => {
+                        setVisibleTooltipIndex(null);
+                        tooltipTimerRef.current = null;
+                      }, 3000);
+
                       setSelectedColorIndex(i);
                       // Reset size selection when color changes
                       setSelectedSizeIndex(null);
@@ -537,6 +568,9 @@ const ProductPageMobile: React.FC<Props> = ({
                         : '0 0 0 0 rgba(0,0,0,0)',
                     }}
                   >
+                    <div className={styles.colorTooltip} aria-hidden>
+                      {colorData.colorName ?? colorData.color}
+                    </div>
                     <div
                       aria-hidden
                       style={{

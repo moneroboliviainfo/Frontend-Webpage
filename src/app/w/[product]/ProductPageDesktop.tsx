@@ -4,6 +4,7 @@ import AccessoriesSlider from '@/components/AccessoriesSlider';
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import styles from './ProductPageDesktop.module.css';
 import { addToCart } from '@/utils/cartStorage';
 import type { CartItem } from '@/types/cart';
 import {
@@ -463,6 +464,8 @@ const ProductPageDesktop: React.FC<Props> = ({
                     key={colorData.color + i}
                     role="button"
                     tabIndex={0}
+                    className={styles.colorSwatch}
+                    aria-label={colorData.colorName ?? colorData.color}
                     aria-pressed={isSelected}
                     onClick={() => {
                       setSelectedColorIndex(i);
@@ -507,6 +510,9 @@ const ProductPageDesktop: React.FC<Props> = ({
                       cursor: 'pointer',
                     }}
                   >
+                    <div className={styles.colorTooltip} aria-hidden>
+                      {colorData.colorName ?? colorData.color}
+                    </div>
                     <div
                       aria-hidden
                       style={{

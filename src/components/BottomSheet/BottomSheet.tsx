@@ -138,9 +138,9 @@ function BottomSheet(
     // Prevent document scrolling during drag
     document.body.style.overflow = 'hidden';
     // Prevent pull-to-refresh on touch events
-    if (e && 'preventDefault' in e) {
-      e.preventDefault();
-    }
+    // Note: avoid calling preventDefault here because React's touch handlers
+    // may be passive; `touch-action: none` in CSS handles preventing
+    // the browser's default touch behaviors.
   };
 
   return (
@@ -150,7 +150,7 @@ function BottomSheet(
       style={{ transform: `translateY(${translateY}px)`, zIndex: 1 }}
       onPointerDown={(e) => startDrag(e.clientY, e)}
       onTouchStart={(e) => {
-        e.preventDefault(); // Prevent pull-to-refresh immediately
+        // Do not call e.preventDefault() here; React may attach passive listeners.
         startDrag(e.touches[0].clientY, e);
       }}
     >
