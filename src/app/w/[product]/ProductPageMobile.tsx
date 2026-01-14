@@ -865,7 +865,7 @@ const ProductPageMobile: React.FC<Props> = ({
           )}
 
           {/* size availability - only visible when sheet is expanded and size is selected */}
-          {sheetExpanded && (
+          {/* {sheetExpanded && (
             <div
               className="flex items-center justify-center"
               style={{
@@ -893,7 +893,7 @@ const ProductPageMobile: React.FC<Props> = ({
                   : ''}
               </span>
             </div>
-          )}
+          )} */}
 
           {/* third row: centered CTA button */}
           <div className="flex justify-center" style={{ marginTop: '1rem' }}>
