@@ -92,7 +92,7 @@ const CheckoutPage: React.FC = () => {
     useState(false);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState('');
   const [modalType, setModalType] = useState<'countryCode' | 'country'>(
-    'countryCode'
+    'countryCode',
   );
   const [countries, setCountries] = useState<Country[]>([]);
   const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
@@ -103,6 +103,88 @@ const CheckoutPage: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1); // 1: Detalles, 2: Método de envío, 3: Pago
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+
+  // Manage simulated navigation steps in browser history so back/forward stays inside checkout
+  const goToStep = useCallback((step: 1 | 2 | 3, replace = false) => {
+    setCurrentStep(step);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('checkoutStep', String(step));
+      const href = url.pathname + url.search + url.hash;
+      const state = { checkoutStep: step };
+      if (replace) {
+        window.history.replaceState(state, '', href);
+      } else {
+        window.history.pushState(state, '', href);
+      }
+    } catch (e) {
+      // ignore if window or URL not available
+    }
+  }, []);
+
+  useEffect(() => {
+    // Initialize step from URL if present
+    try {
+      const url = new URL(window.location.href);
+      const stepParam = url.searchParams.get('checkoutStep');
+      const stepNum = stepParam ? Number(stepParam) : 1;
+      if (stepNum >= 1 && stepNum <= 3) {
+        setCurrentStep(stepNum as 1 | 2 | 3);
+        // Replace initial state so popstate works predictably
+        window.history.replaceState(
+          { checkoutStep: stepNum },
+          '',
+          url.pathname + '?checkoutStep=' + stepNum + url.hash,
+        );
+      } else {
+        // ensure a state exists for this page
+        window.history.replaceState(
+          { checkoutStep: currentStep },
+          '',
+          window.location.pathname +
+            '?checkoutStep=' +
+            currentStep +
+            window.location.hash,
+        );
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    const onPop = (ev: PopStateEvent) => {
+      const stateStep = (ev.state && (ev.state as any).checkoutStep) || null;
+      if (stateStep && stateStep >= 1 && stateStep <= 3) {
+        const step = stateStep as 1 | 2 | 3;
+        setCurrentStep(step);
+        // Sync mobile modals with step
+        if (window.innerWidth < 1024) {
+          if (step === 2) {
+            setShowDeliveryModal(true);
+            setShowOrderConfirmationModal(false);
+          } else if (step === 3) {
+            setShowDeliveryModal(false);
+            setShowOrderConfirmationModal(true);
+          } else {
+            setShowDeliveryModal(false);
+            setShowOrderConfirmationModal(false);
+          }
+        }
+      } else {
+        // fallback to URL param
+        try {
+          const url = new URL(window.location.href);
+          const stepParam = url.searchParams.get('checkoutStep');
+          const s = stepParam ? Number(stepParam) : 1;
+          setCurrentStep(s as 1 | 2 | 3);
+        } catch (err) {
+          setCurrentStep(1);
+        }
+      }
+    };
+
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [currentStep]);
 
   // Cart validation state
   const [isValidatingCart, setIsValidatingCart] = useState(true);
@@ -303,7 +385,7 @@ const CheckoutPage: React.FC = () => {
         setIsLoadingCountries(true);
         // Using REST Countries API for country data
         const response = await fetch(
-          'https://restcountries.com/v3.1/all?fields=name,cca2,idd'
+          'https://restcountries.com/v3.1/all?fields=name,cca2,idd',
         );
         const data: APICountry[] = await response.json();
 
@@ -374,7 +456,7 @@ const CheckoutPage: React.FC = () => {
 
           // Get the out of stock items for display
           const outOfStockCartItems = localCart.items.filter((item) =>
-            outOfStockVariantIds.includes(item.variantId)
+            outOfStockVariantIds.includes(item.variantId),
           );
 
           setOutOfStockItems(outOfStockCartItems);
@@ -401,7 +483,7 @@ const CheckoutPage: React.FC = () => {
         console.error('Cart validation error:', error);
         setIsValidatingCart(false);
         setErrorMessage(
-          'Unable to validate your cart. Please check your connection and try again.'
+          'Unable to validate your cart. Please check your connection and try again.',
         );
         setShowErrorModal(true);
       }
@@ -437,7 +519,7 @@ const CheckoutPage: React.FC = () => {
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -461,7 +543,7 @@ const CheckoutPage: React.FC = () => {
     const filtered = countries.filter(
       (country) =>
         country.name.toLowerCase().includes(query) ||
-        country.dialCode.includes(query)
+        country.dialCode.includes(query),
     );
     setFilteredCountries(filtered);
   };
@@ -554,7 +636,7 @@ const CheckoutPage: React.FC = () => {
         let selectedPlaceData: Place | undefined;
         if (selectedCountry === 'Bolivia' && formData.departamento) {
           selectedPlaceData = departments.find(
-            (dept) => normalizePlaceName(dept.place) === formData.departamento
+            (dept) => normalizePlaceName(dept.place) === formData.departamento,
           );
           if (selectedPlaceData) {
             dispatch(setSelectedPlace(selectedPlaceData));
@@ -568,7 +650,7 @@ const CheckoutPage: React.FC = () => {
         ) {
           // Using existing address - address ID already stored in Redux
           // No need to call address API
-          setCurrentStep(2);
+          goToStep(2);
           // Only show modal on mobile (desktop uses currentStep to render content)
           if (window.innerWidth < 1024) {
             setShowDeliveryModal(true);
@@ -610,7 +692,7 @@ const CheckoutPage: React.FC = () => {
           dispatch(setAddressId(addressResponse.id));
 
           // Form is valid, update step (desktop will show step 2, mobile needs modal)
-          setCurrentStep(2);
+          goToStep(2);
           // Only show modal on mobile (desktop uses currentStep to render content)
           if (window.innerWidth < 1024) {
             setShowDeliveryModal(true);
@@ -621,7 +703,7 @@ const CheckoutPage: React.FC = () => {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : 'Unable to save your address. Please try again.'
+            : 'Unable to save your address. Please try again.',
         );
         setShowErrorModal(true);
       } finally {
@@ -638,7 +720,7 @@ const CheckoutPage: React.FC = () => {
 
   const handleDeliveryOptionSelect = (
     shipmentId: number,
-    shipmentName: string
+    shipmentName: string,
   ) => {
     // Find the full shipment object
     const shipment = selectedPlace?.shipments.find((s) => s.id === shipmentId);
@@ -647,7 +729,7 @@ const CheckoutPage: React.FC = () => {
     }
     setSelectedDeliveryMethod(shipmentName);
     setShowDeliveryModal(false);
-    setCurrentStep(3); // Move to payment step
+    goToStep(3); // Move to payment step (and push history)
     // Only show modal on mobile (desktop uses currentStep to render content)
     if (window.innerWidth < 1024) {
       setShowOrderConfirmationModal(true);
@@ -656,7 +738,7 @@ const CheckoutPage: React.FC = () => {
 
   const handleBackToDelivery = () => {
     setShowOrderConfirmationModal(false);
-    setCurrentStep(2); // Back to delivery step
+    goToStep(2); // Back to delivery step (and push history)
     // Only show modal on mobile (desktop uses currentStep to render content)
     if (window.innerWidth < 1024) {
       setShowDeliveryModal(true);
@@ -696,7 +778,7 @@ const CheckoutPage: React.FC = () => {
       setOrderError(
         error instanceof Error
           ? error.message
-          : 'Unable to create order. Please try again.'
+          : 'Unable to create order. Please try again.',
       );
     } finally {
       setIsCreatingOrder(false);
@@ -1537,7 +1619,17 @@ const CheckoutPage: React.FC = () => {
                           style={{ marginTop: '2rem' }}
                         >
                           <button
-                            onClick={() => setCurrentStep(1)}
+                            onClick={() => {
+                              if (
+                                typeof window !== 'undefined' &&
+                                window.history &&
+                                window.history.length > 0
+                              ) {
+                                window.history.back();
+                              } else {
+                                goToStep(1);
+                              }
+                            }}
                             className="flex items-center gap-2 hover:bg-gray-100 transition-all"
                             style={{
                               fontSize: '0.9rem',
@@ -2462,7 +2554,18 @@ const CheckoutPage: React.FC = () => {
               >
                 {/* Back Arrow */}
                 <button
-                  onClick={() => setShowDeliveryModal(false)}
+                  onClick={() => {
+                    // emulate browser back so popstate handles step change and modal sync
+                    if (
+                      typeof window !== 'undefined' &&
+                      window.history &&
+                      window.history.length > 0
+                    ) {
+                      window.history.back();
+                    } else {
+                      setShowDeliveryModal(false);
+                    }
+                  }}
                   className="flex items-center justify-center hover:bg-gray-100 rounded-full"
                   style={{
                     width: '40px',

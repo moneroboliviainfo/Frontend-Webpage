@@ -127,14 +127,14 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
         formData.detailedAddress || '',
         formData.cityProvince || '',
         formData.departamento || '',
-        selectedCountry
+        selectedCountry,
       );
     } else {
       addressParts.push(
         formData.streetNumber || '',
         formData.city || '',
         formData.postalCode || '',
-        selectedCountry
+        selectedCountry,
       );
     }
 
@@ -145,7 +145,7 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
   const itemsSubtotal = repriceData
     ? repriceData.items.reduce(
         (sum, item) => sum + item.unit_price * item.quantity,
-        0
+        0,
       )
     : 0;
 
@@ -439,7 +439,17 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
       {showBackButton && onBackToDelivery && (
         <div className="flex justify-center" style={{ marginTop: '1rem' }}>
           <button
-            onClick={onBackToDelivery}
+            onClick={() => {
+              if (
+                typeof window !== 'undefined' &&
+                window.history &&
+                window.history.length > 0
+              ) {
+                window.history.back();
+              } else if (onBackToDelivery) {
+                onBackToDelivery();
+              }
+            }}
             className="flex items-center gap-2 hover:bg-gray-100 transition-all"
             style={{
               fontSize: '0.9rem',

@@ -95,7 +95,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
       setOrderError(
         error instanceof Error
           ? error.message
-          : 'Unable to create order. Please try again.'
+          : 'Unable to create order. Please try again.',
       );
     } finally {
       setIsCreatingOrder(false);
@@ -132,7 +132,17 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
       >
         {/* Back Arrow */}
         <button
-          onClick={onBackToDelivery}
+          onClick={() => {
+            if (
+              typeof window !== 'undefined' &&
+              window.history &&
+              window.history.length > 0
+            ) {
+              window.history.back();
+            } else {
+              onBackToDelivery();
+            }
+          }}
           className="flex items-center justify-center hover:bg-gray-100 rounded-full"
           style={{
             width: '40px',
