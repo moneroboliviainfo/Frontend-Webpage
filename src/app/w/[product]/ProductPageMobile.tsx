@@ -63,7 +63,7 @@ const ProductPageMobile: React.FC<Props> = ({
   const isColorAvailable = (colorIndex: number) => {
     return (
       productDetails.colorsWithSizes[colorIndex]?.sizes.some(
-        (sizeInfo) => sizeInfo.availability > 0
+        (sizeInfo) => sizeInfo.availability > 0,
       ) || false
     );
   };
@@ -77,7 +77,7 @@ const ProductPageMobile: React.FC<Props> = ({
   const getInitialColorIndex = () => {
     if (initialColorCode && productDetails.colorsWithSizes.length > 0) {
       const index = productDetails.colorsWithSizes.findIndex(
-        (colorData) => colorData.color === initialColorCode
+        (colorData) => colorData.color === initialColorCode,
       );
       return index >= 0 ? index : 0;
     }
@@ -86,15 +86,15 @@ const ProductPageMobile: React.FC<Props> = ({
 
   // selected color index (first color or matched color selected by default)
   const [selectedColorIndex, setSelectedColorIndex] = useState<number>(() =>
-    getInitialColorIndex()
+    getInitialColorIndex(),
   );
   // selected size index (no size selected by default)
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
-    null
+    null,
   );
   // Mobile: visible tooltip index and timer
   const [visibleTooltipIndex, setVisibleTooltipIndex] = useState<number | null>(
-    null
+    null,
   );
   const tooltipTimerRef = useRef<number | null>(null);
 
@@ -135,7 +135,7 @@ const ProductPageMobile: React.FC<Props> = ({
   const [startY, setStartY] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isHorizontalSwipe, setIsHorizontalSwipe] = useState<boolean | null>(
-    null
+    null,
   );
   const [translateX, setTranslateX] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -144,7 +144,7 @@ const ProductPageMobile: React.FC<Props> = ({
   const handleSwipeStart = (
     clientX: number,
     clientY: number,
-    event?: TouchEvent | MouseEvent
+    event?: TouchEvent | MouseEvent,
   ) => {
     // Check if touch started within AccessoriesSlider
     if (event) {
@@ -261,7 +261,7 @@ const ProductPageMobile: React.FC<Props> = ({
   useEffect(() => {
     if (initialColorCode && sliderControlsRef.current) {
       const colorIndex = productDetails.colorsWithSizes.findIndex(
-        (colorData) => colorData.color === initialColorCode
+        (colorData) => colorData.color === initialColorCode,
       );
       if (colorIndex >= 0) {
         const colorData = productDetails.colorsWithSizes[colorIndex];
@@ -311,7 +311,7 @@ const ProductPageMobile: React.FC<Props> = ({
     price: number,
     discount: number,
     finalPrice: number,
-    imageUrl: string
+    imageUrl: string,
   ) => {
     // Add to cart
     const cartItem = addToCart({
@@ -358,7 +358,7 @@ const ProductPageMobile: React.FC<Props> = ({
           handleSwipeStart(
             e.touches[0].clientX,
             e.touches[0].clientY,
-            e.nativeEvent
+            e.nativeEvent,
           )
         }
         onTouchMove={(e) =>
@@ -760,93 +760,120 @@ const ProductPageMobile: React.FC<Props> = ({
                 {getCurrentSizes().map((sizeData, i) => {
                   const isSelected = i === selectedSizeIndex;
                   const isAvailable = sizeData.availability > 0;
+                  const boxWidth = 40;
                   return (
                     <div
                       key={sizeData.size}
-                      role="button"
-                      tabIndex={isAvailable ? 0 : -1}
-                      aria-pressed={isSelected}
-                      aria-disabled={!isAvailable}
-                      onClick={() => {
-                        if (isAvailable) {
-                          setSelectedSizeIndex(i);
-                          const selectedColor =
-                            productDetails.colorsWithSizes[selectedColorIndex];
-                          const firstImage =
-                            selectedColor.firstMultimediaIndex !== undefined
-                              ? productDetails.multimedia[
-                                  selectedColor.firstMultimediaIndex
-                                ]?.image
-                              : productDetails.multimedia[0]?.image;
-
-                          // Add to cart storage
-                          const cartItem = addToCart({
-                            productId: productDetails.productId,
-                            productName: productDetails.name,
-                            variantId: sizeData.variantId ?? 0,
-                            price: productDetails.price,
-                            discount: productDetails.discount,
-                            finalPrice: productDetails.finalPrice,
-                            sizeName: sizeData.size,
-                            sizeId: sizeData.id ?? undefined,
-                            colorName: selectedColor.colorName || 'Color',
-                            colorCode: selectedColor.color,
-                            imageUrl: firstImage || '',
-                          });
-
-                          // Show basket confirmation
-                          setBasketConfirmation({
-                            show: true,
-                            cartItem,
-                          });
-
-                          // Dispatch custom event to notify cart dialog to update
-                          window.dispatchEvent(new Event('cartUpdated'));
-
-                          // Auto-hide after 5 seconds
-                          setTimeout(() => {
-                            setBasketConfirmation(null);
-                          }, 5000);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (
-                          isAvailable &&
-                          (e.key === 'Enter' || e.key === ' ')
-                        ) {
-                          e.preventDefault();
-                          setSelectedSizeIndex(i);
-                        }
-                      }}
                       style={{
-                        width: 40,
-                        height: 40,
-                        marginRight: i < getCurrentSizes().length - 1 ? 8 : 0,
-                        background: isSelected
-                          ? '#000'
-                          : isAvailable
-                          ? '#fff'
-                          : '#f3f4f6',
-                        color: isSelected
-                          ? '#fff'
-                          : isAvailable
-                          ? '#000'
-                          : '#9ca3af',
-                        borderRadius: 6,
-                        border: `1px solid ${
-                          isAvailable ? '#e5e7eb' : '#d1d5db'
-                        }`,
-                        boxSizing: 'border-box',
                         display: 'inline-flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        cursor: isAvailable ? 'pointer' : 'not-allowed',
-                        opacity: isAvailable ? 1 : 0.6,
+                        marginRight: i < getCurrentSizes().length - 1 ? 8 : 0,
                       }}
                     >
-                      {sizeData.size}
+                      <div
+                        role="button"
+                        tabIndex={isAvailable ? 0 : -1}
+                        aria-pressed={isSelected}
+                        aria-disabled={!isAvailable}
+                        onClick={() => {
+                          if (isAvailable) {
+                            setSelectedSizeIndex(i);
+                            const selectedColor =
+                              productDetails.colorsWithSizes[
+                                selectedColorIndex
+                              ];
+                            const firstImage =
+                              selectedColor.firstMultimediaIndex !== undefined
+                                ? productDetails.multimedia[
+                                    selectedColor.firstMultimediaIndex
+                                  ]?.image
+                                : productDetails.multimedia[0]?.image;
+
+                            // Add to cart storage
+                            const cartItem = addToCart({
+                              productId: productDetails.productId,
+                              productName: productDetails.name,
+                              variantId: sizeData.variantId ?? 0,
+                              price: productDetails.price,
+                              discount: productDetails.discount,
+                              finalPrice: productDetails.finalPrice,
+                              sizeName: sizeData.size,
+                              sizeId: sizeData.id ?? undefined,
+                              colorName: selectedColor.colorName || 'Color',
+                              colorCode: selectedColor.color,
+                              imageUrl: firstImage || '',
+                            });
+
+                            // Show basket confirmation
+                            setBasketConfirmation({
+                              show: true,
+                              cartItem,
+                            });
+
+                            // Dispatch custom event to notify cart dialog to update
+                            window.dispatchEvent(new Event('cartUpdated'));
+
+                            // Auto-hide after 5 seconds
+                            setTimeout(() => {
+                              setBasketConfirmation(null);
+                            }, 5000);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (
+                            isAvailable &&
+                            (e.key === 'Enter' || e.key === ' ')
+                          ) {
+                            e.preventDefault();
+                            setSelectedSizeIndex(i);
+                          }
+                        }}
+                        style={{
+                          width: boxWidth,
+                          height: boxWidth,
+                          background: isSelected
+                            ? '#000'
+                            : isAvailable
+                              ? '#fff'
+                              : '#f3f4f6',
+                          color: isSelected
+                            ? '#fff'
+                            : isAvailable
+                              ? '#000'
+                              : '#9ca3af',
+                          borderRadius: 6,
+                          border: `1px solid ${
+                            isAvailable ? '#e5e7eb' : '#d1d5db'
+                          }`,
+                          boxSizing: 'border-box',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          cursor: isAvailable ? 'pointer' : 'not-allowed',
+                          opacity: isAvailable ? 1 : 0.6,
+                        }}
+                      >
+                        {sizeData.size}
+                      </div>
+
+                      {!isAvailable && (
+                        <div
+                          aria-hidden
+                          style={{
+                            width: Math.max(boxWidth - 4, 28),
+                            textAlign: 'center',
+                            color: '#9ca3af',
+                            fontSize: '10px',
+                            marginTop: 4,
+                            lineHeight: '1em',
+                          }}
+                        >
+                          Agotado
+                        </div>
+                      )}
                     </div>
                   );
                 })}

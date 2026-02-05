@@ -53,7 +53,7 @@ const ProductPageDesktop: React.FC<Props> = ({
   const getInitialColorIndex = () => {
     if (initialColorCode && productDetails.colorsWithSizes.length > 0) {
       const index = productDetails.colorsWithSizes.findIndex(
-        (colorData) => colorData.color === initialColorCode
+        (colorData) => colorData.color === initialColorCode,
       );
       return index >= 0 ? index : 0;
     }
@@ -61,10 +61,10 @@ const ProductPageDesktop: React.FC<Props> = ({
   };
 
   const [selectedColorIndex, setSelectedColorIndex] = useState<number>(() =>
-    getInitialColorIndex()
+    getInitialColorIndex(),
   );
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
-    null
+    null,
   );
   const [basketConfirmation, setBasketConfirmation] = useState<{
     show: boolean;
@@ -125,7 +125,7 @@ const ProductPageDesktop: React.FC<Props> = ({
   useEffect(() => {
     if (initialColorCode) {
       const colorIndex = productDetails.colorsWithSizes.findIndex(
-        (colorData) => colorData.color === initialColorCode
+        (colorData) => colorData.color === initialColorCode,
       );
       if (colorIndex >= 0) {
         const index =
@@ -153,7 +153,7 @@ const ProductPageDesktop: React.FC<Props> = ({
   const isColorAvailable = (colorIndex: number) => {
     return (
       productDetails.colorsWithSizes[colorIndex]?.sizes.some(
-        (sizeInfo) => sizeInfo.availability > 0
+        (sizeInfo) => sizeInfo.availability > 0,
       ) || false
     );
   };
@@ -173,7 +173,7 @@ const ProductPageDesktop: React.FC<Props> = ({
     price: number,
     discount: number,
     finalPrice: number,
-    imageUrl: string
+    imageUrl: string,
   ) => {
     // Add to cart
     const cartItem = addToCart({
@@ -476,7 +476,7 @@ const ProductPageDesktop: React.FC<Props> = ({
                       if (typeof index === 'number') {
                         try {
                           const el = document.getElementById(
-                            `product-image-${index}`
+                            `product-image-${index}`,
                           );
                           if (el)
                             el.scrollIntoView({
@@ -552,70 +552,98 @@ const ProductPageDesktop: React.FC<Props> = ({
               {getCurrentSizes().map((sizeData, i) => {
                 const isSelected = i === selectedSizeIndex;
                 const isAvailable = sizeData.availability > 0;
+                const boxSize = 48;
                 return (
                   <div
                     key={sizeData.size}
-                    role="button"
-                    tabIndex={isAvailable ? 0 : -1}
-                    aria-pressed={isSelected}
-                    aria-disabled={!isAvailable}
-                    onClick={() => {
-                      if (isAvailable) {
-                        setSelectedSizeIndex(i);
-                        // Scroll to bottom to show "Añadir al carrito" button
-                        setTimeout(() => {
-                          if (detailsSectionRef.current) {
-                            detailsSectionRef.current.scrollTo({
-                              top: detailsSectionRef.current.scrollHeight,
-                              behavior: 'smooth',
-                            });
-                          }
-                        }, 100);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (isAvailable && (e.key === 'Enter' || e.key === ' ')) {
-                        e.preventDefault();
-                        setSelectedSizeIndex(i);
-                        // Scroll to bottom to show "Añadir al carrito" button
-                        setTimeout(() => {
-                          if (detailsSectionRef.current) {
-                            detailsSectionRef.current.scrollTo({
-                              top: detailsSectionRef.current.scrollHeight,
-                              behavior: 'smooth',
-                            });
-                          }
-                        }, 100);
-                      }
-                    }}
                     style={{
-                      width: 48,
-                      height: 48,
-                      background: isSelected
-                        ? '#000'
-                        : isAvailable
-                        ? '#fff'
-                        : '#f3f4f6',
-                      color: isSelected
-                        ? '#fff'
-                        : isAvailable
-                        ? '#000'
-                        : '#9ca3af',
-                      borderRadius: 6,
-                      border: `1px solid ${
-                        isAvailable ? '#e5e7eb' : '#d1d5db'
-                      }`,
-                      boxSizing: 'border-box',
                       display: 'inline-flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      cursor: isAvailable ? 'pointer' : 'not-allowed',
-                      opacity: isAvailable ? 1 : 0.6,
                     }}
                   >
-                    {sizeData.size}
+                    <div
+                      role="button"
+                      tabIndex={isAvailable ? 0 : -1}
+                      aria-pressed={isSelected}
+                      aria-disabled={!isAvailable}
+                      onClick={() => {
+                        if (isAvailable) {
+                          setSelectedSizeIndex(i);
+                          // Scroll to bottom to show "Añadir al carrito" button
+                          setTimeout(() => {
+                            if (detailsSectionRef.current) {
+                              detailsSectionRef.current.scrollTo({
+                                top: detailsSectionRef.current.scrollHeight,
+                                behavior: 'smooth',
+                              });
+                            }
+                          }, 100);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          isAvailable &&
+                          (e.key === 'Enter' || e.key === ' ')
+                        ) {
+                          e.preventDefault();
+                          setSelectedSizeIndex(i);
+                          // Scroll to bottom to show "Añadir al carrito" button
+                          setTimeout(() => {
+                            if (detailsSectionRef.current) {
+                              detailsSectionRef.current.scrollTo({
+                                top: detailsSectionRef.current.scrollHeight,
+                                behavior: 'smooth',
+                              });
+                            }
+                          }, 100);
+                        }
+                      }}
+                      style={{
+                        width: boxSize,
+                        height: boxSize,
+                        background: isSelected
+                          ? '#000'
+                          : isAvailable
+                            ? '#fff'
+                            : '#f3f4f6',
+                        color: isSelected
+                          ? '#fff'
+                          : isAvailable
+                            ? '#000'
+                            : '#9ca3af',
+                        borderRadius: 6,
+                        border: `1px solid ${
+                          isAvailable ? '#e5e7eb' : '#d1d5db'
+                        }`,
+                        boxSizing: 'border-box',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: isAvailable ? 'pointer' : 'not-allowed',
+                        opacity: isAvailable ? 1 : 0.6,
+                      }}
+                    >
+                      {sizeData.size}
+                    </div>
+
+                    {!isAvailable && (
+                      <div
+                        aria-hidden
+                        style={{
+                          width: Math.max(boxSize - 6, 34),
+                          textAlign: 'center',
+                          color: '#9ca3af',
+                          fontSize: '11px',
+                          marginTop: 6,
+                          lineHeight: '1em',
+                        }}
+                      >
+                        Agotado
+                      </div>
+                    )}
                   </div>
                 );
               })}
