@@ -497,8 +497,8 @@ const ProductPageDesktop: React.FC<Props> = ({
                       }
                     }}
                     style={{
-                      width: 40,
-                      height: 40,
+                      width: isSelected ? 42 : 38,
+                      height: isSelected ? 42 : 38,
                       marginRight:
                         i < productDetails.colorsWithSizes.length - 1 ? 8 : 0,
                       background: '#fff',
@@ -508,7 +508,7 @@ const ProductPageDesktop: React.FC<Props> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       border: isSelected
-                        ? '1px solid #000'
+                        ? '2px solid #000'
                         : '1px solid #d1d5db',
                       cursor: 'pointer',
                     }}

@@ -551,8 +551,8 @@ const ProductPageMobile: React.FC<Props> = ({
                     }}
                     style={{
                       // outer circle slightly bigger than inner color circle (inner:28)
-                      width: 36,
-                      height: 36,
+                      width: isSelected ? 36 : 34,
+                      height: isSelected ? 36 : 34,
                       marginRight:
                         i < productDetails.colorsWithSizes.length - 1 ? 6 : 0,
                       background: '#fff',
@@ -563,7 +563,7 @@ const ProductPageMobile: React.FC<Props> = ({
                       justifyContent: 'center',
                       // border is black when selected, subtle gray when not
                       border: isSelected
-                        ? '1px solid #000'
+                        ? '2px solid #000'
                         : '1px solid #d1d5db',
                       // subtle shadow so white border is visible on white backgrounds if needed
                       boxShadow: isSelected ? 'none' : 'none',
