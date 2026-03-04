@@ -5,6 +5,7 @@ import PageContainer from '../PageContainer';
 import Footer from '@/components/Footer';
 import { createPageMetadata } from '@/config/metadata';
 import GenderPageDataLoader from './GenderPageDataLoader';
+import SeasonalDiscountModalGate from './SeasonalDiscountModalGate';
 
 type Props = {
   params: Promise<{ gender: string }>;
@@ -84,6 +85,7 @@ export default async function GenderPage({ params }: Props) {
   return (
     <GenderPageDataLoader gender={gender}>
       <NavBar />
+      <SeasonalDiscountModalGate gender={gender} />
       <PageContainer gender={gender} />
       <Footer />
     </GenderPageDataLoader>
