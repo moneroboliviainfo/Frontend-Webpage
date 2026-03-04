@@ -63,6 +63,7 @@ const ProductPageDesktop: React.FC<Props> = ({
   const [selectedColorIndex, setSelectedColorIndex] = useState<number>(() =>
     getInitialColorIndex(),
   );
+
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
     null,
   );
@@ -506,7 +507,9 @@ const ProductPageDesktop: React.FC<Props> = ({
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      border: isSelected ? '1px solid #000' : '1px solid #fff',
+                      border: isSelected
+                        ? '1px solid #000'
+                        : '1px solid #d1d5db',
                       cursor: 'pointer',
                     }}
                   >
@@ -520,6 +523,7 @@ const ProductPageDesktop: React.FC<Props> = ({
                         height: 32,
                         background: colorData.color,
                         borderRadius: 9999,
+                        border: '1px solid #d1d5db',
                       }}
                     />
                   </div>

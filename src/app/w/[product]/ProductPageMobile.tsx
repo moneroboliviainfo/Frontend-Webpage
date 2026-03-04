@@ -88,6 +88,7 @@ const ProductPageMobile: React.FC<Props> = ({
   const [selectedColorIndex, setSelectedColorIndex] = useState<number>(() =>
     getInitialColorIndex(),
   );
+
   // selected size index (no size selected by default)
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
     null,
@@ -560,12 +561,12 @@ const ProductPageMobile: React.FC<Props> = ({
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      // border is black when selected, white when not
-                      border: isSelected ? '1px solid #000' : '1px solid #fff',
+                      // border is black when selected, subtle gray when not
+                      border: isSelected
+                        ? '1px solid #000'
+                        : '1px solid #d1d5db',
                       // subtle shadow so white border is visible on white backgrounds if needed
-                      boxShadow: isSelected
-                        ? '0 0 0 0 rgba(0,0,0,0)'
-                        : '0 0 0 0 rgba(0,0,0,0)',
+                      boxShadow: isSelected ? 'none' : 'none',
                     }}
                   >
                     <div className={styles.colorTooltip} aria-hidden>
@@ -578,6 +579,7 @@ const ProductPageMobile: React.FC<Props> = ({
                         height: 28,
                         background: colorData.color,
                         borderRadius: 9999,
+                        border: '1px solid #d1d5db',
                       }}
                     />
                   </div>
