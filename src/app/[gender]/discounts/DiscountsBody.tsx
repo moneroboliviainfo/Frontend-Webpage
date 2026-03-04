@@ -91,25 +91,41 @@ export default function DiscountsBody({ gender }: DiscountsBodyProps) {
         setError(null);
 
         const response = await fetch(
-          `${API_URL}products?discounts=true&page=${page}`
+          `${API_URL}products?discounts=true&page=${page}`,
         );
         if (!response.ok)
           throw new Error(`Error ${response.status}: ${response.statusText}`);
         const responseData: DiscountsResponse = await response.json();
 
         const targetGender = normalizeGenderForFiltering(gender);
+        const now = new Date();
+
+        // TODO: remove this client-side discount date filter once the backend
+        // guarantees it only returns products whose discount dates are valid
+        // (backend should not return clothes with null/expired discounts).
+        const isDiscountActive = (product: Product) => {
+          const disc: any = (product as any).discount;
+          if (disc == null) return false;
+          const start = new Date(disc.startDate);
+          const end = new Date(disc.endDate);
+          if (isNaN(start.getTime()) || isNaN(end.getTime())) return false;
+          return now >= start && now <= end;
+        };
+
         const filteredProducts = responseData.data.filter(
           (product) =>
             product.subcategory?.category?.gender === targetGender &&
             product.enabled &&
-            product.productColors.length > 0
+            product.productColors.length > 0 &&
+            // require a discount object and that it's currently active
+            isDiscountActive(product),
         );
 
         if (append) {
           setProducts((prev) => {
             const existingIds = new Set(prev.map((p) => p.id));
             const newUnique = filteredProducts.filter(
-              (p) => !existingIds.has(p.id)
+              (p) => !existingIds.has(p.id),
             );
             return [...prev, ...newUnique];
           });
@@ -130,7 +146,7 @@ export default function DiscountsBody({ gender }: DiscountsBodyProps) {
         pagesFetchingRef.current.delete(page);
       }
     },
-    [gender]
+    [gender],
   );
 
   useEffect(() => {
