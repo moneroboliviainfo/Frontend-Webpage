@@ -95,23 +95,6 @@ const OrderConfirmedContent: React.FC = () => {
         return;
       }
 
-      // Front-end only guard for guest orders: require a stored local key for this order
-      try {
-        const localAllowed = hasGuestOrderAccess(orderId);
-        const isLoggedInNonGuest = !!(
-          client &&
-          client.email &&
-          client.email !== 'guest@moneroget.com'
-        );
-        if (!isLoggedInNonGuest && !localAllowed) {
-          setError('No autorizado para ver este pedido');
-          setIsLoading(false);
-          return;
-        }
-      } catch (e) {
-        // ignore localStorage errors and continue to fetch (will fail server-side if unauthorized)
-      }
-
       try {
         setIsLoading(true);
         const token = AuthStorage.getToken();
@@ -133,6 +116,31 @@ const OrderConfirmedContent: React.FC = () => {
 
         const data = await response.json();
 
+        // Determine if this order was created by the guest placeholder account
+        const isGuestOrder = data?.customer?.email === 'guest@moneroget.com';
+        // If it's a guest order and the current browser/user is not a logged-in non-guest,
+        // require the previously saved local access key for this order.
+        if (isGuestOrder) {
+          try {
+            const localAllowed = hasGuestOrderAccess(orderId);
+            const isLoggedInNonGuest = !!(
+              client &&
+              client.email &&
+              client.email !== 'guest@moneroget.com'
+            );
+            if (!isLoggedInNonGuest && !localAllowed) {
+              setError('No autorizado para ver este pedido');
+              setIsLoading(false);
+              return;
+            }
+          } catch (e) {
+            // ignore localStorage errors and continue to set error if unauthorized
+            setError('No autorizado para ver este pedido');
+            setIsLoading(false);
+            return;
+          }
+        }
+
         // Check if order status is pending or expired - redirect to last gender page
         if (
           data.status &&
@@ -149,7 +157,9 @@ const OrderConfirmedContent: React.FC = () => {
         const calculatedSubtotal = totalPrice - shipmentPrice;
 
         // Split phone to extract country code
-        const fullPhone = data.customer?.phone || '';
+        const fullPhone = isGuestOrder
+          ? data.phone || ''
+          : data.customer?.phone || '';
         let countryCode = '+591';
         let phone = fullPhone;
 
@@ -170,8 +180,9 @@ const OrderConfirmedContent: React.FC = () => {
           total: totalPrice,
           status: data.status || '',
           formData: {
-            name: data.customer?.name || '',
-            email: data.customer?.email || '',
+            name: isGuestOrder ? data.name || '' : data.customer?.name || '',
+            // For guest orders prefer the purchaser email returned in `data.email`.
+            email: isGuestOrder ? data.email || '' : data.customer?.email || '',
             phone: phone,
             countryCode: countryCode,
             country: data.address?.country || 'Bolivia',
