@@ -43,6 +43,7 @@ import {
   getAvailableCartItems,
 } from '@/utils/checkoutCart';
 import { createOrder, generateQR } from '@/utils/orderService';
+import { saveGuestOrderAccess } from '@/utils/guestOrderAccess';
 import type { CartItem } from '@/types/cart';
 import { API_URL } from '@/config/env';
 import { GenderStorage } from '@/utils/genderStorage';
@@ -867,6 +868,13 @@ const CheckoutPage: React.FC = () => {
     setCreatedOrderId(null);
     // Redirect to order confirmation page with order ID
     if (orderId) {
+      try {
+        if (isGuestUser) {
+          saveGuestOrderAccess(orderId);
+        }
+      } catch (e) {
+        // ignore localStorage errors
+      }
       router.push(`/w/checkout/order-confirmed?orderId=${orderId}`);
     }
   };

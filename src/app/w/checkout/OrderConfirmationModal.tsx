@@ -16,6 +16,8 @@ import {
   selectRepriceData,
 } from '@/store/checkoutSlice';
 import { createOrder, generateQR } from '@/utils/orderService';
+import { saveGuestOrderAccess } from '@/utils/guestOrderAccess';
+import { selectClient } from '@/store/clientSlice';
 
 interface OrderConfirmationModalProps {
   isOpen: boolean;
@@ -54,6 +56,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   const cartToken = useAppSelector(selectCartToken);
   const cartItems = useAppSelector(selectCheckoutCartItems);
   const repriceData = useAppSelector(selectRepriceData);
+  const client = useAppSelector(selectClient);
 
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [showQRPayment, setShowQRPayment] = useState(false);
@@ -116,7 +119,14 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     setCreatedOrderId(null);
     // Redirect to order confirmation page with order ID
     if (orderId) {
-      router.push(`/order-confirmed?orderId=${orderId}`);
+      try {
+        if (client?.email === 'guest@moneroget.com') {
+          saveGuestOrderAccess(orderId);
+        }
+      } catch (e) {
+        // ignore localStorage errors
+      }
+      router.push(`/w/checkout/order-confirmed?orderId=${orderId}`);
     }
   };
 

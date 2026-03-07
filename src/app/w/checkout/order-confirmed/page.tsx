@@ -13,6 +13,9 @@ import { API_URL } from '@/config/env';
 import { GenderStorage } from '@/utils/genderStorage';
 import { AuthStorage } from '@/utils/authStorage';
 import { INVALID_CONFIRMATION_STATUSES } from '@/constants/orders';
+import { useAppSelector } from '@/store/hooks';
+import { selectClient } from '@/store/clientSlice';
+import { hasGuestOrderAccess } from '@/utils/guestOrderAccess';
 
 interface OrderItem {
   id: number;
@@ -77,6 +80,7 @@ const OrderConfirmedContent: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderId = searchParams.get('orderId');
+  const client = useAppSelector(selectClient);
 
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [cartItems, setCartItems] = useState<OrderItem[]>([]);
@@ -89,6 +93,23 @@ const OrderConfirmedContent: React.FC = () => {
         setError('No se encontró el ID del pedido');
         setIsLoading(false);
         return;
+      }
+
+      // Front-end only guard for guest orders: require a stored local key for this order
+      try {
+        const localAllowed = hasGuestOrderAccess(orderId);
+        const isLoggedInNonGuest = !!(
+          client &&
+          client.email &&
+          client.email !== 'guest@moneroget.com'
+        );
+        if (!isLoggedInNonGuest && !localAllowed) {
+          setError('No autorizado para ver este pedido');
+          setIsLoading(false);
+          return;
+        }
+      } catch (e) {
+        // ignore localStorage errors and continue to fetch (will fail server-side if unauthorized)
       }
 
       try {
@@ -188,14 +209,14 @@ const OrderConfirmedContent: React.FC = () => {
         setError(
           error instanceof Error
             ? error.message
-            : 'Error al cargar la información del pedido'
+            : 'Error al cargar la información del pedido',
         );
         setIsLoading(false);
       }
     };
 
     fetchOrderData();
-  }, [orderId]);
+  }, [orderId, client]);
 
   if (isLoading) {
     return (
