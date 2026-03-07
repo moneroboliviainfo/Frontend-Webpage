@@ -10,6 +10,12 @@ interface CreateOrderRequest {
   phone: string;
   shipment: number;
   address: number;
+  // Optional fields
+  email?: string;
+  billing?: {
+    ci?: string;
+    name?: string;
+  };
 }
 
 interface CreateOrderResponse {
@@ -23,7 +29,7 @@ interface GenerateQRResponse {
 }
 
 export const createOrder = async (
-  orderData: CreateOrderRequest
+  orderData: CreateOrderRequest,
 ): Promise<CreateOrderResponse> => {
   const token = AuthStorage.getToken();
   const headers: Record<string, string> = {
@@ -43,7 +49,7 @@ export const createOrder = async (
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(
-      errorData.message || `Failed to create order: ${response.statusText}`
+      errorData.message || `Failed to create order: ${response.statusText}`,
     );
   }
 
@@ -72,7 +78,7 @@ const checkForWomenItems = async (cartItems: CartItem[]): Promise<boolean> => {
           console.error('Error checking product gender:', error);
           return false;
         }
-      })
+      }),
     );
 
     // Return true if any item is women's clothing
@@ -84,7 +90,7 @@ const checkForWomenItems = async (cartItems: CartItem[]): Promise<boolean> => {
 };
 
 export const generateQR = async (
-  orderId: number
+  orderId: number,
 ): Promise<GenerateQRResponse> => {
   // Check if women's section is disabled and cart contains women's items
   if (!FEATURE_FLAGS.WOMEN_ENABLED) {
@@ -93,7 +99,7 @@ export const generateQR = async (
 
     if (hasWomenItems) {
       throw new Error(
-        'La generación de código QR está temporalmente deshabilitada para prendas de categoría mujeres.'
+        'La generación de código QR está temporalmente deshabilitada para prendas de categoría mujeres.',
       );
     }
   }
@@ -116,7 +122,7 @@ export const generateQR = async (
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(
-      errorData.message || `Failed to generate QR: ${response.statusText}`
+      errorData.message || `Failed to generate QR: ${response.statusText}`,
     );
   }
 

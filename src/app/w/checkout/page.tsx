@@ -75,6 +75,8 @@ interface FormErrors {
   departamento?: string;
   cityProvince?: string;
   detailedAddress?: string;
+  billingCI?: string;
+  billingName?: string;
   city?: string;
   streetNumber?: string;
   postalCode?: string;
@@ -84,6 +86,7 @@ const CheckoutPage: React.FC = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const client = useAppSelector(selectClient);
+  const isGuestUser = client?.email === 'guest@moneroget.com';
   const selectedPlace = useAppSelector(selectSelectedPlace);
   const selectedShipment = useAppSelector(selectSelectedShipment);
   const addressId = useAppSelector(selectAddressId);
@@ -244,6 +247,9 @@ const CheckoutPage: React.FC = () => {
     departamento: '',
     cityProvince: '',
     detailedAddress: '',
+    // Billing fields
+    billingCI: '',
+    billingName: '',
     city: '',
     streetNumber: '',
     postalCode: '',
@@ -299,24 +305,41 @@ const CheckoutPage: React.FC = () => {
         }
       }
 
-      setFormData((prev) => ({
-        ...prev,
-        email: client.email || '',
-        name: client.name || '',
-        phone: phoneNumber,
-        countryCode: countryCode,
-      }));
+      // If this is a guest user, do NOT auto-fill name or email and emulate no addresses
+      if (isGuestUser) {
+        setFormData((prev) => ({
+          ...prev,
+          email: '',
+          name: '',
+          phone: phoneNumber,
+          countryCode: countryCode,
+        }));
 
-      // Populate user addresses if they exist
-      if (client.address && client.address.length > 0) {
-        setUserAddresses(client.address);
-        // Select first address by default
-        const firstAddress = client.address[0];
-        setSelectedAddressOption(firstAddress.id);
-        populateFormWithAddress(firstAddress);
-        setIsFormReadOnly(true);
-        // Store the address ID in Redux immediately
-        dispatch(setAddressId(firstAddress.id));
+        // Emulate guest with no saved addresses
+        setUserAddresses([]);
+        setSelectedAddressOption('new');
+        setIsFormReadOnly(false);
+        dispatch(setAddressId(0));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          email: client.email || '',
+          name: client.name || '',
+          phone: phoneNumber,
+          countryCode: countryCode,
+        }));
+
+        // Populate user addresses if they exist
+        if (client.address && client.address.length > 0) {
+          setUserAddresses(client.address);
+          // Select first address by default
+          const firstAddress = client.address[0];
+          setSelectedAddressOption(firstAddress.id);
+          populateFormWithAddress(firstAddress);
+          setIsFormReadOnly(true);
+          // Store the address ID in Redux immediately
+          dispatch(setAddressId(firstAddress.id));
+        }
       }
     }
   }, [client, dispatch, populateFormWithAddress]);
@@ -658,6 +681,14 @@ const CheckoutPage: React.FC = () => {
       }
     }
 
+    // Billing validation
+    if (!formData.billingCI || !formData.billingCI.trim()) {
+      newErrors.billingCI = 'CI/NIT es obligatorio';
+    }
+    if (!formData.billingName || !formData.billingName.trim()) {
+      newErrors.billingName = 'El nombre para la factura es obligatorio';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -801,6 +832,11 @@ const CheckoutPage: React.FC = () => {
         items: cartToken,
         name: formData.name,
         phone: `${formData.countryCode} ${formData.phone}`,
+        email: formData.email,
+        billing: {
+          ci: formData.billingCI,
+          name: formData.billingName,
+        },
         shipment: selectedShipment.id,
         address: addressId,
       });
@@ -1009,8 +1045,9 @@ const CheckoutPage: React.FC = () => {
                             type="email"
                             name="email"
                             value={formData.email}
-                            readOnly
-                            className="checkout-input checkout-input--email"
+                            onChange={handleInputChange}
+                            readOnly={isFormReadOnly && !isGuestUser}
+                            className={`checkout-input ${!isGuestUser ? 'checkout-input--email' : ''}`}
                             placeholder="ejemplo@correo.com"
                           />
                           <p className="checkout-hint-text">
@@ -1221,6 +1258,37 @@ const CheckoutPage: React.FC = () => {
                                 </p>
                               )}
                             </div>
+
+                            {/* Billing Section */}
+                            <div className="checkout-section">
+                              <h2 className="checkout-section-title--sm">
+                                Datos de facturación
+                              </h2>
+
+                              <div className="checkout-field">
+                                <label className="checkout-label">CI/NIT</label>
+                                <input
+                                  type="text"
+                                  name="billingCI"
+                                  value={formData.billingCI}
+                                  onChange={handleInputChange}
+                                  className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
+                                  placeholder="CI o NIT"
+                                />
+                              </div>
+
+                              <div className="checkout-field">
+                                <label className="checkout-label">Nombre</label>
+                                <input
+                                  type="text"
+                                  name="billingName"
+                                  value={formData.billingName}
+                                  onChange={handleInputChange}
+                                  className={`checkout-input ${errors.billingName ? 'checkout-input--error' : ''}`}
+                                  placeholder="Nombre para la factura"
+                                />
+                              </div>
+                            </div>
                           </>
                         ) : (
                           <>
@@ -1301,6 +1369,40 @@ const CheckoutPage: React.FC = () => {
                                     {errors.postalCode}
                                   </p>
                                 )}
+                              </div>
+                              {/* Billing Section for other countries */}
+                              <div className="checkout-section">
+                                <h2 className="checkout-section-title--sm">
+                                  Datos de facturación
+                                </h2>
+
+                                <div className="checkout-field">
+                                  <label className="checkout-label">
+                                    CI/NIT
+                                  </label>
+                                  <input
+                                    type="text"
+                                    name="billingCI"
+                                    value={formData.billingCI}
+                                    onChange={handleInputChange}
+                                    className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
+                                    placeholder="CI o NIT"
+                                  />
+                                </div>
+
+                                <div className="checkout-field">
+                                  <label className="checkout-label">
+                                    Nombre
+                                  </label>
+                                  <input
+                                    type="text"
+                                    name="billingName"
+                                    value={formData.billingName}
+                                    onChange={handleInputChange}
+                                    className={`checkout-input ${errors.billingName ? 'checkout-input--error' : ''}`}
+                                    placeholder="Nombre para la factura"
+                                  />
+                                </div>
                               </div>
                             </div>
                           </>
@@ -1519,8 +1621,9 @@ const CheckoutPage: React.FC = () => {
                     type="email"
                     name="email"
                     value={formData.email}
-                    readOnly
-                    className="checkout-input checkout-input--email"
+                    onChange={handleInputChange}
+                    readOnly={isFormReadOnly && !isGuestUser}
+                    className={`checkout-input ${!isGuestUser ? 'checkout-input--email' : ''}`}
                     placeholder="ejemplo@correo.com"
                   />
                   <p className="checkout-hint-text">
@@ -1713,6 +1816,36 @@ const CheckoutPage: React.FC = () => {
                         </p>
                       )}
                     </div>
+                    {/* Billing Section (mobile) */}
+                    <div className="checkout-section">
+                      <h2 className="checkout-section-title--sm">
+                        Datos de facturación
+                      </h2>
+
+                      <div className="checkout-field">
+                        <label className="checkout-label">CI/NIT</label>
+                        <input
+                          type="text"
+                          name="billingCI"
+                          value={formData.billingCI}
+                          onChange={handleInputChange}
+                          className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
+                          placeholder="CI o NIT"
+                        />
+                      </div>
+
+                      <div className="checkout-field">
+                        <label className="checkout-label">Nombre</label>
+                        <input
+                          type="text"
+                          name="billingName"
+                          value={formData.billingName}
+                          onChange={handleInputChange}
+                          className={`checkout-input ${errors.billingName ? 'checkout-input--error' : ''}`}
+                          placeholder="Nombre para la factura"
+                        />
+                      </div>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -1838,12 +1971,9 @@ const CheckoutPage: React.FC = () => {
                   {modalType === 'countryCode' ? 'Country code' : 'País'}
                 </h2>
 
-                {/* Close Button - Redirect to Last Gender Page */}
+                {/* Close Button - Close modal */}
                 <button
-                  onClick={() => {
-                    const lastGender = GenderStorage.getGender();
-                    router.push(`/${lastGender}`);
-                  }}
+                  onClick={() => setShowCountryCodeModal(false)}
                   className="checkout-icon-btn"
                 >
                   <svg
@@ -1957,12 +2087,9 @@ const CheckoutPage: React.FC = () => {
                 {/* Title */}
                 <h2 className="checkout-topbar-title--left">Método de envío</h2>
 
-                {/* Close Button - Redirect to Last Gender Page */}
+                {/* Close Button - Close modal */}
                 <button
-                  onClick={() => {
-                    const lastGender = GenderStorage.getGender();
-                    router.push(`/${lastGender}`);
-                  }}
+                  onClick={() => setShowDeliveryModal(false)}
                   className="checkout-icon-btn"
                 >
                   <svg

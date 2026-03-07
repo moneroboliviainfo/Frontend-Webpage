@@ -35,6 +35,9 @@ interface OrderConfirmationModalProps {
     city: string;
     streetNumber: string;
     postalCode: string;
+    // Optional billing fields
+    billingCI?: string;
+    billingName?: string;
   };
 }
 
@@ -78,6 +81,11 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
         items: cartToken,
         name: formData.name,
         phone: `${formData.countryCode} ${formData.phone}`,
+        email: formData.email,
+        billing: {
+          ci: formData.billingCI,
+          name: formData.billingName,
+        },
         shipment: selectedShipment.id,
         address: addressId,
       });

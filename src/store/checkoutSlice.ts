@@ -30,6 +30,9 @@ export interface CheckoutFormData {
   name: string;
   email: string;
   phone: string;
+  // Billing fields
+  billingCI?: string;
+  billingName?: string;
   countryCode: string;
   country: string;
   departamento: string;
