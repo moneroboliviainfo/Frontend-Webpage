@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import NavBarDialog from './NavBarDialog';
 import NavBarImageButton from './NavBarImageButton';
 import SocialMediaLinks from '../SocialMediaLinks';
+import GoogleLoginButton from '../GoogleLoginButton';
 import { selectClient, logout } from '@/store/clientSlice';
 import { FEATURE_FLAGS } from '@/config/features';
 import { GenderStorage } from '@/utils/genderStorage';
@@ -18,6 +19,7 @@ const HamburgerNavBarDialog: React.FC<{
   const client = useSelector(selectClient);
   const dispatch = useDispatch();
   const currentGender = GenderStorage.getGender();
+  const isGuest = client?.email === 'guest@moneroget.com';
 
   return (
     <NavBarDialog open={open} setOpen={setOpen}>
@@ -78,7 +80,7 @@ const HamburgerNavBarDialog: React.FC<{
           marginTop: '0.5rem',
         }}
       >
-        {client ? (
+        {client && !isGuest ? (
           <React.Fragment>
             <span className="text-gray-700 text-lg font-semibold mb-2">
               Hola, {client.name}
@@ -91,33 +93,7 @@ const HamburgerNavBarDialog: React.FC<{
             </button>
           </React.Fragment>
         ) : (
-          <button
-            className="rounded-lg border border-gray-300 text-gray-800 font-bold flex items-center gap-3 shadow transition"
-            style={{
-              background: 'white',
-              padding: '0.8rem 1.5rem',
-              borderRadius: '0.5rem',
-            }}
-            onClick={() => {
-              /* TODO: iniciar sesión con Google */
-            }}
-          >
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-              }}
-            >
-              <Image
-                src="/logos/google-icon.svg"
-                alt="Google"
-                width={iconSize}
-                height={iconSize}
-                style={{ display: 'inline-block' }}
-              />
-            </span>
-            Iniciar sesión
-          </button>
+          <GoogleLoginButton text="Iniciar sesión" />
         )}
       </div>
     </NavBarDialog>

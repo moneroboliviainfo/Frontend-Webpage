@@ -54,8 +54,9 @@ const ProfileNavBarDialog: React.FC<{
   const savedAddresses =
     client?.address && Array.isArray(client.address) ? client.address : [];
 
-  // If user is not logged in, show only Google login button
-  if (!client) {
+  // If user is not logged in or is a guest account, show only Google login button
+  const isGuest = client?.email === 'guest@moneroget.com';
+  if (!client || isGuest) {
     return (
       <NavBarDialog open={open} setOpen={setOpen}>
         <div
@@ -229,7 +230,7 @@ const ProfileNavBarDialog: React.FC<{
                           }}
                         >
                           {new Date(order.createdAt).toLocaleDateString(
-                            'es-ES'
+                            'es-ES',
                           )}
                         </p>
                       )}

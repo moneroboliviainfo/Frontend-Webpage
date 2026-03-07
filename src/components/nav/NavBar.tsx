@@ -39,6 +39,10 @@ export default function NavBar({
   const [cartLength, setCartLength] = useState(0);
   const client = useSelector(selectClient);
   const clientName = client?.name || null;
+  const isGuest = client?.email === 'guest@moneroget.com';
+  const displayUserText = isGuest
+    ? 'INICIA SESIÓN'
+    : (clientName ?? client?.email ?? '');
   const pathname = usePathname();
   const [gender, setGender] = useState<string>('men'); // Default to 'men' for SSR
 
@@ -83,7 +87,7 @@ export default function NavBar({
         const h = el?.getBoundingClientRect().height ?? 0;
         document.documentElement.style.setProperty(
           '--nav-height',
-          `${Math.ceil(h)}px`
+          `${Math.ceil(h)}px`,
         );
       } catch {}
     };
@@ -204,7 +208,7 @@ export default function NavBar({
           />
           <NavBarIconText
             icon={<FiUser size={iconsSize} strokeWidth={iconsStrokeWidth} />}
-            text={clientName ? clientName : 'INICIA SESIÓN'}
+            text={displayUserText}
             onClick={() => setProfileOpen(true)}
           />
           <div
