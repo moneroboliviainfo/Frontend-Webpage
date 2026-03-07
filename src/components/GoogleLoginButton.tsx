@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { AuthStorage } from '@/utils/authStorage';
 import { GoogleAuthService } from '@/services/googleAuth';
+import './GoogleLoginButton.css';
 
 interface GoogleLoginButtonProps {
   onClick?: () => void;
@@ -36,15 +37,8 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
 
   return (
     <button
-      className={`flex items-center rounded-lg border border-gray-300 text-gray-800 font-bold shadow transition hover:bg-gray-50 ${className}`}
-      style={{
-        background: 'white',
-        padding: '12px 24px',
-        borderRadius: '8px',
-        gap: '12px',
-        cursor: 'pointer',
-        ...style,
-      }}
+      className={`google-login-button ${className}`}
+      style={style}
       onClick={handleGoogleLogin}
     >
       <Image
@@ -52,7 +46,7 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
         alt="Google"
         width={20}
         height={20}
-        style={{ display: 'inline-block' }}
+        className="google-login-button__icon"
       />
       {text}
     </button>

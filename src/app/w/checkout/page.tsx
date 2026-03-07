@@ -46,6 +46,9 @@ import { createOrder, generateQR } from '@/utils/orderService';
 import type { CartItem } from '@/types/cart';
 import { API_URL } from '@/config/env';
 import { GenderStorage } from '@/utils/genderStorage';
+import './checkout.css';
+import { AuthStorage } from '@/utils/authStorage';
+import { completeLoginWithToken } from '@/services/sessionService';
 
 // Types for country data
 interface Country {
@@ -103,6 +106,7 @@ const CheckoutPage: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1); // 1: Detalles, 2: Método de envío, 3: Pago
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   // Manage simulated navigation steps in browser history so back/forward stays inside checkout
   const goToStep = useCallback((step: 1 | 2 | 3, replace = false) => {
@@ -516,6 +520,40 @@ const CheckoutPage: React.FC = () => {
     router.push(`/${lastGender}`);
   };
 
+  // Continue as guest: store redirect, call guest API, complete session with token
+  const handleGuestContinue = async () => {
+    setIsGuestLoading(true);
+    try {
+      AuthStorage.storeRedirectUrl(window.location.href);
+
+      const res = await fetch(`${API_URL}auth/guest`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setShowErrorModal(true);
+        setErrorMessage('No se pudo continuar como invitado');
+        return;
+      }
+
+      if (data.token) {
+        await completeLoginWithToken(data.token, dispatch);
+        const redirectUrl = AuthStorage.getAndClearRedirectUrl() || '/';
+        router.push(redirectUrl);
+      } else {
+        setShowErrorModal(true);
+        setErrorMessage('Respuesta inválida del servidor');
+      }
+    } catch (err) {
+      console.error('Guest login error:', err);
+      setShowErrorModal(true);
+      setErrorMessage('Error al continuar como invitado');
+    } finally {
+      setIsGuestLoading(false);
+    }
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -711,7 +749,9 @@ const CheckoutPage: React.FC = () => {
       }
     } else {
       // Scroll to first error
-      const firstErrorField = document.querySelector('.error-field');
+      const firstErrorField = document.querySelector(
+        '.checkout-input--error, .checkout-select--error, .checkout-textarea--error',
+      );
       if (firstErrorField) {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
@@ -819,123 +859,118 @@ const CheckoutPage: React.FC = () => {
 
       {/* Authentication Guard */}
       {!client ? (
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">
+        <div className="checkout-auth-guard">
+          <div className="checkout-auth-guard__content">
+            <h2 className="checkout-auth-guard__title">
               Inicia sesión para continuar
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="checkout-auth-guard__subtitle">
               Necesitas iniciar sesión para completar tu compra
             </p>
             <GoogleLoginButton />
+            <button
+              type="button"
+              className="checkout-guest-link"
+              onClick={handleGuestContinue}
+              disabled={isGuestLoading}
+            >
+              {isGuestLoading ? 'Cargando...' : 'Continuar sin iniciar sesión'}
+            </button>
           </div>
         </div>
       ) : (
         <>
           {/* Store Navbar for Desktop */}
-          <div className="hidden lg:block bg-white">
-            <nav
-              className="w-full flex items-center justify-between"
-              style={{
-                padding: '0.6rem 1rem',
-              }}
-            >
-              <div className="flex items-center gap-4">
+          <div className="checkout-desktop-nav">
+            <nav className="checkout-desktop-nav__inner">
+              <div className="checkout-desktop-nav__left">
                 <span
                   onClick={() => {
                     const lastGender = GenderStorage.getGender();
                     router.push(`/${lastGender}`);
                   }}
-                  className="text-xl md:text-3xl font-extrabold tracking-widest select-none text-black cursor-pointer hover:opacity-80 transition-opacity"
+                  className="checkout-desktop-nav__logo"
                 >
                   MONERO
                 </span>
               </div>
             </nav>
             {/* Full width black line */}
-            <div
-              className="w-full"
-              style={{ backgroundColor: 'black', padding: '0.5px' }}
-            ></div>
+            <div className="checkout-desktop-nav__divider"></div>
           </div>
 
           {/* Desktop Layout */}
-          <div
-            className="hidden lg:flex min-h-screen bg-white"
-            style={{ minHeight: 'calc(100vh - 60px)' }}
-          >
+          <div className="checkout-desktop-layout">
             {/* Left Content Area - 80% */}
-            <div className="flex-1" style={{ width: '80%' }}>
+            <div className="checkout-desktop-panel">
               {/* Centered Content */}
-              <div className="flex justify-center" style={{ padding: '2rem' }}>
+              <div className="checkout-desktop-centered">
                 <div style={{ maxWidth: '600px', width: '100%' }}>
                   {/* Desktop Step Indicator */}
-                  <div style={{ marginBottom: '2rem' }}>
-                    <div className="flex items-center" style={{ gap: '1rem' }}>
-                      {/* Step 1: Detalles del destinatario */}
-                      <div className="flex items-center">
-                        <span
-                          style={{
-                            color: currentStep >= 1 ? '#000' : '#9ca3af',
-                            fontSize: '0.875rem',
-                            fontWeight: currentStep === 1 ? '600' : '400',
-                          }}
-                        >
-                          {stepLabels[1]}
-                        </span>
-                      </div>
-
-                      {/* Arrow */}
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        style={{ color: '#9ca3af' }}
+                  <div className="checkout-step-indicator">
+                    {/* Step 1: Detalles del destinatario */}
+                    <div className="checkout-step-item">
+                      <span
+                        style={{
+                          color: currentStep >= 1 ? '#000' : '#9ca3af',
+                          fontSize: '0.875rem',
+                          fontWeight: currentStep === 1 ? '600' : '400',
+                        }}
                       >
-                        <path d="M9 18l6-6-6-6" />
-                      </svg>
+                        {stepLabels[1]}
+                      </span>
+                    </div>
 
-                      {/* Step 2: Método de envío */}
-                      <div className="flex items-center">
-                        <span
-                          style={{
-                            color: currentStep >= 2 ? '#000' : '#9ca3af',
-                            fontSize: '0.875rem',
-                            fontWeight: currentStep === 2 ? '600' : '400',
-                          }}
-                        >
-                          {stepLabels[2]}
-                        </span>
-                      </div>
+                    {/* Arrow */}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      style={{ color: '#9ca3af' }}
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
 
-                      {/* Arrow */}
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        style={{ color: '#9ca3af' }}
+                    {/* Step 2: Método de envío */}
+                    <div className="checkout-step-item">
+                      <span
+                        style={{
+                          color: currentStep >= 2 ? '#000' : '#9ca3af',
+                          fontSize: '0.875rem',
+                          fontWeight: currentStep === 2 ? '600' : '400',
+                        }}
                       >
-                        <path d="M9 18l6-6-6-6" />
-                      </svg>
+                        {stepLabels[2]}
+                      </span>
+                    </div>
 
-                      {/* Step 3: Pago */}
-                      <div className="flex items-center">
-                        <span
-                          style={{
-                            color: currentStep >= 3 ? '#000' : '#9ca3af',
-                            fontSize: '0.875rem',
-                            fontWeight: currentStep === 3 ? '600' : '400',
-                          }}
-                        >
-                          {stepLabels[3]}
-                        </span>
-                      </div>
+                    {/* Arrow */}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      style={{ color: '#9ca3af' }}
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+
+                    {/* Step 3: Pago */}
+                    <div className="checkout-step-item">
+                      <span
+                        style={{
+                          color: currentStep >= 3 ? '#000' : '#9ca3af',
+                          fontSize: '0.875rem',
+                          fontWeight: currentStep === 3 ? '600' : '400',
+                        }}
+                      >
+                        {stepLabels[3]}
+                      </span>
                     </div>
                   </div>
 
@@ -943,28 +978,13 @@ const CheckoutPage: React.FC = () => {
                   {currentStep === 1 && (
                     <>
                       {/* Recipient Details Section */}
-                      <div style={{ marginBottom: '2rem' }}>
-                        <h2
-                          className="font-semibold"
-                          style={{
-                            fontSize: '1.5rem',
-                            marginBottom: '1.5rem',
-                            color: '#374151',
-                            fontWeight: 'bold',
-                          }}
-                        >
+                      <div className="checkout-section">
+                        <h2 className="checkout-section-title">
                           Llena los datos del destinatario
                         </h2>
                         {/* Name Input */}
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label
-                            className="block font-medium"
-                            style={{
-                              fontSize: '0.9rem',
-                              marginBottom: '0.5rem',
-                              color: '#374151',
-                            }}
-                          >
+                        <div className="checkout-field">
+                          <label className="checkout-label">
                             Nombre completo
                           </label>
                           <input
@@ -972,41 +992,17 @@ const CheckoutPage: React.FC = () => {
                             name="name"
                             value={formData.name}
                             onChange={handleInputChange}
-                            className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                              errors.name ? 'error-field border-red-500' : ''
-                            }`}
-                            style={{
-                              padding: '0.75rem',
-                              border: errors.name
-                                ? '1px solid #ef4444'
-                                : '1px solid #d1d5db',
-                              fontSize: '1rem',
-                            }}
+                            className={`checkout-input ${errors.name ? 'checkout-input--error' : ''}`}
                             placeholder="Ingresa tu nombre completo"
                           />
                           {errors.name && (
-                            <p
-                              style={{
-                                color: '#ef4444',
-                                fontSize: '0.875rem',
-                                marginTop: '0.25rem',
-                              }}
-                            >
-                              {errors.name}
-                            </p>
+                            <p className="checkout-error-text">{errors.name}</p>
                           )}
                         </div>
 
                         {/* Email Input */}
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label
-                            className="block font-medium"
-                            style={{
-                              fontSize: '0.9rem',
-                              marginBottom: '0.5rem',
-                              color: '#374151',
-                            }}
-                          >
+                        <div className="checkout-field">
+                          <label className="checkout-label">
                             Correo electrónico
                           </label>
                           <input
@@ -1014,65 +1010,32 @@ const CheckoutPage: React.FC = () => {
                             name="email"
                             value={formData.email}
                             readOnly
-                            className="w-full border rounded-lg bg-gray-50 cursor-not-allowed"
-                            style={{
-                              padding: '0.75rem',
-                              border: '1px solid #d1d5db',
-                              fontSize: '1rem',
-                              color: '#6b7280',
-                            }}
+                            className="checkout-input checkout-input--email"
                             placeholder="ejemplo@correo.com"
                           />
-                          <p
-                            style={{
-                              color: '#6b7280',
-                              fontSize: '0.75rem',
-                              marginTop: '0.25rem',
-                            }}
-                          >
+                          <p className="checkout-hint-text">
                             Este correo está vinculado a tu cuenta
                           </p>
                           {errors.email && (
-                            <p
-                              style={{
-                                color: '#ef4444',
-                                fontSize: '0.875rem',
-                                marginTop: '0.25rem',
-                              }}
-                            >
+                            <p className="checkout-error-text">
                               {errors.email}
                             </p>
                           )}
                         </div>
 
                         {/* Phone Number Input with Country Code */}
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label
-                            className="block font-medium"
-                            style={{
-                              fontSize: '0.9rem',
-                              marginBottom: '0.5rem',
-                              color: '#374151',
-                            }}
-                          >
+                        <div className="checkout-field">
+                          <label className="checkout-label">
                             Número de teléfono
                           </label>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <div className="checkout-phone-row">
                             {/* Country Code Selector */}
                             <button
                               onClick={() => {
                                 setModalType('countryCode');
                                 setShowCountryCodeModal(true);
                               }}
-                              className="border rounded-lg flex items-center justify-center"
-                              style={{
-                                padding: '0.75rem',
-                                minWidth: '80px',
-                                border: '1px solid #d1d5db',
-                                fontSize: '1rem',
-                                backgroundColor: 'white',
-                                cursor: 'pointer',
-                              }}
+                              className="checkout-phone-code-btn"
                             >
                               {formData.countryCode}
                             </button>
@@ -1083,27 +1046,12 @@ const CheckoutPage: React.FC = () => {
                               name="phone"
                               value={formData.phone}
                               onChange={handleInputChange}
-                              className={`flex-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                errors.phone ? 'error-field border-red-500' : ''
-                              }`}
-                              style={{
-                                padding: '0.75rem',
-                                border: errors.phone
-                                  ? '1px solid #ef4444'
-                                  : '1px solid #d1d5db',
-                                fontSize: '1rem',
-                              }}
+                              className={`checkout-input checkout-input--flex ${errors.phone ? 'checkout-input--error' : ''}`}
                               placeholder="70000000"
                             />
                           </div>
                           {errors.phone && (
-                            <p
-                              style={{
-                                color: '#ef4444',
-                                fontSize: '0.875rem',
-                                marginTop: '0.25rem',
-                              }}
-                            >
+                            <p className="checkout-error-text">
                               {errors.phone}
                             </p>
                           )}
@@ -1111,29 +1059,15 @@ const CheckoutPage: React.FC = () => {
                       </div>
 
                       {/* Shipping Address Section */}
-                      <div style={{ marginBottom: '2rem' }}>
-                        <h2
-                          className="font-semibold"
-                          style={{
-                            fontSize: '1rem',
-                            marginBottom: '1.5rem',
-                            color: '#374151',
-                          }}
-                        >
+                      <div className="checkout-section">
+                        <h2 className="checkout-section-title--sm">
                           Dirección de entrega
                         </h2>
 
                         {/* Address Selection Dropdown (if user has addresses) */}
                         {userAddresses.length > 0 && (
-                          <div style={{ marginBottom: '1rem' }}>
-                            <label
-                              className="block font-medium"
-                              style={{
-                                fontSize: '0.9rem',
-                                marginBottom: '0.5rem',
-                                color: '#374151',
-                              }}
-                            >
+                          <div className="checkout-field">
+                            <label className="checkout-label">
                               Seleccionar dirección
                             </label>
                             <select
@@ -1141,12 +1075,7 @@ const CheckoutPage: React.FC = () => {
                               onChange={(e) =>
                                 handleAddressSelection(e.target.value)
                               }
-                              className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              style={{
-                                padding: '0.75rem',
-                                border: '1px solid #d1d5db',
-                                fontSize: '1rem',
-                              }}
+                              className="checkout-select"
                             >
                               <option value="new">Nueva dirección</option>
                               {userAddresses.map((address) => (
@@ -1159,17 +1088,8 @@ const CheckoutPage: React.FC = () => {
                         )}
 
                         {/* Country Selection */}
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label
-                            className="block font-medium"
-                            style={{
-                              fontSize: '0.9rem',
-                              marginBottom: '0.5rem',
-                              color: '#374151',
-                            }}
-                          >
-                            País
-                          </label>
+                        <div className="checkout-field">
+                          <label className="checkout-label">País</label>
                           <button
                             onClick={() => {
                               if (!isFormReadOnly) {
@@ -1177,19 +1097,15 @@ const CheckoutPage: React.FC = () => {
                                 setShowCountryCodeModal(true);
                               }
                             }}
-                            className="w-full border rounded-lg flex items-center justify-between"
+                            className="checkout-country-btn"
                             style={{
-                              padding: '0.75rem',
-                              border: '1px solid #d1d5db',
-                              fontSize: '1rem',
                               backgroundColor: isFormReadOnly
                                 ? '#f3f4f6'
                                 : 'white',
+                              opacity: isFormReadOnly ? 0.6 : 1,
                               cursor: isFormReadOnly
                                 ? 'not-allowed'
                                 : 'pointer',
-                              textAlign: 'left',
-                              opacity: isFormReadOnly ? 0.6 : 1,
                             }}
                             disabled={isFormReadOnly}
                           >
@@ -1212,32 +1128,16 @@ const CheckoutPage: React.FC = () => {
                         {selectedCountry === 'Bolivia' ? (
                           <>
                             {/* Department Selection for Bolivia */}
-                            <div style={{ marginBottom: '1rem' }}>
-                              <label
-                                className="block font-medium"
-                                style={{
-                                  fontSize: '0.9rem',
-                                  marginBottom: '0.5rem',
-                                  color: '#374151',
-                                }}
-                              >
+                            <div className="checkout-field">
+                              <label className="checkout-label">
                                 Departamento
                               </label>
                               <select
                                 name="departamento"
                                 value={formData.departamento}
                                 onChange={handleInputChange}
-                                className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                  errors.departamento
-                                    ? 'error-field border-red-500'
-                                    : ''
-                                }`}
+                                className={`checkout-select ${errors.departamento ? 'checkout-select--error' : ''}`}
                                 style={{
-                                  padding: '0.75rem',
-                                  border: errors.departamento
-                                    ? '1px solid #ef4444'
-                                    : '1px solid #d1d5db',
-                                  fontSize: '1rem',
                                   backgroundColor: isFormReadOnly
                                     ? '#f3f4f6'
                                     : 'white',
@@ -1262,28 +1162,15 @@ const CheckoutPage: React.FC = () => {
                                 ))}
                               </select>
                               {errors.departamento && (
-                                <p
-                                  style={{
-                                    color: '#ef4444',
-                                    fontSize: '0.875rem',
-                                    marginTop: '0.25rem',
-                                  }}
-                                >
+                                <p className="checkout-error-text">
                                   {errors.departamento}
                                 </p>
                               )}
                             </div>
 
                             {/* City/Province for Bolivia */}
-                            <div style={{ marginBottom: '1rem' }}>
-                              <label
-                                className="block font-medium"
-                                style={{
-                                  fontSize: '0.9rem',
-                                  marginBottom: '0.5rem',
-                                  color: '#374151',
-                                }}
-                              >
+                            <div className="checkout-field">
+                              <label className="checkout-label">
                                 Ciudad / Provincia
                               </label>
                               <input
@@ -1291,17 +1178,8 @@ const CheckoutPage: React.FC = () => {
                                 name="cityProvince"
                                 value={formData.cityProvince}
                                 onChange={handleInputChange}
-                                className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                  errors.cityProvince
-                                    ? 'error-field border-red-500'
-                                    : ''
-                                }`}
+                                className={`checkout-input ${errors.cityProvince ? 'checkout-input--error' : ''}`}
                                 style={{
-                                  padding: '0.75rem',
-                                  border: errors.cityProvince
-                                    ? '1px solid #ef4444'
-                                    : '1px solid #d1d5db',
-                                  fontSize: '1rem',
                                   backgroundColor: isFormReadOnly
                                     ? '#f3f4f6'
                                     : 'white',
@@ -1311,28 +1189,15 @@ const CheckoutPage: React.FC = () => {
                                 readOnly={isFormReadOnly}
                               />
                               {errors.cityProvince && (
-                                <p
-                                  style={{
-                                    color: '#ef4444',
-                                    fontSize: '0.875rem',
-                                    marginTop: '0.25rem',
-                                  }}
-                                >
+                                <p className="checkout-error-text">
                                   {errors.cityProvince}
                                 </p>
                               )}
                             </div>
 
                             {/* Detailed Address for Bolivia */}
-                            <div style={{ marginBottom: '1rem' }}>
-                              <label
-                                className="block font-medium"
-                                style={{
-                                  fontSize: '0.9rem',
-                                  marginBottom: '0.5rem',
-                                  color: '#374151',
-                                }}
-                              >
+                            <div className="checkout-field">
+                              <label className="checkout-label">
                                 Dirección detallada
                               </label>
                               <textarea
@@ -1340,17 +1205,8 @@ const CheckoutPage: React.FC = () => {
                                 value={formData.detailedAddress}
                                 onChange={handleInputChange}
                                 rows={3}
-                                className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${
-                                  errors.detailedAddress
-                                    ? 'error-field border-red-500'
-                                    : ''
-                                }`}
+                                className={`checkout-textarea ${errors.detailedAddress ? 'checkout-textarea--error' : ''}`}
                                 style={{
-                                  padding: '0.75rem',
-                                  border: errors.detailedAddress
-                                    ? '1px solid #ef4444'
-                                    : '1px solid #d1d5db',
-                                  fontSize: '1rem',
                                   backgroundColor: isFormReadOnly
                                     ? '#f3f4f6'
                                     : 'white',
@@ -1360,13 +1216,7 @@ const CheckoutPage: React.FC = () => {
                                 readOnly={isFormReadOnly}
                               />
                               {errors.detailedAddress && (
-                                <p
-                                  style={{
-                                    color: '#ef4444',
-                                    fontSize: '0.875rem',
-                                    marginTop: '0.25rem',
-                                  }}
-                                >
+                                <p className="checkout-error-text">
                                   {errors.detailedAddress}
                                 </p>
                               )}
@@ -1375,33 +1225,15 @@ const CheckoutPage: React.FC = () => {
                         ) : (
                           <>
                             {/* City for Other Countries */}
-                            <div style={{ marginBottom: '1rem' }}>
-                              <label
-                                className="block font-medium"
-                                style={{
-                                  fontSize: '0.9rem',
-                                  marginBottom: '0.5rem',
-                                  color: '#374151',
-                                }}
-                              >
-                                Ciudad
-                              </label>
+                            <div className="checkout-field">
+                              <label className="checkout-label">Ciudad</label>
                               <input
                                 type="text"
                                 name="city"
                                 value={formData.city}
                                 onChange={handleInputChange}
-                                className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                  errors.city
-                                    ? 'error-field border-red-500'
-                                    : ''
-                                }`}
+                                className={`checkout-input ${errors.city ? 'checkout-input--error' : ''}`}
                                 style={{
-                                  padding: '0.75rem',
-                                  border: errors.city
-                                    ? '1px solid #ef4444'
-                                    : '1px solid #d1d5db',
-                                  fontSize: '1rem',
                                   backgroundColor: isFormReadOnly
                                     ? '#f3f4f6'
                                     : 'white',
@@ -1411,36 +1243,16 @@ const CheckoutPage: React.FC = () => {
                                 readOnly={isFormReadOnly}
                               />
                               {errors.city && (
-                                <p
-                                  style={{
-                                    color: '#ef4444',
-                                    fontSize: '0.875rem',
-                                    marginTop: '0.25rem',
-                                  }}
-                                >
+                                <p className="checkout-error-text">
                                   {errors.city}
                                 </p>
                               )}
                             </div>
 
                             {/* Street Number and Postal Code */}
-                            <div
-                              style={{
-                                display: 'grid',
-                                gridTemplateColumns: '1fr 1fr',
-                                gap: '1rem',
-                                marginBottom: '1rem',
-                              }}
-                            >
+                            <div className="checkout-grid-2">
                               <div>
-                                <label
-                                  className="block font-medium"
-                                  style={{
-                                    fontSize: '0.9rem',
-                                    marginBottom: '0.5rem',
-                                    color: '#374151',
-                                  }}
-                                >
+                                <label className="checkout-label">
                                   Número de calle
                                 </label>
                                 <input
@@ -1448,17 +1260,8 @@ const CheckoutPage: React.FC = () => {
                                   name="streetNumber"
                                   value={formData.streetNumber}
                                   onChange={handleInputChange}
-                                  className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                    errors.streetNumber
-                                      ? 'error-field border-red-500'
-                                      : ''
-                                  }`}
+                                  className={`checkout-input ${errors.streetNumber ? 'checkout-input--error' : ''}`}
                                   style={{
-                                    padding: '0.75rem',
-                                    border: errors.streetNumber
-                                      ? '1px solid #ef4444'
-                                      : '1px solid #d1d5db',
-                                    fontSize: '1rem',
                                     backgroundColor: isFormReadOnly
                                       ? '#f3f4f6'
                                       : 'white',
@@ -1468,27 +1271,14 @@ const CheckoutPage: React.FC = () => {
                                   readOnly={isFormReadOnly}
                                 />
                                 {errors.streetNumber && (
-                                  <p
-                                    style={{
-                                      color: '#ef4444',
-                                      fontSize: '0.875rem',
-                                      marginTop: '0.25rem',
-                                    }}
-                                  >
+                                  <p className="checkout-error-text">
                                     {errors.streetNumber}
                                   </p>
                                 )}
                               </div>
 
                               <div>
-                                <label
-                                  className="block font-medium"
-                                  style={{
-                                    fontSize: '0.9rem',
-                                    marginBottom: '0.5rem',
-                                    color: '#374151',
-                                  }}
-                                >
+                                <label className="checkout-label">
                                   Código postal
                                 </label>
                                 <input
@@ -1496,17 +1286,8 @@ const CheckoutPage: React.FC = () => {
                                   name="postalCode"
                                   value={formData.postalCode}
                                   onChange={handleInputChange}
-                                  className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                    errors.postalCode
-                                      ? 'error-field border-red-500'
-                                      : ''
-                                  }`}
+                                  className={`checkout-input ${errors.postalCode ? 'checkout-input--error' : ''}`}
                                   style={{
-                                    padding: '0.75rem',
-                                    border: errors.postalCode
-                                      ? '1px solid #ef4444'
-                                      : '1px solid #d1d5db',
-                                    fontSize: '1rem',
                                     backgroundColor: isFormReadOnly
                                       ? '#f3f4f6'
                                       : 'white',
@@ -1516,13 +1297,7 @@ const CheckoutPage: React.FC = () => {
                                   readOnly={isFormReadOnly}
                                 />
                                 {errors.postalCode && (
-                                  <p
-                                    style={{
-                                      color: '#ef4444',
-                                      fontSize: '0.875rem',
-                                      marginTop: '0.25rem',
-                                    }}
-                                  >
+                                  <p className="checkout-error-text">
                                     {errors.postalCode}
                                   </p>
                                 )}
@@ -1535,38 +1310,18 @@ const CheckoutPage: React.FC = () => {
                         <button
                           onClick={handleContinue}
                           disabled={isCreatingAddress}
-                          className="w-full font-bold flex items-center justify-center"
-                          style={{
-                            backgroundColor: isCreatingAddress
-                              ? '#6b7280'
-                              : '#000',
-                            color: 'white',
-                            padding: '1rem',
-                            borderRadius: '0.375rem',
-                            fontSize: '1rem',
-                            cursor: isCreatingAddress
-                              ? 'not-allowed'
-                              : 'pointer',
-                            border: 'none',
-                            marginTop: '2rem',
-                            opacity: isCreatingAddress ? 0.7 : 1,
-                          }}
+                          className="checkout-submit-btn"
                         >
                           {isCreatingAddress ? (
                             <>
                               <svg
-                                className="animate-spin"
-                                style={{
-                                  width: '20px',
-                                  height: '20px',
-                                  marginRight: '0.5rem',
-                                }}
+                                className="checkout-spinner"
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
                               >
                                 <circle
-                                  className="opacity-25"
+                                  className="checkout-spinner__circle"
                                   cx="12"
                                   cy="12"
                                   r="10"
@@ -1574,7 +1329,7 @@ const CheckoutPage: React.FC = () => {
                                   strokeWidth="4"
                                 ></circle>
                                 <path
-                                  className="opacity-75"
+                                  className="checkout-spinner__path"
                                   fill="currentColor"
                                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                 ></path>
@@ -1592,16 +1347,8 @@ const CheckoutPage: React.FC = () => {
                   {currentStep === 2 && (
                     <>
                       {/* Delivery Method Section */}
-                      <div style={{ marginBottom: '2rem' }}>
-                        <h2
-                          className="font-semibold"
-                          style={{
-                            fontSize: '1.5rem',
-                            marginBottom: '1.5rem',
-                            color: '#374151',
-                            fontWeight: 'bold',
-                          }}
-                        >
+                      <div className="checkout-section">
+                        <h2 className="checkout-section-title">
                           {stepLabels[2]}
                         </h2>
 
@@ -1614,10 +1361,7 @@ const CheckoutPage: React.FC = () => {
                         />
 
                         {/* Back Button */}
-                        <div
-                          className="flex justify-center"
-                          style={{ marginTop: '2rem' }}
-                        >
+                        <div className="checkout-back-btn-wrapper">
                           <button
                             onClick={() => {
                               if (
@@ -1630,17 +1374,7 @@ const CheckoutPage: React.FC = () => {
                                 goToStep(1);
                               }
                             }}
-                            className="flex items-center gap-2 hover:bg-gray-100 transition-all"
-                            style={{
-                              fontSize: '0.9rem',
-                              color: '#374151',
-                              background: 'white',
-                              border: '1.5px solid #d1d5db',
-                              borderRadius: '0.5rem',
-                              padding: '0.75rem 1.5rem',
-                              cursor: 'pointer',
-                              fontWeight: '500',
-                            }}
+                            className="checkout-back-btn"
                           >
                             <svg
                               width="18"
@@ -1662,16 +1396,8 @@ const CheckoutPage: React.FC = () => {
                   {currentStep === 3 && (
                     <>
                       {/* Payment Section */}
-                      <div style={{ marginBottom: '2rem' }}>
-                        <h2
-                          className="font-semibold"
-                          style={{
-                            fontSize: '1.5rem',
-                            marginBottom: '1.5rem',
-                            color: '#374151',
-                            fontWeight: 'bold',
-                          }}
-                        >
+                      <div className="checkout-section">
+                        <h2 className="checkout-section-title">
                           Por favor revisa tu orden
                         </h2>
 
@@ -1705,7 +1431,7 @@ const CheckoutPage: React.FC = () => {
             </div>
 
             {/* Right Cart Summary - 20% */}
-            <div style={{ width: '20%' }}>
+            <div className="checkout-desktop-right">
               <DesktopCartSummary
                 selectedCountry={selectedCountry}
                 selectedDeliveryMethod={selectedDeliveryMethod}
@@ -1718,25 +1444,14 @@ const CheckoutPage: React.FC = () => {
           </div>
 
           {/* Mobile Layout */}
-          <div className="lg:hidden">
+          <div className="checkout-mobile">
             {/* Mobile Top Bar */}
-            <div
-              className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-40"
-              style={{
-                height: 'var(--nav-height, 60px)',
-                borderBottom: '1px solid #e5e7eb',
-                padding: '0 1rem',
-              }}
-            >
+            <div className="checkout-mobile-topbar">
               {/* Back Arrow */}
               <button
                 onClick={() => router.back()}
-                className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  marginRight: '1rem',
-                }}
+                className="checkout-icon-btn"
+                style={{ marginRight: '1rem' }}
               >
                 <svg
                   width="24"
@@ -1751,12 +1466,7 @@ const CheckoutPage: React.FC = () => {
               </button>
 
               {/* Title */}
-              <h1
-                className="font-semibold text-center flex-1"
-                style={{ fontSize: '1.1rem' }}
-              >
-                Información de envío
-              </h1>
+              <h1 className="checkout-topbar-title">Información de envío</h1>
 
               {/* Close Button - Redirect to Last Gender Page */}
               <button
@@ -1764,11 +1474,7 @@ const CheckoutPage: React.FC = () => {
                   const lastGender = GenderStorage.getGender();
                   router.push(`/${lastGender}`);
                 }}
-                className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-                style={{
-                  width: '40px',
-                  height: '40px',
-                }}
+                className="checkout-icon-btn"
               >
                 <svg
                   width="24"
@@ -1785,123 +1491,50 @@ const CheckoutPage: React.FC = () => {
             </div>
 
             {/* Form Content */}
-            <div style={{ padding: '2rem' }}>
+            <div className="checkout-mobile-form">
               {/* Recipient Details Section */}
-              <div style={{ marginBottom: '2rem' }}>
-                <h2
-                  className="font-semibold"
-                  style={{
-                    fontSize: '1rem',
-                    marginBottom: '1.5rem',
-                    color: '#374151',
-                  }}
-                >
-                  {stepLabels[1]}
-                </h2>
+              <div className="checkout-section">
+                <h2 className="checkout-section-title--sm">{stepLabels[1]}</h2>
 
                 {/* Name Input */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label
-                    className="block font-medium"
-                    style={{
-                      fontSize: '0.9rem',
-                      marginBottom: '0.5rem',
-                      color: '#374151',
-                    }}
-                  >
-                    Nombre completo
-                  </label>
+                <div className="checkout-field">
+                  <label className="checkout-label">Nombre completo</label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.name ? 'error-field border-red-500' : ''
-                    }`}
-                    style={{
-                      padding: '0.75rem',
-                      border: errors.name
-                        ? '1px solid #ef4444'
-                        : '1px solid #d1d5db',
-                      fontSize: '1rem',
-                    }}
+                    className={`checkout-input ${errors.name ? 'checkout-input--error' : ''}`}
                     placeholder="Ingresa tu nombre completo"
                   />
                   {errors.name && (
-                    <p
-                      style={{
-                        color: '#ef4444',
-                        fontSize: '0.875rem',
-                        marginTop: '0.25rem',
-                      }}
-                    >
-                      {errors.name}
-                    </p>
+                    <p className="checkout-error-text">{errors.name}</p>
                   )}
                 </div>
 
                 {/* Email Input */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label
-                    className="block font-medium"
-                    style={{
-                      fontSize: '0.9rem',
-                      marginBottom: '0.5rem',
-                      color: '#374151',
-                    }}
-                  >
-                    Correo electrónico
-                  </label>
+                <div className="checkout-field">
+                  <label className="checkout-label">Correo electrónico</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     readOnly
-                    className="w-full border rounded-lg bg-gray-50 cursor-not-allowed"
-                    style={{
-                      padding: '0.75rem',
-                      border: '1px solid #d1d5db',
-                      fontSize: '1rem',
-                      color: '#6b7280',
-                    }}
+                    className="checkout-input checkout-input--email"
                     placeholder="ejemplo@correo.com"
                   />
-                  <p
-                    style={{
-                      color: '#6b7280',
-                      fontSize: '0.75rem',
-                      marginTop: '0.25rem',
-                    }}
-                  >
+                  <p className="checkout-hint-text">
                     Este correo está vinculado a tu cuenta
                   </p>
                   {errors.email && (
-                    <p
-                      style={{
-                        color: '#ef4444',
-                        fontSize: '0.875rem',
-                        marginTop: '0.25rem',
-                      }}
-                    >
-                      {errors.email}
-                    </p>
+                    <p className="checkout-error-text">{errors.email}</p>
                   )}
                 </div>
 
                 {/* Phone Number Input with Country Code */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label
-                    className="block font-medium"
-                    style={{
-                      fontSize: '0.9rem',
-                      marginBottom: '0.5rem',
-                      color: '#374151',
-                    }}
-                  >
-                    Número de teléfono
-                  </label>
-                  <div className="flex" style={{ gap: '0.5rem' }}>
+                <div className="checkout-field">
+                  <label className="checkout-label">Número de teléfono</label>
+                  <div className="checkout-phone-row">
                     {/* Country Code Button */}
                     <button
                       type="button"
@@ -1909,13 +1542,7 @@ const CheckoutPage: React.FC = () => {
                         setModalType('countryCode');
                         setShowCountryCodeModal(true);
                       }}
-                      className="border rounded-lg flex items-center justify-center hover:bg-gray-50"
-                      style={{
-                        padding: '0.75rem 1rem',
-                        border: '1px solid #d1d5db',
-                        minWidth: '80px',
-                        fontSize: '1rem',
-                      }}
+                      className="checkout-phone-code-btn"
                     >
                       {formData.countryCode}
                     </button>
@@ -1926,68 +1553,32 @@ const CheckoutPage: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className={`flex-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.phone ? 'error-field border-red-500' : ''
-                      }`}
-                      style={{
-                        padding: '0.75rem',
-                        border: errors.phone
-                          ? '1px solid #ef4444'
-                          : '1px solid #d1d5db',
-                        fontSize: '1rem',
-                      }}
+                      className={`checkout-input checkout-input--flex ${errors.phone ? 'checkout-input--error' : ''}`}
                       placeholder="70000000"
                     />
                   </div>
                   {errors.phone && (
-                    <p
-                      style={{
-                        color: '#ef4444',
-                        fontSize: '0.875rem',
-                        marginTop: '0.25rem',
-                      }}
-                    >
-                      {errors.phone}
-                    </p>
+                    <p className="checkout-error-text">{errors.phone}</p>
                   )}
                 </div>
               </div>
 
               {/* Delivery Address Section */}
               <div style={{ marginBottom: '3rem' }}>
-                <h2
-                  className="font-semibold"
-                  style={{
-                    fontSize: '1rem',
-                    marginBottom: '1.5rem',
-                    color: '#374151',
-                  }}
-                >
+                <h2 className="checkout-section-title--sm">
                   Dirección de entrega
                 </h2>
 
                 {/* Address Selection Dropdown (if user has addresses) */}
                 {userAddresses.length > 0 && (
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label
-                      className="block font-medium"
-                      style={{
-                        fontSize: '0.9rem',
-                        marginBottom: '0.5rem',
-                        color: '#374151',
-                      }}
-                    >
+                  <div className="checkout-field">
+                    <label className="checkout-label">
                       Seleccionar dirección
                     </label>
                     <select
                       value={selectedAddressOption}
                       onChange={(e) => handleAddressSelection(e.target.value)}
-                      className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      style={{
-                        padding: '0.75rem',
-                        border: '1px solid #d1d5db',
-                        fontSize: '1rem',
-                      }}
+                      className="checkout-select"
                     >
                       <option value="new">Nueva dirección</option>
                       {userAddresses.map((address) => (
@@ -2000,17 +1591,8 @@ const CheckoutPage: React.FC = () => {
                 )}
 
                 {/* Country Selection */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label
-                    className="block font-medium"
-                    style={{
-                      fontSize: '0.9rem',
-                      marginBottom: '0.5rem',
-                      color: '#374151',
-                    }}
-                  >
-                    País
-                  </label>
+                <div className="checkout-field">
+                  <label className="checkout-label">País</label>
                   <button
                     type="button"
                     onClick={() => {
@@ -2019,11 +1601,8 @@ const CheckoutPage: React.FC = () => {
                         setShowCountryCodeModal(true);
                       }
                     }}
-                    className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left flex items-center justify-between hover:bg-gray-50"
+                    className="checkout-country-btn"
                     style={{
-                      padding: '0.75rem',
-                      border: '1px solid #d1d5db',
-                      fontSize: '1rem',
                       backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
                       cursor: isFormReadOnly ? 'not-allowed' : 'pointer',
                       opacity: isFormReadOnly ? 0.6 : 1,
@@ -2047,30 +1626,14 @@ const CheckoutPage: React.FC = () => {
 
                 {/* Departamento Selection for Bolivia */}
                 {selectedCountry === 'Bolivia' && (
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label
-                      className="block font-medium"
-                      style={{
-                        fontSize: '0.9rem',
-                        marginBottom: '0.5rem',
-                        color: '#374151',
-                      }}
-                    >
-                      Departamento
-                    </label>
+                  <div className="checkout-field">
+                    <label className="checkout-label">Departamento</label>
                     <select
                       name="departamento"
                       value={formData.departamento}
                       onChange={handleInputChange}
-                      className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.departamento ? 'error-field border-red-500' : ''
-                      }`}
+                      className={`checkout-select ${errors.departamento ? 'checkout-select--error' : ''}`}
                       style={{
-                        padding: '0.75rem',
-                        border: errors.departamento
-                          ? '1px solid #ef4444'
-                          : '1px solid #d1d5db',
-                        fontSize: '1rem',
                         backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
                         opacity: isFormReadOnly ? 0.6 : 1,
                       }}
@@ -2091,13 +1654,7 @@ const CheckoutPage: React.FC = () => {
                       ))}
                     </select>
                     {errors.departamento && (
-                      <p
-                        style={{
-                          color: '#ef4444',
-                          fontSize: '0.875rem',
-                          marginTop: '0.25rem',
-                        }}
-                      >
+                      <p className="checkout-error-text">
                         {errors.departamento}
                       </p>
                     )}
@@ -2108,15 +1665,8 @@ const CheckoutPage: React.FC = () => {
                 {selectedCountry === 'Bolivia' ? (
                   <>
                     {/* City/Province for Bolivia */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label
-                        className="block font-medium"
-                        style={{
-                          fontSize: '0.9rem',
-                          marginBottom: '0.5rem',
-                          color: '#374151',
-                        }}
-                      >
+                    <div className="checkout-field">
+                      <label className="checkout-label">
                         Ciudad / Provincia
                       </label>
                       <input
@@ -2124,17 +1674,8 @@ const CheckoutPage: React.FC = () => {
                         name="cityProvince"
                         value={formData.cityProvince}
                         onChange={handleInputChange}
-                        className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.cityProvince
-                            ? 'error-field border-red-500'
-                            : ''
-                        }`}
+                        className={`checkout-input ${errors.cityProvince ? 'checkout-input--error' : ''}`}
                         style={{
-                          padding: '0.75rem',
-                          border: errors.cityProvince
-                            ? '1px solid #ef4444'
-                            : '1px solid #d1d5db',
-                          fontSize: '1rem',
                           backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
                           opacity: isFormReadOnly ? 0.6 : 1,
                         }}
@@ -2142,28 +1683,15 @@ const CheckoutPage: React.FC = () => {
                         readOnly={isFormReadOnly}
                       />
                       {errors.cityProvince && (
-                        <p
-                          style={{
-                            color: '#ef4444',
-                            fontSize: '0.875rem',
-                            marginTop: '0.25rem',
-                          }}
-                        >
+                        <p className="checkout-error-text">
                           {errors.cityProvince}
                         </p>
                       )}
                     </div>
 
                     {/* Detailed Address for Bolivia */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label
-                        className="block font-medium"
-                        style={{
-                          fontSize: '0.9rem',
-                          marginBottom: '0.5rem',
-                          color: '#374151',
-                        }}
-                      >
+                    <div className="checkout-field">
+                      <label className="checkout-label">
                         Dirección detallada
                       </label>
                       <textarea
@@ -2171,17 +1699,8 @@ const CheckoutPage: React.FC = () => {
                         value={formData.detailedAddress}
                         onChange={handleInputChange}
                         rows={3}
-                        className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${
-                          errors.detailedAddress
-                            ? 'error-field border-red-500'
-                            : ''
-                        }`}
+                        className={`checkout-textarea ${errors.detailedAddress ? 'checkout-textarea--error' : ''}`}
                         style={{
-                          padding: '0.75rem',
-                          border: errors.detailedAddress
-                            ? '1px solid #ef4444'
-                            : '1px solid #d1d5db',
-                          fontSize: '1rem',
                           backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
                           opacity: isFormReadOnly ? 0.6 : 1,
                         }}
@@ -2189,13 +1708,7 @@ const CheckoutPage: React.FC = () => {
                         readOnly={isFormReadOnly}
                       />
                       {errors.detailedAddress && (
-                        <p
-                          style={{
-                            color: '#ef4444',
-                            fontSize: '0.875rem',
-                            marginTop: '0.25rem',
-                          }}
-                        >
+                        <p className="checkout-error-text">
                           {errors.detailedAddress}
                         </p>
                       )}
@@ -2204,31 +1717,15 @@ const CheckoutPage: React.FC = () => {
                 ) : (
                   <>
                     {/* City for Other Countries */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label
-                        className="block font-medium"
-                        style={{
-                          fontSize: '0.9rem',
-                          marginBottom: '0.5rem',
-                          color: '#374151',
-                        }}
-                      >
-                        Ciudad
-                      </label>
+                    <div className="checkout-field">
+                      <label className="checkout-label">Ciudad</label>
                       <input
                         type="text"
                         name="city"
                         value={formData.city}
                         onChange={handleInputChange}
-                        className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.city ? 'error-field border-red-500' : ''
-                        }`}
+                        className={`checkout-input ${errors.city ? 'checkout-input--error' : ''}`}
                         style={{
-                          padding: '0.75rem',
-                          border: errors.city
-                            ? '1px solid #ef4444'
-                            : '1px solid #d1d5db',
-                          fontSize: '1rem',
                           backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
                           opacity: isFormReadOnly ? 0.6 : 1,
                         }}
@@ -2236,46 +1733,20 @@ const CheckoutPage: React.FC = () => {
                         readOnly={isFormReadOnly}
                       />
                       {errors.city && (
-                        <p
-                          style={{
-                            color: '#ef4444',
-                            fontSize: '0.875rem',
-                            marginTop: '0.25rem',
-                          }}
-                        >
-                          {errors.city}
-                        </p>
+                        <p className="checkout-error-text">{errors.city}</p>
                       )}
                     </div>
 
                     {/* Street and Number for Other Countries */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label
-                        className="block font-medium"
-                        style={{
-                          fontSize: '0.9rem',
-                          marginBottom: '0.5rem',
-                          color: '#374151',
-                        }}
-                      >
-                        Calle y número
-                      </label>
+                    <div className="checkout-field">
+                      <label className="checkout-label">Calle y número</label>
                       <input
                         type="text"
                         name="streetNumber"
                         value={formData.streetNumber}
                         onChange={handleInputChange}
-                        className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.streetNumber
-                            ? 'error-field border-red-500'
-                            : ''
-                        }`}
+                        className={`checkout-input ${errors.streetNumber ? 'checkout-input--error' : ''}`}
                         style={{
-                          padding: '0.75rem',
-                          border: errors.streetNumber
-                            ? '1px solid #ef4444'
-                            : '1px solid #d1d5db',
-                          fontSize: '1rem',
                           backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
                           opacity: isFormReadOnly ? 0.6 : 1,
                         }}
@@ -2283,44 +1754,22 @@ const CheckoutPage: React.FC = () => {
                         readOnly={isFormReadOnly}
                       />
                       {errors.streetNumber && (
-                        <p
-                          style={{
-                            color: '#ef4444',
-                            fontSize: '0.875rem',
-                            marginTop: '0.25rem',
-                          }}
-                        >
+                        <p className="checkout-error-text">
                           {errors.streetNumber}
                         </p>
                       )}
                     </div>
 
                     {/* Postal Code for Other Countries */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label
-                        className="block font-medium"
-                        style={{
-                          fontSize: '0.9rem',
-                          marginBottom: '0.5rem',
-                          color: '#374151',
-                        }}
-                      >
-                        Código postal
-                      </label>
+                    <div className="checkout-field">
+                      <label className="checkout-label">Código postal</label>
                       <input
                         type="text"
                         name="postalCode"
                         value={formData.postalCode}
                         onChange={handleInputChange}
-                        className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.postalCode ? 'error-field border-red-500' : ''
-                        }`}
+                        className={`checkout-input ${errors.postalCode ? 'checkout-input--error' : ''}`}
                         style={{
-                          padding: '0.75rem',
-                          border: errors.postalCode
-                            ? '1px solid #ef4444'
-                            : '1px solid #d1d5db',
-                          fontSize: '1rem',
                           backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
                           opacity: isFormReadOnly ? 0.6 : 1,
                         }}
@@ -2328,13 +1777,7 @@ const CheckoutPage: React.FC = () => {
                         readOnly={isFormReadOnly}
                       />
                       {errors.postalCode && (
-                        <p
-                          style={{
-                            color: '#ef4444',
-                            fontSize: '0.875rem',
-                            marginTop: '0.25rem',
-                          }}
-                        >
+                        <p className="checkout-error-text">
                           {errors.postalCode}
                         </p>
                       )}
@@ -2347,33 +1790,18 @@ const CheckoutPage: React.FC = () => {
               <button
                 onClick={handleContinue}
                 disabled={isCreatingAddress}
-                className="w-full font-bold flex items-center justify-center"
-                style={{
-                  backgroundColor: isCreatingAddress ? '#6b7280' : '#000',
-                  color: 'white',
-                  padding: '1rem',
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem',
-                  cursor: isCreatingAddress ? 'not-allowed' : 'pointer',
-                  border: 'none',
-                  opacity: isCreatingAddress ? 0.7 : 1,
-                }}
+                className="checkout-submit-btn"
               >
                 {isCreatingAddress ? (
                   <>
                     <svg
-                      className="animate-spin"
-                      style={{
-                        width: '20px',
-                        height: '20px',
-                        marginRight: '0.5rem',
-                      }}
+                      className="checkout-spinner"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
                       <circle
-                        className="opacity-25"
+                        className="checkout-spinner__circle"
                         cx="12"
                         cy="12"
                         r="10"
@@ -2381,7 +1809,7 @@ const CheckoutPage: React.FC = () => {
                         strokeWidth="4"
                       ></circle>
                       <path
-                        className="opacity-75"
+                        className="checkout-spinner__path"
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
@@ -2399,29 +1827,14 @@ const CheckoutPage: React.FC = () => {
 
           {/* Country Code Modal */}
           {showCountryCodeModal && (
-            <div
-              className="fixed inset-0 bg-white z-50 flex flex-col"
-              style={{
-                paddingTop: 'var(--nav-height, 60px)',
-              }}
-            >
+            <div className="checkout-modal">
               {/* Modal Top Bar */}
-              <div
-                className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
-                style={{
-                  height: 'var(--nav-height, 60px)',
-                  borderBottom: '1px solid #e5e7eb',
-                  padding: '0 1rem',
-                }}
-              >
+              <div className="checkout-modal-topbar">
                 {/* Empty space for balance */}
-                <div style={{ width: '40px' }}></div>
+                <div className="checkout-modal-spacer"></div>
 
                 {/* Title */}
-                <h2
-                  className="font-semibold text-center flex-1"
-                  style={{ fontSize: '1.1rem' }}
-                >
+                <h2 className="checkout-topbar-title">
                   {modalType === 'countryCode' ? 'Country code' : 'País'}
                 </h2>
 
@@ -2431,11 +1844,7 @@ const CheckoutPage: React.FC = () => {
                     const lastGender = GenderStorage.getGender();
                     router.push(`/${lastGender}`);
                   }}
-                  className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                  }}
+                  className="checkout-icon-btn"
                 >
                   <svg
                     width="24"
@@ -2452,16 +1861,10 @@ const CheckoutPage: React.FC = () => {
               </div>
 
               {/* Modal Content */}
-              <div
-                className="flex-1 overflow-y-auto"
-                style={{ padding: '2rem' }}
-              >
+              <div className="checkout-modal-body">
                 {/* Search Input */}
-                <div className="relative" style={{ marginBottom: '1rem' }}>
-                  <div
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                    style={{ color: '#9ca3af' }}
-                  >
+                <div className="checkout-search-container">
+                  <div className="checkout-search-icon">
                     <svg
                       width="20"
                       height="20"
@@ -2479,22 +1882,13 @@ const CheckoutPage: React.FC = () => {
                     value={searchQuery}
                     onChange={handleSearchCountries}
                     placeholder="Search"
-                    className="w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    style={{
-                      padding: '0.75rem 0.75rem 0.75rem 3rem',
-                      border: '1px solid #d1d5db',
-                      fontSize: '1rem',
-                      backgroundColor: '#f9fafb',
-                    }}
+                    className="checkout-search-input"
                   />
                 </div>
 
                 {/* Countries List */}
                 {isLoadingCountries ? (
-                  <div
-                    className="flex items-center justify-center"
-                    style={{ padding: '2rem' }}
-                  >
+                  <div className="checkout-countries-loading">
                     <p style={{ color: '#6b7280' }}>Loading countries...</p>
                   </div>
                 ) : (
@@ -2503,12 +1897,7 @@ const CheckoutPage: React.FC = () => {
                       <button
                         key={country.code}
                         onClick={() => handleCountryCodeSelect(country)}
-                        className="w-full text-left hover:bg-gray-50 flex items-center justify-between"
-                        style={{
-                          padding: '1rem 0',
-                          borderBottom: '1px solid #f3f4f6',
-                          cursor: 'pointer',
-                        }}
+                        className="checkout-country-list-btn"
                       >
                         <span style={{ fontSize: '1rem', color: '#374151' }}>
                           {country.name}
@@ -2522,10 +1911,7 @@ const CheckoutPage: React.FC = () => {
                     ))}
 
                     {filteredCountries.length === 0 && searchQuery && (
-                      <div
-                        className="text-center"
-                        style={{ padding: '2rem', color: '#6b7280' }}
-                      >
+                      <div className="checkout-countries-empty">
                         No countries found
                       </div>
                     )}
@@ -2537,21 +1923,9 @@ const CheckoutPage: React.FC = () => {
 
           {/* Delivery Method Modal */}
           {showDeliveryModal && (
-            <div
-              className="fixed inset-0 bg-white z-50 flex flex-col"
-              style={{
-                paddingTop: 'var(--nav-height, 60px)',
-              }}
-            >
+            <div className="checkout-modal">
               {/* Modal Top Bar */}
-              <div
-                className="fixed top-0 left-0 right-0 bg-white flex items-center border-b z-50"
-                style={{
-                  height: 'var(--nav-height, 60px)',
-                  borderBottom: '1px solid #e5e7eb',
-                  padding: '0 1rem',
-                }}
-              >
+              <div className="checkout-modal-topbar">
                 {/* Back Arrow */}
                 <button
                   onClick={() => {
@@ -2566,11 +1940,7 @@ const CheckoutPage: React.FC = () => {
                       setShowDeliveryModal(false);
                     }
                   }}
-                  className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                  }}
+                  className="checkout-icon-btn"
                 >
                   <svg
                     width="24"
@@ -2585,12 +1955,7 @@ const CheckoutPage: React.FC = () => {
                 </button>
 
                 {/* Title */}
-                <h2
-                  className="font-semibold flex-1"
-                  style={{ fontSize: '1.1rem', marginLeft: '1rem' }}
-                >
-                  Método de envío
-                </h2>
+                <h2 className="checkout-topbar-title--left">Método de envío</h2>
 
                 {/* Close Button - Redirect to Last Gender Page */}
                 <button
@@ -2598,11 +1963,7 @@ const CheckoutPage: React.FC = () => {
                     const lastGender = GenderStorage.getGender();
                     router.push(`/${lastGender}`);
                   }}
-                  className="flex items-center justify-center hover:bg-gray-100 rounded-full"
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                  }}
+                  className="checkout-icon-btn"
                 >
                   <svg
                     width="24"
@@ -2620,8 +1981,8 @@ const CheckoutPage: React.FC = () => {
 
               {/* Modal Content */}
               <div
-                className="flex-1 overflow-y-auto"
-                style={{ padding: '1.5rem', paddingBottom: '8rem' }}
+                className="checkout-modal-body"
+                style={{ paddingBottom: '8rem' }}
               >
                 <DeliveryOptionsSection
                   selectedCountry={selectedCountry}

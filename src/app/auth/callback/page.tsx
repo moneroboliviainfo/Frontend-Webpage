@@ -6,6 +6,7 @@ import { setClient, type Client } from '@/store/clientSlice';
 import { AuthStorage } from '@/utils/authStorage';
 import { GoogleAuthService } from '@/services/googleAuth';
 import { API_URL } from '@/config/env';
+import { completeLoginWithToken } from '@/services/sessionService';
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -30,39 +31,13 @@ function AuthCallbackContent() {
         try {
           const data = await GoogleAuthService.exchangeCodeForTokens(code);
 
-          // Store the token in localStorage
+          // Store the token in localStorage and complete session
           if (data.token) {
-            AuthStorage.storeToken(data.token);
-
-            // Fetch user profile using the token
             try {
-              const profileRes = await fetch(`${API_URL}customers/me`, {
-                headers: { Authorization: `Bearer ${data.token}` },
-              });
-              if (profileRes.ok) {
-                const profile = await profileRes.json();
-                // Map API profile to local Client shape
-                const client: Client = {
-                  clientId: String(profile.id ?? ''),
-                  name: profile.name ?? '',
-                  email: profile.email ?? '',
-                  address: Array.isArray(profile.address)
-                    ? profile.address
-                    : undefined,
-                  phone: profile.phone ?? undefined,
-                  orders: Array.isArray(profile.orders)
-                    ? profile.orders
-                    : undefined,
-                };
-                // Store client details in Redux
-                dispatch(setClient(client));
-              } else {
-                console.warn('Failed to fetch profile after token exchange');
-              }
+              await completeLoginWithToken(data.token, dispatch);
             } catch (err) {
-              console.error('Error fetching profile:', err);
+              console.error('Error completing login with token:', err);
             }
-
             // After exchange is complete, redirect to the stored URL
             router.push(redirectUrl);
           } else {
