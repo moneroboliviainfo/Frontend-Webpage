@@ -114,7 +114,7 @@ type ApiProduct = {
 
 function transformApiProduct(
   api: ApiProduct | null,
-  slugFromUrl = ''
+  slugFromUrl = '',
 ): ProductDetails | null {
   if (!api) return null;
 
@@ -151,7 +151,7 @@ function transformApiProduct(
   let sizeGuidePdf: string | null = null;
   if (Array.isArray(api.productColors)) {
     const withPdfs = api.productColors.find(
-      (pc) => Array.isArray(pc.pdfs) && pc.pdfs.length > 0
+      (pc) => Array.isArray(pc.pdfs) && pc.pdfs.length > 0,
     );
     if (withPdfs && withPdfs.pdfs && withPdfs.pdfs.length > 0)
       sizeGuidePdf = withPdfs.pdfs[0] ?? null;
@@ -168,7 +168,7 @@ function transformApiProduct(
   }
   if (!sizeGuideVideo && Array.isArray(api.productColors)) {
     const withVideos = api.productColors.find(
-      (pc) => Array.isArray(pc.videos) && pc.videos.length > 0
+      (pc) => Array.isArray(pc.videos) && pc.videos.length > 0,
     );
     if (withVideos && withVideos.videos && withVideos.videos.length > 0)
       sizeGuideVideo = withVideos.videos[0] ?? null;
@@ -185,11 +185,11 @@ function transformApiProduct(
                 size: String(
                   (v.size &&
                     (typeof v.size === 'object' ? v.size.name : v.size)) ||
-                    ''
+                    '',
                 ),
                 availability: Number(v.availableStock ?? 0),
                 id: (v.size && typeof v.size === 'object'
-                  ? v.size.id ?? null
+                  ? (v.size.id ?? null)
                   : null) as number | null,
                 variantId: v.id ?? null,
               }))
@@ -239,16 +239,16 @@ const ProductPage = () => {
     const index = allProductsData.findIndex(
       (product) =>
         currentSlug.includes(product.productId.toString()) ||
-        product.slug === currentSlug
+        product.slug === currentSlug,
     );
     return index >= 0 ? index : 0;
   };
 
   const [currentProductIndex, setCurrentProductIndex] = useState(() =>
-    getCurrentProductIndex()
+    getCurrentProductIndex(),
   );
   const [fetchedProduct, setFetchedProduct] = useState<ProductDetails | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -275,7 +275,7 @@ const ProductPage = () => {
     const index = allProductsData.findIndex(
       (product) =>
         currentSlug.includes(product.productId.toString()) ||
-        product.slug === currentSlug
+        product.slug === currentSlug,
     );
     const newIndex = index >= 0 ? index : 0;
     setCurrentProductIndex(newIndex);
@@ -301,6 +301,20 @@ const ProductPage = () => {
       })
       .then((data: ApiProduct) => {
         if (!mounted) return;
+
+        // Sort productColors by createdAt ascending (oldest first) if timestamps present
+        try {
+          if (Array.isArray((data as any).productColors)) {
+            (data as any).productColors.sort((a: any, b: any) => {
+              const ta = Date.parse(a?.createdAt || '') || 0;
+              const tb = Date.parse(b?.createdAt || '') || 0;
+              return ta - tb;
+            });
+          }
+        } catch (e) {
+          // ignore sorting errors
+        }
+
         const transformed = transformApiProduct(data, currentSlug);
         setFetchedProduct(transformed);
       })

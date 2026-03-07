@@ -15,6 +15,8 @@ export interface ProductColor {
     name: string;
     code: string;
   };
+  // Optional timestamp when this color/variant was created
+  createdAt?: string;
 }
 
 export interface Discount {
@@ -87,19 +89,19 @@ const getProductImage = (multimedia: string[]): string => {
   // Find first image (not video)
   const imageFormats = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
   const image = multimedia.find((url) =>
-    imageFormats.some((format) => url.toLowerCase().includes(format))
+    imageFormats.some((format) => url.toLowerCase().includes(format)),
   );
   return image || '/images/placeholder.jpg';
 };
 
 export const transformProductsToClothesItems = (
-  products: Product[]
+  products: Product[],
 ): ClothesItem[] => {
   // Guard against non-array inputs
   if (!Array.isArray(products)) {
     console.warn(
       'transformProductsToClothesItems: products is not an array',
-      products
+      products,
     );
     return [];
   }

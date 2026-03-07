@@ -22,7 +22,7 @@ export interface CategoryResponse {
  * Extracts all enabled products from category data
  */
 export function extractProductsFromCategory(
-  categoryData: CategoryResponse | null
+  categoryData: CategoryResponse | null,
 ): Product[] {
   if (!categoryData) return [];
 
@@ -30,6 +30,18 @@ export function extractProductsFromCategory(
   categoryData.subcategories.forEach((subcategory) => {
     if (!subcategory.enabled) return;
     subcategory.products.forEach((product) => {
+      // Ensure productColors are ordered oldest -> newest by createdAt
+      if (
+        Array.isArray(product.productColors) &&
+        product.productColors.length > 0
+      ) {
+        product.productColors.sort((a, b) => {
+          const ta = Date.parse(a.createdAt || '') || 0;
+          const tb = Date.parse(b.createdAt || '') || 0;
+          return ta - tb;
+        });
+      }
+
       if (product.enabled && product.productColors.length > 0) {
         products.push(product);
       }
