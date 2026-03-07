@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
+import CompactSeasonalDiscountModalGate from '@/app/CompactSeasonalDiscountModalGate';
 import { AD_TYPES } from '@/constants/ads';
 import ClothesPageBody from './ClothesPageBody';
 import { createPageMetadata } from '@/config/metadata';
@@ -98,6 +99,7 @@ export default async function GenderClothesPage({
   return (
     <>
       <NavBar dynamicTransparent={false} />
+      <CompactSeasonalDiscountModalGate gender={gender} />
       <div data-gender={gender} data-category={category ?? ''}>
         <ClothesPageBody
           gender={String(gender)}

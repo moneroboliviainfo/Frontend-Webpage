@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import SeasonalDiscountModal from '@/components/SeasonalDiscountModal';
 import { useSeasonalDiscountModal } from '@/hooks/useSeasonalDiscountModal';
+import type { DismissReason } from '@/utils/seasonalDiscountStorage';
 
 type Props = {
   gender: string;
@@ -10,19 +11,24 @@ type Props = {
 
 export default function SeasonalDiscountModalGate({ gender }: Props) {
   const router = useRouter();
-  const { discount, isOpen, remainingTime, closeModal } =
+  const { discount, isOpen, remainingTime, handleDismissal, closeModal } =
     useSeasonalDiscountModal();
 
   if (!discount) return null;
+
+  const handleDismiss = (reason: DismissReason) => {
+    handleDismissal(reason);
+  };
 
   return (
     <SeasonalDiscountModal
       isOpen={isOpen}
       description={discount.description}
       remainingTime={remainingTime}
-      onClose={closeModal}
+      onDismiss={handleDismiss}
       onViewDiscounts={() => {
-        closeModal();
+        // Mark as dismissed when user clicks to see discounts (2h cooldown)
+        handleDismissal('later');
         router.push(`/${gender}/discounts`);
       }}
     />

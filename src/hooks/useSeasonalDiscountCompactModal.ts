@@ -34,7 +34,7 @@ const isValidSeasonalDiscount = (discount: Discount, now: Date) => {
   return now >= startDate && now <= endDate;
 };
 
-export const useSeasonalDiscountModal = () => {
+export const useSeasonalDiscountCompactModal = () => {
   const [discount, setDiscount] = useState<Discount | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [now, setNow] = useState<Date>(new Date());
@@ -44,7 +44,7 @@ export const useSeasonalDiscountModal = () => {
 
     const fetchDiscounts = async () => {
       // Check if modal should be shown based on dismissal history
-      if (!shouldShowSeasonalModal('fullModal')) {
+      if (!shouldShowSeasonalModal('compactModal')) {
         return;
       }
 
@@ -117,15 +117,11 @@ export const useSeasonalDiscountModal = () => {
     };
   }, [discount, now]);
 
-  const closeModal = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
   const handleDismissal = useCallback(
     (reason: DismissReason) => {
       if (!discount) return;
 
-      setSeasonalDiscountDismissal('fullModal', String(discount.id), reason);
+      setSeasonalDiscountDismissal('compactModal', String(discount.id), reason);
       setIsOpen(false);
     },
     [discount],
@@ -135,7 +131,6 @@ export const useSeasonalDiscountModal = () => {
     discount,
     isOpen,
     remainingTime,
-    closeModal,
     handleDismissal,
   };
 };

@@ -1,0 +1,89 @@
+.compact-seasonal-discount-overlay {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 80;
+}
+
+.compact-seasonal-discount-modal {
+  position: relative;
+  width: 180px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+.compact-seasonal-discount-close {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  z-index: 10;
+  background: none;
+  border: none;
+  font-size: 1.125rem;
+  line-height: 1;
+  color: black;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.compact-seasonal-discount-close:hover {
+  color: #374151;
+}
+
+.compact-seasonal-discount-content {
+  padding: 16px 14px 12px 14px;
+  text-align: center;
+}
+
+.compact-seasonal-discount-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #dc2626;
+  margin-bottom: 8px;
+}
+
+.compact-seasonal-discount-timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.compact-seasonal-discount-cta {
+  width: 100%;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: white;
+  background-color: var(--color-primary);
+  border: none;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.compact-seasonal-discount-cta:hover {
+  box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.15);
+}
+
+.compact-seasonal-discount-bottom-bar {
+  height: 4px;
+  width: 100%;
+  background: var(--color-primary);
+}

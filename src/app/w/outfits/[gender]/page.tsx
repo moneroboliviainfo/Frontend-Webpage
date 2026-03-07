@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
+import CompactSeasonalDiscountModalGate from '@/app/CompactSeasonalDiscountModalGate';
 import OutfitsPageNavBar from '../OutfitsPageNavBar';
 import OutfitsGallery from '../OutfitsGallery';
 import { createPageMetadata } from '@/config/metadata';
@@ -56,6 +57,7 @@ export default async function GenderOutfitsPage({ params }: Props) {
   return (
     <>
       <NavBar dynamicTransparent={false} />
+      <CompactSeasonalDiscountModalGate gender={gender} />
       <div data-gender={gender}>
         <OutfitsPageNavBar />
         <OutfitsGallery gender={gender} />

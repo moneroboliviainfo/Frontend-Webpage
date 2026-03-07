@@ -4,6 +4,7 @@ import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
 import CategoriesPageNavBar from './CategoriesPageNavBar';
 import CategoriesGallery from './CategoriesGallery';
+import CompactSeasonalDiscountModalGate from '@/app/CompactSeasonalDiscountModalGate';
 import { AD_TYPES } from '@/constants/ads';
 import { createPageMetadata } from '@/config/metadata';
 
@@ -87,6 +88,7 @@ export default async function GenderClothesPage({
   return (
     <>
       <NavBar dynamicTransparent={false} />
+      <CompactSeasonalDiscountModalGate gender={gender} />
       <div data-gender={gender} data-category={category ?? ''}>
         <CategoriesPageNavBar />
         <CategoriesGallery gender={gender} />

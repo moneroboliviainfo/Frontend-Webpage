@@ -2,6 +2,7 @@
 
 import React from 'react';
 import './SeasonalDiscountModal.css';
+import type { DismissReason } from '@/utils/seasonalDiscountStorage';
 
 type RemainingTime = {
   hours: string;
@@ -13,7 +14,7 @@ type Props = {
   isOpen: boolean;
   description: string;
   remainingTime: RemainingTime;
-  onClose: () => void;
+  onDismiss: (reason: DismissReason) => void;
   onViewDiscounts: () => void;
 };
 
@@ -21,7 +22,7 @@ export default function SeasonalDiscountModal({
   isOpen,
   description,
   remainingTime,
-  onClose,
+  onDismiss,
   onViewDiscounts,
 }: Props) {
   if (!isOpen) return null;
@@ -34,11 +35,11 @@ export default function SeasonalDiscountModal({
       aria-label="Oferta de temporada"
     >
       <div className="seasonal-discount-modal">
-        {/* Close button */}
+        {/* Close button - X dismisses for 24h */}
         <button
           type="button"
           aria-label="Cerrar"
-          onClick={onClose}
+          onClick={() => onDismiss('dismissed')}
           className="seasonal-discount-close"
         >
           ✕
@@ -99,10 +100,10 @@ export default function SeasonalDiscountModal({
             VER DESCUENTOS
           </button>
 
-          {/* Dismiss */}
+          {/* Dismiss button - "later" dismisses for 2h */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => onDismiss('later')}
             className="seasonal-discount-dismiss"
           >
             Quizás más tarde

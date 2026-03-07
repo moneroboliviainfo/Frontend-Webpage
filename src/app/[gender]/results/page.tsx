@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
+import CompactSeasonalDiscountModalGate from '@/app/CompactSeasonalDiscountModalGate';
 
 import { createPageMetadata } from '@/config/metadata';
 import SearchResultsBody from './SearchResultsBody';
@@ -85,6 +86,7 @@ export default async function SearchResultsPage({
   return (
     <>
       <NavBar dynamicTransparent={false} />
+      <CompactSeasonalDiscountModalGate gender={gender} />
       <div
         data-gender={gender}
         data-search={searchQuery}
