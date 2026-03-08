@@ -1,23 +1,38 @@
 import SocialMediaLinks from './SocialMediaLinks';
+import './Footer.css';
 
 const Footer: React.FC = () => {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="w-full" style={{ backgroundColor: '#f8f8f8' }}>
-      <div className="mx-auto w-full" style={{ padding: '1rem' }}>
-        {/* Row 1: Social icons centered */}
-        <div
-          className="w-full flex justify-center items-center"
-          style={{ marginBottom: 8 }}
-        >
+    <footer className="footer">
+      <div className="footer__inner">
+        <div className="footer__social">
           <SocialMediaLinks gap="1.5rem" />
         </div>
 
-        {/* Row 2: Copyright / existing label */}
-        <div className="w-full">
-          <p style={{ textAlign: 'center', color: '#666', margin: 0 }}>
-            © {new Date().getFullYear()} Tu Tienda de Ropa Monero. Todos los
-            derechos reservados.
+        <div>
+          <p className="footer__copyright">
+            © {year} Tu Tienda de Ropa Monero. Todos los derechos reservados.
           </p>
+        </div>
+
+        <div className="footer__dev">
+          <a
+            className="footer__dev-link"
+            href="https://wa.me/59160313229"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="footer__dev-text">Desarrollado por</span>
+            <img
+              className="footer__dev-logo"
+              src="/logos/devop-icon.png"
+              alt="DevOp"
+              width={28}
+              height={28}
+            />
+          </a>
         </div>
       </div>
     </footer>

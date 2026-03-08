@@ -37,7 +37,7 @@ const SocialMediaLinks: React.FC<SocialMediaLinksProps> = ({
           <FaInstagram size={iconSize} className="text-pink-500" />
         </a>
         <a
-          href="https://www.tiktok.com/@moneroget"
+          href="https://www.tiktok.com/@monero.get"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="TikTok"

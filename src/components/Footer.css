@@ -1,0 +1,80 @@
+/* Footer styles (replaces Tailwind usage in Footer.tsx) */
+.footer {
+  width: 100%;
+  background-color: #f8f8f8;
+  border-top: 1px solid #e6e6e6;
+}
+
+.footer__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+  text-align: center;
+}
+
+.footer__social {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.footer__copyright {
+  color: #666;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.footer__dev {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.6rem;
+}
+
+.footer__dev-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  background: #ffffff;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.footer__dev-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.footer__dev-text {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.footer__dev-logo {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  border-radius: 6px;
+}
+
+@media (max-width: 480px) {
+  .footer__inner {
+    padding: 0.75rem;
+  }
+  .footer__dev-link {
+    padding: 6px 8px;
+    gap: 0.4rem;
+  }
+  .footer__dev-text {
+    font-size: 0.8rem;
+  }
+}
