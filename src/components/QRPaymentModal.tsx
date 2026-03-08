@@ -27,6 +27,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
   const DURATION_SECONDS = 10 * 60; // 10 minutes
   const [timeLeft, setTimeLeft] = useState<number>(DURATION_SECONDS);
   const [endTimestamp, setEndTimestamp] = useState<number | null>(null);
+  const [showDownloadToast, setShowDownloadToast] = useState(false);
 
   // Initialize end timestamp when modal opens (or orderId changes).
   useEffect(() => {
@@ -146,16 +147,8 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Title */}
-        <h2
-          className="font-bold text-center"
-          style={{ fontSize: '1.5rem', marginBottom: '1rem' }}
-        >
-          Escanea el código QR
-        </h2>
-
         {/* QR Code Image */}
-        <div className="flex justify-center" style={{ marginBottom: '1.5rem' }}>
+        <div className="flex justify-center" style={{ marginBottom: '1rem' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`data:image/png;base64,${qrImageBase64}`}
@@ -174,11 +167,12 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
           style={{
             display: 'flex',
             justifyContent: 'center',
-            marginBottom: '1.5rem',
+            marginBottom: '1rem',
           }}
         >
           <button
             aria-label="Descargar código QR"
+            className="qr-payment-modal__download-btn"
             onClick={() => {
               try {
                 const base64 = qrImageBase64;
@@ -198,18 +192,13 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
                 a.click();
                 a.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+                // Show local success toast (cannot detect actual OS download success)
+                setShowDownloadToast(true);
+                setTimeout(() => setShowDownloadToast(false), 3000);
               } catch (e) {
                 console.error('Download error', e);
               }
-            }}
-            style={{
-              backgroundColor: 'var(--color-primary)',
-              color: '#fff',
-              padding: '0.75rem 1rem',
-              borderRadius: '0.375rem',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 800,
             }}
           >
             <svg
@@ -256,7 +245,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
           <div
             className="text-center"
             style={{
-              marginBottom: '1.5rem',
+              marginBottom: '1rem',
               padding: '0.75rem',
               backgroundColor: '#f3f4f6',
               borderRadius: '0.5rem',
@@ -276,7 +265,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
         )}
 
         {/* Timer */}
-        <div className="text-center" style={{ marginBottom: '1.5rem' }}>
+        <div className="text-center" style={{ marginBottom: '1rem' }}>
           <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
             Tiempo restante
           </p>
@@ -328,6 +317,12 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
           </div>
         </div>
       </div>
+      {/* Download success toast */}
+      {showDownloadToast && (
+        <div className="qr-payment-modal__toast">
+          <span className="text-sm">Imagen descargada</span>
+        </div>
+      )}
     </div>
   );
 };

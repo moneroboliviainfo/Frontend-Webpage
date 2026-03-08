@@ -430,7 +430,7 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
               Creando orden...
             </>
           ) : (
-            'Confirmar pedido'
+            'Generar QR y pagar orden'
           )}
         </button>
       )}
