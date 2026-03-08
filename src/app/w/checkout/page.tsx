@@ -312,7 +312,7 @@ const CheckoutPage: React.FC = () => {
           ...prev,
           email: '',
           name: '',
-          phone: phoneNumber,
+          phone: '',
           countryCode: countryCode,
         }));
 
