@@ -313,7 +313,7 @@ const CheckoutPage: React.FC = () => {
           email: '',
           name: '',
           phone: '',
-          countryCode: countryCode,
+          countryCode: '+591',
         }));
 
         // Emulate guest with no saved addresses
