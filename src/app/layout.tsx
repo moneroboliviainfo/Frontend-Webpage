@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import ReduxProvider from '../store/Provider';
 import AuthProvider from '../components/AuthProvider';
+import BugsnagProvider from '../components/BugsnagProvider';
 import { baseMetadata } from '../config/metadata';
 
 import '@fontsource/poppins';
@@ -127,7 +128,9 @@ export default function RootLayout({
           </>
         )}
         <ReduxProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <BugsnagProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </BugsnagProvider>
         </ReduxProvider>
       </body>
     </html>

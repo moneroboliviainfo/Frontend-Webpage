@@ -14,6 +14,9 @@
     "test-prod": "copy src\\config\\env.prod.ts src\\config\\env.ts && next dev --turbopack"
   },
   "dependencies": {
+    "@bugsnag/browser-performance": "^3.4.1",
+    "@bugsnag/js": "^8.8.1",
+    "@bugsnag/plugin-react": "^8.8.0",
     "@fontsource/poppins": "^5.2.6",
     "@fontsource/space-grotesk": "^5.2.8",
     "@headlessui/react": "^2.2.5",
