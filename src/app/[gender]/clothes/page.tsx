@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
-
 import NavBar from '@/components/nav/NavBar';
-import Footer from '@/components/Footer';
 import CompactSeasonalDiscountModalGate from '@/app/CompactSeasonalDiscountModalGate';
 import { AD_TYPES } from '@/constants/ads';
 import ClothesPageBody from './ClothesPageBody';
 import { createPageMetadata } from '@/config/metadata';
+import Footer from '@/components/Footer';
 
 type Props = {
   params: Promise<{ gender: string }>;

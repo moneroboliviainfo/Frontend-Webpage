@@ -182,6 +182,7 @@ export default function ProductsGallery({
         paddingLeft: isMobile ? 0 : '0.35rem',
         paddingRight: isMobile ? 0 : '0.35rem',
         paddingTop: '0.35rem',
+        marginBottom: '1rem',
       }}
     >
       {clothesData.length === 0 ? (
