@@ -27,6 +27,7 @@ import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import CategorySliderWithImages from '@/components/CategorySliderWithImages';
 import ClothesSlider from '@/components/ClothesSlider';
 import GenderCrossSellSection from '@/components/GenderCrossSellSection';
+import VideoBanner from '@/components/VideoBanner';
 import SubscriptionSection from '@/components/SubscriptionSection';
 import useInterestRecommendations from '@/hooks/useInterestRecommendations';
 import useIsMobile from '@/hooks/useIsMobile';
@@ -66,7 +67,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
   const galleryOutfits = useMemo(() => {
     const filtered = allOutfits.filter(
       (outfit) =>
-        (outfit as unknown as { gender?: string }).gender === apiGender
+        (outfit as unknown as { gender?: string }).gender === apiGender,
     );
     return filtered
       .slice(-3) // Get last 3 outfits for the gallery
@@ -77,7 +78,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
             : '/images/default-outfit.jpg',
         label: outfit.name,
         href: `/w/outfits?outfit=${encodeURIComponent(
-          `${outfit.name}-${outfit.id}`
+          `${outfit.name}-${outfit.id}`,
         )}`,
         id: outfit.id,
       }));
@@ -97,7 +98,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
 
   // Get search recommendations from Redux
   const searchRecommendations = useSelector(
-    (state: RootState) => state.clothing.searchRecommendations
+    (state: RootState) => state.clothing.searchRecommendations,
   );
 
   // Update most searched term when Redux data changes
@@ -105,7 +106,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
     if (searchRecommendations.length > 0) {
       // Filter by male gender and get the first result
       const maleSearches = searchRecommendations.filter(
-        (s) => s.gender === CLOTHING_API_CONSTANTS.GENDERS.MALE
+        (s) => s.gender === CLOTHING_API_CONSTANTS.GENDERS.MALE,
       );
 
       if (maleSearches.length > 0 && maleSearches[0].name) {
@@ -221,8 +222,11 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           />
         </div>
       </div>
+      {/* Video section */}
+      <VideoBanner gender={apiGender} />
+
       {/* Gender Cross-Sell or Most Searched Section */}
-      {FEATURE_FLAGS.WOMEN_ENABLED ? (
+      {/* {FEATURE_FLAGS.WOMEN_ENABLED ? (
         // When women is enabled: show opposite gender
         <GenderCrossSellSection
           title={gender === FRONTEND_GENDERS.MEN ? 'MUJERES' : 'HOMBRES'}
@@ -255,14 +259,14 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           subtitle="Moda Másculina"
           buttonText="Comprar"
           buttonUrl={`/men/results?search=${encodeURIComponent(
-            mostSearchedTerm
+            mostSearchedTerm,
           )}`}
           mobileImage="/images/monero-model-ver.jpg"
           desktopImage1="/images/monero-model-hor-1.jpg"
           desktopImage2="/images/monero-model-hor-2.jpg"
           isMobile={isMobile}
         />
-      )}
+      )} */}
       <SubscriptionSection isMobile={isMobile} />
       <div
         className="w-full"
