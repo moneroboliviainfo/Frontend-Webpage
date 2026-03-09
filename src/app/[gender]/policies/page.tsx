@@ -40,7 +40,7 @@ export default function PoliciesPage() {
           <TermsAndConditions showTitle={true} compact={false} />
         </div>
       </main>
-      <Footer />
+      <Footer visible={true} />
     </>
   );
 }

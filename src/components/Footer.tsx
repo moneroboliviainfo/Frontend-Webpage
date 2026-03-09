@@ -1,7 +1,11 @@
 import SocialMediaLinks from './SocialMediaLinks';
 import './Footer.css';
 
-const Footer: React.FC = () => {
+type FooterProps = {
+  visible?: boolean;
+};
+
+const Footer: React.FC<FooterProps> = ({ visible = false }) => {
   const year = new Date().getFullYear();
 
   return (
@@ -17,23 +21,25 @@ const Footer: React.FC = () => {
           </p>
         </div>
 
-        <div className="footer__dev">
-          <a
-            className="footer__dev-link"
-            href="https://wa.me/59160313229"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span className="footer__dev-text">Desarrollado por</span>
-            <img
-              className="footer__dev-logo"
-              src="/logos/devop-icon.png"
-              alt="DevOp"
-              width={28}
-              height={28}
-            />
-          </a>
-        </div>
+        {visible && (
+          <div className="footer__dev">
+            <a
+              className="footer__dev-link"
+              href="https://wa.me/59160313229"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="footer__dev-text">Desarrollado por</span>
+              <img
+                className="footer__dev-logo"
+                src="/logos/devop-icon.png"
+                alt="DevOp"
+                width={28}
+                height={28}
+              />
+            </a>
+          </div>
+        )}
       </div>
     </footer>
   );
