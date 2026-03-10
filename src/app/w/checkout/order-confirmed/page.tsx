@@ -158,7 +158,7 @@ const OrderConfirmedContent: React.FC = () => {
 
         // Split phone to extract country code
         const fullPhone = isGuestOrder
-          ? data.phone || ''
+          ? data.name_phone.phone || ''
           : data.customer?.phone || '';
         let countryCode = '+591';
         let phone = fullPhone;
@@ -180,7 +180,9 @@ const OrderConfirmedContent: React.FC = () => {
           total: totalPrice,
           status: data.status || '',
           formData: {
-            name: isGuestOrder ? data.name || '' : data.customer?.name || '',
+            name: isGuestOrder
+              ? data.name_phone.name || ''
+              : data.customer?.name || '',
             // For guest orders prefer the purchaser email returned in `data.email`.
             email: isGuestOrder ? data.email || '' : data.customer?.email || '',
             phone: phone,
