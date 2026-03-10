@@ -101,7 +101,7 @@ const VideoBanner: React.FC<VideoBannerProps> = ({ gender }) => {
     <section className="video-banner" ref={containerRef as any}>
       <div style={{ marginBottom: '0.6rem' }}>
         <SectionHeader
-          title="ACERCA DE NOSOTROS"
+          title="ACERCA DE LA PÁGINA"
           fontColor="white"
           isMobile={isMobileHook}
         />

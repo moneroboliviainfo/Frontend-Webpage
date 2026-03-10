@@ -142,6 +142,8 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
       <div style={{ backgroundColor: 'var(--color-secondary)' }}>
         <CategorySliderWithImages gender={gender} />
       </div>
+      {/* Video section */}
+      <VideoBanner gender={apiGender} />
       <div
         className="w-full"
         style={{
@@ -222,8 +224,6 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
           />
         </div>
       </div>
-      {/* Video section */}
-      <VideoBanner gender={apiGender} />
 
       {/* Gender Cross-Sell or Most Searched Section */}
       {/* {FEATURE_FLAGS.WOMEN_ENABLED ? (
