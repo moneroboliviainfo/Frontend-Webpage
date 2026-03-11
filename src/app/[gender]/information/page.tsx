@@ -448,7 +448,8 @@ export default function InformationPage() {
               >
                 WhatsApp
               </a>{' '}
-              o visita nuestra tienda física en la calle Junín #166, Sucre.
+              o visita nuestra tienda física en la calle Destacamento 317 N°
+              1110, Sucre.
             </p>
           </div>
         </section>
