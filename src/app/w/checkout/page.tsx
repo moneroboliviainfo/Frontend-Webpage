@@ -131,30 +131,16 @@ const CheckoutPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Initialize step from URL if present
+    // Always start on step 1 when the page loads or reloads
     try {
       const url = new URL(window.location.href);
-      const stepParam = url.searchParams.get('checkoutStep');
-      const stepNum = stepParam ? Number(stepParam) : 1;
-      if (stepNum >= 1 && stepNum <= 3) {
-        setCurrentStep(stepNum as 1 | 2 | 3);
-        // Replace initial state so popstate works predictably
-        window.history.replaceState(
-          { checkoutStep: stepNum },
-          '',
-          url.pathname + '?checkoutStep=' + stepNum + url.hash,
-        );
-      } else {
-        // ensure a state exists for this page
-        window.history.replaceState(
-          { checkoutStep: currentStep },
-          '',
-          window.location.pathname +
-            '?checkoutStep=' +
-            currentStep +
-            window.location.hash,
-        );
-      }
+      setCurrentStep(1);
+      // Replace initial state so popstate works predictably
+      window.history.replaceState(
+        { checkoutStep: 1 },
+        '',
+        url.pathname + '?checkoutStep=1' + url.hash,
+      );
     } catch (e) {
       // ignore
     }
@@ -192,7 +178,7 @@ const CheckoutPage: React.FC = () => {
 
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, [currentStep]);
+  }, []);
 
   // Cart validation state
   const [isValidatingCart, setIsValidatingCart] = useState(true);
