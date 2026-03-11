@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { QR_PAYMENT_DURATION_MINUTES } from '@/constants/qrPayment';
 import { useAppSelector } from '@/store/hooks';
 import TermsAndConditions from '@/components/TermsAndConditions';
 import PrivacyPolicy from '@/components/PrivacyPolicy';
@@ -11,6 +12,7 @@ import {
   selectCheckoutCartItems,
   selectRepriceData,
   selectSelectedShipment,
+  selectSelectedPlace,
 } from '@/store/checkoutSlice';
 
 interface RepriceData {
@@ -81,6 +83,7 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
   const cartItems = useAppSelector(selectCheckoutCartItems);
   const repriceDataRedux = useAppSelector(selectRepriceData);
   const selectedShipment = useAppSelector(selectSelectedShipment);
+  const selectedPlace = useAppSelector(selectSelectedPlace);
 
   // Use Redux data if available, otherwise fall back to prop
   const repriceData = repriceDataRedux || repriceDataProp;
@@ -88,58 +91,6 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
     ? parseFloat(selectedShipment.price)
     : 0;
   const finalDeliveryCost = deliveryCostFromRedux || deliveryCost;
-  const formatDeliveryDetails = () => {
-    const price = selectedShipment ? parseFloat(selectedShipment.price) : 0;
-    const priceText = price > 0 ? `Bs. ${price.toFixed(2)}` : '';
-
-    if (selectedCountry === 'Bolivia') {
-      switch (selectedDeliveryMethod) {
-        case 'Envío a terminal':
-          return `Recíbelo por encomienda${priceText ? ` - ${priceText}` : ''}`;
-        case 'Envío a domicilio':
-          return `Recíbelo en casa ${priceText ? ` - ${priceText}` : ''}`;
-        case 'Envío a provincia':
-          return `Recíbelo por encomienda${priceText ? ` - ${priceText}` : ''}`;
-        case 'Envío por avión':
-          return `Recógelo lo más pronto posible${
-            priceText ? ` - ${priceText}` : ''
-          }`;
-        default:
-          return priceText;
-      }
-    } else {
-      return `Tiempo y costo determinado por DHL${
-        priceText ? ` - ${priceText}` : ''
-      }`;
-    }
-  };
-
-  const formatAddress = () => {
-    const addressParts = [
-      formData.name,
-      formData.phone ? `${formData.countryCode} ${formData.phone}` : '',
-      formData.email,
-      '', // Empty line for spacing
-    ];
-
-    if (selectedCountry === 'Bolivia') {
-      addressParts.push(
-        formData.detailedAddress || '',
-        formData.cityProvince || '',
-        formData.departamento || '',
-        selectedCountry,
-      );
-    } else {
-      addressParts.push(
-        formData.streetNumber || '',
-        formData.city || '',
-        formData.postalCode || '',
-        selectedCountry,
-      );
-    }
-
-    return addressParts.filter((part) => part.trim() !== '').join('\n');
-  };
 
   // Calculate pricing
   const itemsSubtotal = repriceData
@@ -198,6 +149,7 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
           country={selectedCountry}
           price={finalDeliveryCost}
           showTitle={showSectionTitles}
+          placeId={selectedPlace?.id}
         />
       )}
 
@@ -266,9 +218,9 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
                   color: '#6b7280',
                 }}
               >
-                Se generará un código QR válido por 15 minutos. Si no se
-                completa el pago en este tiempo, la orden será cancelada
-                automáticamente.
+                Se generará un código QR válido por{' '}
+                {QR_PAYMENT_DURATION_MINUTES} minutos. Si no se completa el pago
+                en este tiempo, la orden será cancelada automáticamente.
               </div>
             </div>
           </div>

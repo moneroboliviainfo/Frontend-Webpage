@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import OrderReviewSection from './OrderReviewSection';
 import { useAppSelector } from '@/store/hooks';
+import { QR_PAYMENT_DURATION_MINUTES } from '@/constants/qrPayment';
 import { GenderStorage } from '@/utils/genderStorage';
 import TermsAndConditions from '@/components/TermsAndConditions';
 import PrivacyPolicy from '@/components/PrivacyPolicy';
@@ -341,9 +342,9 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                   color: '#6b7280',
                 }}
               >
-                Se generará un código QR válido por 15 minutos. Si no se
-                completa el pago en este tiempo, la orden será cancelada
-                automáticamente.
+                Se generará un código QR válido por{' '}
+                {QR_PAYMENT_DURATION_MINUTES} minutos. Si no se completa el pago
+                en este tiempo, la orden será cancelada automáticamente.
               </div>
             </div>
           </div>

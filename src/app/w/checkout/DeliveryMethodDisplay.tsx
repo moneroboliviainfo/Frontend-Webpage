@@ -6,6 +6,7 @@ interface DeliveryMethodDisplayProps {
   country: string;
   price?: number;
   showTitle?: boolean;
+  placeId?: number;
 }
 
 const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
@@ -13,6 +14,7 @@ const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
   country,
   price,
   showTitle = true,
+  placeId,
 }) => {
   const getDeliveryDescription = () => {
     if (country === 'Bolivia') {
@@ -20,8 +22,14 @@ const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
         case 'Envío a terminal':
           return 'Recíbelo en 24 horas';
         case 'Envío a domicilio':
+          if (placeId === 4) {
+            return 'Recíbelo hoy mismo';
+          }
           return 'Recíbelo en 48 horas';
         case 'Envío a provincia':
+          if (placeId === 4) {
+            return 'Recíbelo en 24 horas';
+          }
           return 'Recíbelo en 72 horas';
         case 'Envío por avión':
           return 'Recógelo lo más pronto posible hasta su domicilio';

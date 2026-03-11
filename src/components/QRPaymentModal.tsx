@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GenderStorage } from '@/utils/genderStorage';
 import { API_URL, PAYMENT_VERIFICATION_INTERVAL } from '@/config/env';
+import { QR_PAYMENT_DURATION_MINUTES } from '@/constants/qrPayment';
 import { clearCart } from '@/utils/cartStorage';
 import './QRPaymentModal.css';
 
@@ -24,7 +25,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
   onPaymentConfirmed,
   gloss,
 }) => {
-  const DURATION_SECONDS = 10 * 60; // 10 minutes
+  const DURATION_SECONDS = QR_PAYMENT_DURATION_MINUTES * 60; // Convert minutes to seconds
   const [timeLeft, setTimeLeft] = useState<number>(DURATION_SECONDS);
   const [endTimestamp, setEndTimestamp] = useState<number | null>(null);
   const [showDownloadToast, setShowDownloadToast] = useState(false);
