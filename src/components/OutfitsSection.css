@@ -1,0 +1,28 @@
+.outfits-section {
+  width: 100%;
+  background-color: var(--color-secondary);
+  padding-bottom: 0.17rem;
+}
+
+.outfits-section__gallery-wrapper {
+  width: 100%;
+}
+
+.outfits-section__tiles {
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.outfits-section__tiles--mobile {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.outfits-section__tiles--desktop {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.25rem;
+}

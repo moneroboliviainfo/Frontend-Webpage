@@ -1,7 +1,7 @@
 'use client';
 import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import GalleryTile from '@/components/GalleryTile';
+import OutfitsSection from '@/components/OutfitsSection';
 import Image from 'next/image';
 import SectionHeader from '@/components/SectionHeader';
 import { FiMonitor, FiTruck, FiSmile } from 'react-icons/fi';
@@ -144,60 +144,12 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
       </div>
       {/* Video section */}
       <VideoBanner gender={apiGender} />
-      <div
-        className="w-full"
-        style={{
-          backgroundColor: 'var(--color-secondary)',
-          paddingBottom: '0.17rem',
-        }}
-      >
-        <SectionHeader
-          title="MIRA LOS OUTFITS"
-          subtitle="Hecha un vistazo a todos los outfits que preparamos para ti. Listos para cada ocasión, inspírate y encuentra tu estilo."
-          fontColor="var(--color-primary)"
-          isMobile={isMobile}
-        />
-        <div className="w-full">
-          <div
-            className={
-              isMobile
-                ? 'grid grid-cols-2 gap-1 w-full'
-                : 'flex flex-row gap-1 w-full'
-            }
-            style={{
-              marginTop: isMobile ? '1rem' : 0,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            {galleryOutfits.map((outfit, idx) => (
-              <GalleryTile
-                key={outfit.id}
-                src={outfit.src}
-                label={outfit.label}
-                isMobile={isMobile}
-                idx={idx}
-                priority={idx === 0}
-                href={outfit.href}
-              />
-            ))}
-
-            {/* Static "Ver todos" tile */}
-            <GalleryTile
-              key="ver-todos"
-              src={
-                gender === FRONTEND_GENDERS.MEN
-                  ? '/categories/Outfits-men.jpg'
-                  : '/categories/all-outfits.jpg'
-              }
-              label="Ver todos"
-              isMobile={isMobile}
-              priority={false}
-              href={outfitsUrl}
-            />
-          </div>
-        </div>
-      </div>
+      <OutfitsSection
+        galleryOutfits={galleryOutfits}
+        gender={gender}
+        isMobile={isMobile}
+        outfitsUrl={outfitsUrl}
+      />
       <div
         className="w-full"
         style={{
