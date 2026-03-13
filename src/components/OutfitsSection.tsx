@@ -48,6 +48,7 @@ const OutfitsSection: React.FC<OutfitsSectionProps> = ({
               idx={idx}
               priority={idx === 0}
               href={outfit.href}
+              width={isMobile ? undefined : '100%'}
             />
           ))}
 
@@ -62,6 +63,7 @@ const OutfitsSection: React.FC<OutfitsSectionProps> = ({
             isMobile={isMobile}
             priority={false}
             href={outfitsUrl}
+            width={isMobile ? undefined : '100%'}
           />
         </div>
       </div>
