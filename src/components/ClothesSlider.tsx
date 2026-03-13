@@ -107,7 +107,7 @@ export default function ClothesSlider({ isMobile = false, items }: Props) {
   };
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative" style={{ paddingBottom: '1.5rem' }}>
       {/* arrows only visible on desktop */}
       {!isMobile && canScrollLeft && (
         <button
@@ -168,7 +168,7 @@ export default function ClothesSlider({ isMobile = false, items }: Props) {
               else if ('src' in c && c.src) src = c.src;
               const id = 'id' in c ? c.id : undefined;
               const discountPercent =
-                'discountPercent' in c ? c.discountPercent ?? 0 : 0;
+                'discountPercent' in c ? (c.discountPercent ?? 0) : 0;
               const priceColor = discountPercent > 0 ? '#ff4d4f' : '#ffffff';
               return (
                 <li
@@ -236,7 +236,7 @@ export default function ClothesSlider({ isMobile = false, items }: Props) {
                   </div>
                 </li>
               );
-            }
+            },
           )}
         </ul>
       </div>
