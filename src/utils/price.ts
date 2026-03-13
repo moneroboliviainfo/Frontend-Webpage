@@ -1,6 +1,6 @@
 export type ActiveDiscount = {
-  value: number;
-  isActive: boolean;
+  value?: number | null;
+  isActive?: boolean | null;
   startDate?: string | null;
   endDate?: string | null;
 };
@@ -8,18 +8,15 @@ export type ActiveDiscount = {
 export function isDiscountActive(
   discount: ActiveDiscount | null | undefined,
 ): boolean {
-  if (!discount || !discount.isActive || discount.value <= 0) return false;
+  if (!discount || !discount.isActive || !discount.value || discount.value <= 0)
+    return false;
   const now = new Date();
   if (discount.startDate && new Date(discount.startDate) > now) return false;
   if (discount.endDate && new Date(discount.endDate) < now) return false;
   return true;
 }
 
-export type DiscountShape =
-  | number
-  | (ActiveDiscount & { percentage?: number })
-  | null
-  | undefined;
+export type DiscountShape = number | ActiveDiscount | null | undefined;
 
 export type PriceCalculation = {
   price: number; // rounded original price (integer)
@@ -40,8 +37,11 @@ export function calculatePrice(
   } else if (discount && typeof discount === 'object') {
     if (typeof discount.value === 'number') {
       if (isDiscountActive(discount)) percent = discount.value;
-    } else if (typeof discount.percentage === 'number') {
-      percent = discount.percentage;
+    } else if (
+      'percentage' in discount &&
+      typeof (discount as { percentage?: number }).percentage === 'number'
+    ) {
+      percent = (discount as { percentage?: number }).percentage!;
     }
   }
 
