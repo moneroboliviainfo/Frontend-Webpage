@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Product } from '@/components/ProductsGallery';
 import { API_URL } from '@/config/env';
 import buildProductSlug from '@/utils/buildProductSlug';
+import { isDiscountActive } from '@/utils/price';
 import './AccessoriesSlider.css';
 
 interface AccessoriesSliderProps {
@@ -20,7 +21,7 @@ interface AccessoriesSliderProps {
     price: number,
     discount: number,
     finalPrice: number,
-    imageUrl: string
+    imageUrl: string,
   ) => void;
 }
 
@@ -52,6 +53,8 @@ type ProductWithSizes = {
     id: number;
     value: number;
     isActive: boolean;
+    startDate?: string | null;
+    endDate?: string | null;
   } | null;
   productColors: ProductColorWithSizes[];
 };
@@ -108,14 +111,13 @@ export default function AccessoriesSlider({
     if (!selectedProduct || !productWithSizes) return;
     const selectedColor = productWithSizes.productColors[selectedColorIndex];
     const selectedSize = selectedColor?.variants.find(
-      (v) => v.size.id === sizeId
+      (v) => v.size.id === sizeId,
     );
     if (!selectedColor || !selectedSize) return;
 
     const price = parseFloat(productWithSizes.price);
     const discount = productWithSizes.discount;
-    const discountValue =
-      discount && discount.isActive && discount.value > 0 ? discount.value : 0;
+    const discountValue = isDiscountActive(discount) ? discount!.value : 0;
     const finalPrice =
       discountValue > 0 ? price - (price * discountValue) / 100 : price;
 
@@ -130,7 +132,7 @@ export default function AccessoriesSlider({
       price,
       discountValue,
       finalPrice,
-      selectedColor.multimedia?.[0] || ''
+      selectedColor.multimedia?.[0] || '',
     );
     setSelectedProduct(null);
     setProductWithSizes(null);
@@ -166,8 +168,7 @@ export default function AccessoriesSlider({
                   const imageUrl = firstColor?.multimedia?.[0] || '';
                   const price = parseFloat(product.price);
                   const discount = product.discount;
-                  const hasDiscount =
-                    discount && discount.isActive && discount.value > 0;
+                  const hasDiscount = isDiscountActive(discount);
                   const finalPrice = hasDiscount
                     ? price - (price * (discount?.value || 0)) / 100
                     : price;
@@ -327,7 +328,7 @@ export default function AccessoriesSlider({
                               }}
                               title={colorData.color.name}
                             />
-                          )
+                          ),
                         )}
                       </div>
                     </div>

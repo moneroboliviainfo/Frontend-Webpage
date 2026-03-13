@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import buildProductSlug from '@/utils/buildProductSlug';
+import { type ActiveDiscount, isDiscountActive } from '@/utils/price';
 import Image from 'next/image';
 import SkeletonLoader from '@/components/SkeletonLoader';
 
@@ -13,7 +14,7 @@ type Props = {
   isMobile?: boolean;
   colors?: string[];
   isNew?: boolean;
-  discount?: number;
+  discount?: ActiveDiscount | null;
   finalPrice?: number;
 };
 
@@ -25,7 +26,7 @@ const GalleryItem: React.FC<Props> = ({
   isMobile = false,
   colors = [],
   isNew = false,
-  discount = 0,
+  discount = null,
   finalPrice,
 }) => {
   const imgWidth = isMobile ? '49vw' : '100%';
@@ -34,7 +35,7 @@ const GalleryItem: React.FC<Props> = ({
   // that keeps the image taller than wide (approx height/width ~ 1.4).
   // aspect-ratio accepts width / height, so 5 / 7 gives height ~= 1.4 * width.
   const aspect = '5 / 7';
-  const hasDiscount = discount && discount > 0;
+  const hasDiscount = isDiscountActive(discount);
 
   const [hovered, setHovered] = useState<number | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -43,13 +44,13 @@ const GalleryItem: React.FC<Props> = ({
 
   const handleColorClick = (
     e: React.MouseEvent | React.KeyboardEvent,
-    colorCode: string
+    colorCode: string,
   ) => {
     e.stopPropagation();
     router.push(
       `/w/${encodeURIComponent(slug)}?colorCode=${encodeURIComponent(
-        colorCode
-      )}`
+        colorCode,
+      )}`,
     );
   };
 
@@ -117,7 +118,7 @@ const GalleryItem: React.FC<Props> = ({
                   textAlign: 'center',
                 }}
               >
-                - {discount}%
+                - {discount?.value}%
               </div>
             ) : null}
           </div>

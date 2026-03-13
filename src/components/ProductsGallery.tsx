@@ -62,7 +62,7 @@ interface ClothesItem {
   price: number;
   colors: string[];
   isNew: boolean;
-  discount: number;
+  discount: Discount | null;
   finalPrice: number;
 }
 
@@ -124,7 +124,7 @@ export const transformProductsToClothesItems = (
           .filter((pc) => pc.color)
           .map((pc) => pc.color.code),
         isNew: isProductNew(product.createdAt),
-        discount: discountPercent,
+        discount: product.discount,
         finalPrice: finalPrice,
       };
     });

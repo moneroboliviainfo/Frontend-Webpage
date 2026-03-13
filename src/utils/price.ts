@@ -1,10 +1,23 @@
+export type ActiveDiscount = {
+  value: number;
+  isActive: boolean;
+  startDate?: string | null;
+  endDate?: string | null;
+};
+
+export function isDiscountActive(
+  discount: ActiveDiscount | null | undefined,
+): boolean {
+  if (!discount || !discount.isActive || discount.value <= 0) return false;
+  const now = new Date();
+  if (discount.startDate && new Date(discount.startDate) > now) return false;
+  if (discount.endDate && new Date(discount.endDate) < now) return false;
+  return true;
+}
+
 export type DiscountShape =
   | number
-  | {
-      value?: number;
-      isActive?: boolean;
-      percentage?: number;
-    }
+  | (ActiveDiscount & { percentage?: number })
   | null
   | undefined;
 
@@ -16,7 +29,7 @@ export type PriceCalculation = {
 
 export function calculatePrice(
   priceInput: string | number,
-  discount: DiscountShape
+  discount: DiscountShape,
 ): PriceCalculation {
   const priceNum = Math.round(Number.parseFloat(String(priceInput || 0)) || 0);
 
@@ -25,15 +38,10 @@ export function calculatePrice(
   if (typeof discount === 'number') {
     percent = discount;
   } else if (discount && typeof discount === 'object') {
-    const d = discount as {
-      value?: number;
-      isActive?: boolean;
-      percentage?: number;
-    };
-    if (typeof d.value === 'number') {
-      if (d.isActive) percent = d.value;
-    } else if (typeof d.percentage === 'number') {
-      percent = d.percentage;
+    if (typeof discount.value === 'number') {
+      if (isDiscountActive(discount)) percent = discount.value;
+    } else if (typeof discount.percentage === 'number') {
+      percent = discount.percentage;
     }
   }
 
