@@ -374,20 +374,9 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                       }}
                     >
                       {sizeObj.size}
-                      {isAvailable && (
-                        <div
-                          style={{
-                            fontSize: '10px',
-                            color: '#6B7280',
-                            marginTop: '2px',
-                          }}
-                        >
-                          Disponible: {sizeObj.availability}
-                        </div>
-                      )}
                     </button>
                   );
-                }
+                },
               )}
             </div>
           </div>

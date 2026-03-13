@@ -67,7 +67,7 @@ type OutfitItemsCarouselProps = {
     value: {
       show: boolean;
       cartItem: CartItem;
-    } | null
+    } | null,
   ) => void;
 };
 
@@ -363,17 +363,6 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                     }}
                   >
                     {sizeObj.size}
-                    {isAvailable && (
-                      <div
-                        style={{
-                          fontSize: '10px',
-                          color: '#6B7280',
-                          marginTop: '2px',
-                        }}
-                      >
-                        Disponible: {sizeObj.availability}
-                      </div>
-                    )}
                   </button>
                 );
               })}
@@ -413,7 +402,7 @@ const OutfitPageMobile: React.FC<Props> = ({
   const [startY, setStartY] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isHorizontalSwipe, setIsHorizontalSwipe] = useState<boolean | null>(
-    null
+    null,
   );
   const [translateX, setTranslateX] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
