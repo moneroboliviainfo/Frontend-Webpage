@@ -7,7 +7,7 @@
 
 .compact-seasonal-discount-modal {
   position: relative;
-  width: 180px;
+  width: clamp(180px, 18vw, 360px);
   overflow: hidden;
   border-radius: 16px;
   background: white;
@@ -86,4 +86,53 @@
   height: 4px;
   width: 100%;
   background: var(--color-primary);
+}
+
+/* Desktop adjustments */
+@media (min-width: 1024px) {
+  .compact-seasonal-discount-overlay {
+    bottom: 32px;
+    right: 32px;
+  }
+
+  .compact-seasonal-discount-modal {
+    width: clamp(240px, 14vw, 420px);
+    border-radius: 18px;
+  }
+
+  .compact-seasonal-discount-modal {
+    min-height: 220px;
+  }
+
+  .compact-seasonal-discount-close {
+    right: 14px;
+    top: 12px;
+    width: 28px;
+    height: 28px;
+    font-size: 1.25rem;
+  }
+
+  .compact-seasonal-discount-label {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+
+  .compact-seasonal-discount-timer {
+    font-size: 2rem;
+    margin-bottom: 14px;
+  }
+
+  .compact-seasonal-discount-cta {
+    padding: 12px 0;
+    font-size: 1rem;
+    border-radius: 10px;
+  }
+
+  .compact-seasonal-discount-bottom-bar {
+    height: 6px;
+  }
+
+  .compact-seasonal-discount-content {
+    padding: 56px 18px 16px 18px;
+  }
 }
