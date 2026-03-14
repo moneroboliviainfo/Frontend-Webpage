@@ -186,18 +186,33 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                 className="relative overflow-hidden rounded-lg mb-3"
                 style={{ aspectRatio: '3/4', width: '100%' }}
               >
-                <Image
-                  src={
-                    item.multimedia && item.multimedia.length > 0
-                      ? item.multimedia[0].image ||
-                        `/clothes/clothe-${(idx % 4) + 1}.png`
-                      : `/clothes/clothe-${(idx % 4) + 1}.png`
-                  }
-                  alt={item.name}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  sizes="25vw"
-                />
+                {item.multimedia &&
+                item.multimedia.length > 0 &&
+                item.multimedia[0].image ? (
+                  <Image
+                    src={item.multimedia[0].image}
+                    alt={item.name}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="25vw"
+                  />
+                ) : (
+                  <div className="absolute inset-0">
+                    {/* show skeleton when no image available */}
+                    <div style={{ position: 'absolute', inset: 0 }}>
+                      {/* use existing SkeletonLoader component visually */}
+                      {/* lazy require to avoid import cycle: render a simple div with background */}
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          background:
+                            'linear-gradient(90deg,#f0f0f0 0%,#e0e0e0 20%,#f0f0f0 40%)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Item Details */}

@@ -25,15 +25,13 @@ export default function Home() {
   }
 
   // Slides for each mode
-  const horSlides = [
-    { image: '/images/hor-slide-1-white.png', label: '' },
+  const horSlides: { image: string; label: string }[] = [
+    // development placeholder removed
     { image: '/images/Portadas_web-01-2.jpg', label: '' },
     { image: '/images/Portadas_web-02-2.jpg', label: '' },
   ];
-  const verSlides = [
-    { image: '/images/ver-slide-1.png', label: '' },
-    { image: '/images/ver-slide-2.png', label: '' },
-  ];
+
+  const verSlides: { image: string; label: string }[] = []; // mobile placeholders removed
 
   return (
     <div className="relative min-h-screen">

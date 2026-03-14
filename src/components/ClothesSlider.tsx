@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import buildProductSlug from '../utils/buildProductSlug';
+import SkeletonLoader from './SkeletonLoader';
 import type { InterestItem } from '../hooks/useInterestRecommendations';
 import FireIcon from './FireIcon';
 
@@ -13,14 +14,14 @@ type Cloth = {
 };
 
 const clothes: Cloth[] = [
-  { src: '/clothes/clothe-1.png', name: 'Chaqueta Derby', price: 'Bs. 450' },
-  { src: '/clothes/clothe-2.png', name: 'Pantalón Slim', price: 'Bs. 350' },
-  { src: '/clothes/clothe-3.png', name: 'Suéter Lana', price: 'Bs. 400' },
-  { src: '/clothes/clothe-4.png', name: 'Blusa Seda', price: 'Bs. 380' },
-  { src: '/clothes/clothe-1.png', name: 'Chaqueta Derby', price: 'Bs. 450' },
-  { src: '/clothes/clothe-2.png', name: 'Pantalón Slim', price: 'Bs. 350' },
-  { src: '/clothes/clothe-3.png', name: 'Suéter Lana', price: 'Bs. 400' },
-  { src: '/clothes/clothe-4.png', name: 'Blusa Seda', price: 'Bs. 380' },
+  { src: '', name: '-', price: '-' },
+  { src: '', name: '-', price: '-' },
+  { src: '', name: '-', price: '-' },
+  { src: '', name: '-', price: '-' },
+  { src: '', name: '-', price: '-' },
+  { src: '', name: '-', price: '-' },
+  { src: '', name: '-', price: '-' },
+  { src: '', name: '-', price: '-' },
 ];
 
 type Props = {
@@ -189,50 +190,73 @@ export default function ClothesSlider({ isMobile = false, items }: Props) {
                     style={{ width: slideWidth, height: slideHeight }}
                     className="relative overflow-hidden"
                   >
-                    <Image
-                      src={src}
-                      alt={c.name}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      sizes={isMobile ? '48vw' : '25vw'}
-                    />
+                    {src ? (
+                      <Image
+                        src={src}
+                        alt={c.name}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes={isMobile ? '48vw' : '25vw'}
+                      />
+                    ) : (
+                      <div className="absolute inset-0">
+                        <SkeletonLoader variant="shimmer" showIcon={false} />
+                      </div>
+                    )}
                   </div>
                   <div
                     className="mt-2 text-white"
                     style={{ paddingLeft: 4, paddingRight: 4 }}
                   >
-                    <div
-                      className="text-sm md:text-base"
-                      style={{
-                        opacity: 0.95,
-                        marginTop: '0.5rem',
-                        paddingLeft: '0.5rem',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={c.name}
-                    >
-                      {c.name}
-                    </div>
-                    <div
-                      className="text-base md:text-lg font-bold"
-                      style={{
-                        marginTop: 4,
-                        paddingLeft: '0.5rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        color: priceColor,
-                      }}
-                    >
-                      <span>{c.price}</span>
-                      {discountPercent > 0 && (
-                        <span style={{ transform: 'translateY(-1px)' }}>
-                          <FireIcon size={16} color="#ff4d4f" />
-                        </span>
-                      )}
-                    </div>
+                    {src ? (
+                      <>
+                        <div
+                          className="text-sm md:text-base"
+                          style={{
+                            opacity: 0.95,
+                            marginTop: '0.5rem',
+                            paddingLeft: '0.5rem',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={c.name}
+                        >
+                          {c.name}
+                        </div>
+                        <div
+                          className="text-base md:text-lg font-bold"
+                          style={{
+                            marginTop: 4,
+                            paddingLeft: '0.5rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            color: priceColor,
+                          }}
+                        >
+                          <span>{c.price}</span>
+                          {discountPercent > 0 && (
+                            <span style={{ transform: 'translateY(-1px)' }}>
+                              <FireIcon size={16} color="#ff4d4f" />
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div
+                        style={{ display: 'flex', gap: 8, marginTop: '0.5rem' }}
+                      >
+                        <SkeletonLoader
+                          showIcon={false}
+                          className="skeleton-text skeleton-text--title"
+                        />
+                        <SkeletonLoader
+                          showIcon={false}
+                          className="skeleton-text skeleton-text--price"
+                        />
+                      </div>
+                    )}
                   </div>
                 </li>
               );

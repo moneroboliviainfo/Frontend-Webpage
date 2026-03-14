@@ -48,10 +48,7 @@ export default function OutfitsGallery({ gender = 'female' }: Props) {
         const filtered = filterOutfitsByGender(data as unknown[], gender);
 
         const mapped: OutfitCard[] = (filtered as OutfitApi[]).map((o) => ({
-          src:
-            o.images && o.images.length > 0
-              ? (o.images[0] as string)
-              : '/clothes/clothe-1.png',
+          src: o.images && o.images.length > 0 ? (o.images[0] as string) : '',
           productId: o.id,
           name: o.name,
           gender: o.gender,
@@ -124,8 +121,8 @@ export default function OutfitsGallery({ gender = 'female' }: Props) {
                 onClick={() =>
                   router.push(
                     `/w/outfits?outfit=${encodeURIComponent(
-                      `${outfit.name}-${outfit.productId}`
-                    )}`
+                      `${outfit.name}-${outfit.productId}`,
+                    )}`,
                   )
                 }
               >

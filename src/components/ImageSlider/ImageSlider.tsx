@@ -70,7 +70,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   const router = useRouter();
 
   const [advertisement, setAdvertisement] = useState<Advertisement | null>(
-    null
+    null,
   );
   const [isLoadingAd, setIsLoadingAd] = useState(true);
 
@@ -102,12 +102,12 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   const onAutoplayTimeLeft = (
     s: SwiperType,
     time: number,
-    progress: number
+    progress: number,
   ) => {
     if (progressCircle.current) {
       progressCircle.current.style.setProperty(
         '--progress',
-        String(1 - progress)
+        String(1 - progress),
       );
     }
     if (progressContent.current) {
@@ -144,6 +144,16 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   };
 
   const currentSlide = getCurrentSlide();
+
+  if (!slidesData || slidesData.length === 0) {
+    return (
+      <div className="relative w-full h-full">
+        <div className="absolute inset-0">
+          <SkeletonLoader variant="shimmer" showIcon={false} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full">
@@ -213,20 +223,29 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
               style={{ minHeight: 400 }}
               onClick={() => handleSlideClick(slide)}
             >
-              {!loadedImages.has(idx) && (
+              {/* If slide has no image (development placeholder removed), show skeleton */}
+              {!('image' in slide) || !slide.image ? (
                 <div className="absolute inset-0">
                   <SkeletonLoader variant="shimmer" showIcon={false} />
                 </div>
+              ) : (
+                <>
+                  {!loadedImages.has(idx) && (
+                    <div className="absolute inset-0">
+                      <SkeletonLoader variant="shimmer" showIcon={false} />
+                    </div>
+                  )}
+                  <Image
+                    src={slide.image}
+                    alt={isApiSlide(slide) ? slide.name : slide.label}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                    priority={idx === 0}
+                    onLoad={() => handleImageLoad(idx)}
+                  />
+                </>
               )}
-              <Image
-                src={slide.image}
-                alt={isApiSlide(slide) ? slide.name : slide.label}
-                fill
-                className="object-cover"
-                sizes="100vw"
-                priority={idx === 0}
-                onLoad={() => handleImageLoad(idx)}
-              />
 
               {/* Legacy label display */}
               {!isApiSlide(slide) && slide.label && (

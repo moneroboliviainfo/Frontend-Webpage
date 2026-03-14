@@ -42,7 +42,8 @@ type ProductDetails = {
 // Minimal demo products kept for navigation when API data not available
 const allProductsData: ProductDetails[] = [
   {
-    multimedia: [{ image: '/images/ver-slide-1.png', label: '' }],
+    // multimedia placeholders removed - show skeleton while loading
+    multimedia: [],
     productId: 101,
     name: 'Chaqueta Derby',
     price: 129,
@@ -54,10 +55,7 @@ const allProductsData: ProductDetails[] = [
     slug: 'chaqueta-derby-101',
   },
   {
-    multimedia: [
-      { image: '/images/ver-slide-1.png', label: '' },
-      { image: '/images/ver-slide-2.png', label: '' },
-    ],
+    multimedia: [],
     productId: 102,
     name: 'Blusa Elegante',
     price: 89,
@@ -69,10 +67,7 @@ const allProductsData: ProductDetails[] = [
     slug: 'blusa-elegante-102',
   },
   {
-    multimedia: [
-      { image: '/images/ver-slide-1.png', label: '' },
-      { image: '/images/ver-slide-2.png', label: '' },
-    ],
+    multimedia: [],
     productId: 103,
     name: 'Vestido Casual',
     price: 159,

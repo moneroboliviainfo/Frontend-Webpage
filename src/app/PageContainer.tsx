@@ -171,7 +171,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ gender = 'women' }) => {
               name: i.name,
               price: i.price,
               discountPercent: i.discountPercent || 0,
-              image: i.image || '/clothes/clothe-1.png',
+              image: i.image || '',
             }))}
           />
         </div>

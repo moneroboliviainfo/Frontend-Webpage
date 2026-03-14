@@ -78,10 +78,7 @@ type TransformedOutfit = {
 };
 
 const outfitDetails = {
-  multimedia: [
-    { image: '/images/ver-slide-1.png', label: '' },
-    { image: '/images/ver-slide-2.png', label: '' },
-  ],
+  multimedia: [],
   outfitId: 101,
   name: 'Outfit Casual Elegante',
   items: [
@@ -157,10 +154,7 @@ const allOutfitsData = [
     totalPrice: 168,
     description: 'Perfecto para un look casual y cómodo',
     slug: 'outfit-deportivo-102',
-    multimedia: [
-      { image: '/images/ver-slide-1.png', label: '' },
-      { image: '/images/ver-slide-2.png', label: '' },
-    ],
+    multimedia: [],
   },
   {
     ...outfitDetails,
@@ -201,10 +195,7 @@ const allOutfitsData = [
     totalPrice: 397,
     description: 'Ideal para ocasiones especiales y eventos formales',
     slug: 'outfit-formal-103',
-    multimedia: [
-      { image: '/images/ver-slide-1.png', label: '' },
-      { image: '/images/ver-slide-2.png', label: '' },
-    ],
+    multimedia: [],
   },
 ];
 
@@ -218,7 +209,7 @@ const OutfitsPageContent = () => {
 
   // fetched outfit state
   const [fetchedOutfit, setFetchedOutfit] = useState<TransformedOutfit | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -227,13 +218,13 @@ const OutfitsPageContent = () => {
     const index = allOutfitsData.findIndex(
       (outfit) =>
         currentOutfitId.includes(outfit.outfitId.toString()) ||
-        outfit.slug === currentOutfitId
+        outfit.slug === currentOutfitId,
     );
     return index >= 0 ? index : 0;
   };
 
   const [currentOutfitIndex, setCurrentOutfitIndex] = useState(() =>
-    getCurrentOutfitIndex()
+    getCurrentOutfitIndex(),
   );
   const currentOutfit = fetchedOutfit
     ? fetchedOutfit
@@ -256,7 +247,7 @@ const OutfitsPageContent = () => {
     const index = allOutfitsData.findIndex(
       (outfit) =>
         currentOutfitId.includes(outfit.outfitId.toString()) ||
-        outfit.slug === currentOutfitId
+        outfit.slug === currentOutfitId,
     );
     const newIndex = index >= 0 ? index : 0;
     setCurrentOutfitIndex(newIndex);
@@ -286,12 +277,12 @@ const OutfitsPageContent = () => {
         const multimedia: Array<{ image: string; label: string }> = [];
         if (Array.isArray(data.images)) {
           data.images.forEach((u: string) =>
-            multimedia.push({ image: u, label: '' })
+            multimedia.push({ image: u, label: '' }),
           );
         }
         if (Array.isArray(data.videos)) {
           data.videos.forEach((u: string) =>
-            multimedia.push({ image: u, label: '' })
+            multimedia.push({ image: u, label: '' }),
           );
         }
 
@@ -306,7 +297,7 @@ const OutfitsPageContent = () => {
                 ? pc.variants.map((v) => {
                     const sizeName =
                       v.size && typeof v.size === 'object'
-                        ? v.size.name ?? ''
+                        ? (v.size.name ?? '')
                         : String(v.size ?? '');
                     const sizeId =
                       v.size && typeof v.size === 'object'
@@ -325,7 +316,7 @@ const OutfitsPageContent = () => {
               const priceInput = product?.price ?? 0;
               const { finalPrice, discountPercent } = calculatePrice(
                 priceInput,
-                product?.discount ?? null
+                product?.discount ?? null,
               );
 
               return {

@@ -179,13 +179,16 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                     sizes="35vw"
                   />
                 ) : (
-                  <Image
-                    src={`/clothes/clothe-${(idx % 4) + 1}.png`}
-                    alt={item.name}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="35vw"
-                  />
+                  <div className="absolute inset-0">
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        background:
+                          'linear-gradient(90deg,#f0f0f0 0%,#e0e0e0 20%,#f0f0f0 40%)',
+                      }}
+                    />
+                  </div>
                 )}
               </div>
               <div style={{ paddingLeft: 4, paddingRight: 4 }}>
