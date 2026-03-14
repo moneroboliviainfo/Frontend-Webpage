@@ -93,15 +93,39 @@ export default function RootLayout({
 
         {isProduction && (
           <>
+            {/* Prevent known Clarity-originating errors from surfacing */}
             <script
               type="text/javascript"
               dangerouslySetInnerHTML={{
                 __html: `
-                  (function(c,l,a,r,i,t,y){
-                    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-                  })(window, document, "clarity", "script", "uj4u9y5mht");
+                  (function(){
+                    try {
+                      // Filter runtime errors coming from clarity's remote script
+                      window.addEventListener && window.addEventListener('error', function(e){
+                        try{
+                          var filename = e && e.filename ? String(e.filename) : '';
+                          var message = e && e.message ? String(e.message) : '';
+                          if (filename.indexOf('clarity.ms') !== -1 || filename.indexOf('user-script') !== -1) {
+                            // known third-party error source — suppress
+                            e.preventDefault && e.preventDefault();
+                            return true;
+                          }
+                          if (message.indexOf('EmptyRanges') !== -1 || message.indexOf('InvalidAccessError') !== -1) {
+                            e.preventDefault && e.preventDefault();
+                            return true;
+                          }
+                        } catch (err) { /* ignore */ }
+                        return false;
+                      }, true);
+                    } catch (err) { /* ignore */ }
+
+                    // Load Clarity asynchronously after the error filter is in place
+                    (function(c,l,a,r,i,t,y){
+                      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                    })(window, document, "clarity", "script", "uj4u9y5mht");
+                  })();
                 `,
               }}
             />
