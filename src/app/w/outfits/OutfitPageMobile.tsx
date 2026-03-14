@@ -5,6 +5,7 @@ import BasketConfirmation from '@/components/BasketConfirmation';
 import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import FireIcon from '@/components/FireIcon';
 import { useRouter } from 'next/navigation';
 import buildProductSlug from '@/utils/buildProductSlug';
 import { addToCart } from '@/utils/cartStorage';
@@ -41,6 +42,38 @@ type Props = {
   allOutfits?: OutfitDetails[]; // Array of all outfits for swiping
   currentOutfitIndex?: number; // Current outfit index
   onOutfitChange?: (index: number) => void; // Callback when outfit changes
+};
+
+// Helper ItemImage used to show skeleton while image loads — defined outside carousel to prevent remount on re-render
+const ItemImage: React.FC<{
+  src?: string | null;
+  alt?: string;
+  sizes?: string;
+}> = ({ src, alt, sizes }) => {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && (
+        <div className="absolute inset-0">
+          <SkeletonLoader variant="shimmer" showIcon={false} />
+        </div>
+      )}
+      {src ? (
+        <Image
+          src={src}
+          alt={alt || ''}
+          fill
+          style={{
+            objectFit: 'cover',
+            opacity: loaded ? 1 : 0,
+            transition: 'opacity 300ms ease',
+          }}
+          sizes={sizes}
+          onLoadingComplete={() => setLoaded(true)}
+        />
+      ) : null}
+    </>
+  );
 };
 
 // OutfitItemsCarousel component
@@ -127,38 +160,6 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
     setIsDragging(false);
   };
 
-  // Helper ItemImage used to show skeleton while image loads
-  const ItemImage: React.FC<{
-    src?: string | null;
-    alt?: string;
-    sizes?: string;
-  }> = ({ src, alt, sizes }) => {
-    const [loaded, setLoaded] = useState(false);
-    return (
-      <>
-        {!loaded && (
-          <div className="absolute inset-0">
-            <SkeletonLoader variant="shimmer" showIcon={false} />
-          </div>
-        )}
-        {src ? (
-          <Image
-            src={src}
-            alt={alt || ''}
-            fill
-            style={{
-              objectFit: 'cover',
-              opacity: loaded ? 1 : 0,
-              transition: 'opacity 300ms ease',
-            }}
-            sizes={sizes}
-            onLoadingComplete={() => setLoaded(true)}
-          />
-        ) : null}
-      </>
-    );
-  };
-
   return (
     <div className="w-full relative">
       <div
@@ -240,15 +241,44 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                 >
                   {item.name}
                 </div>
-                <div
-                  className="text-base font-bold"
-                  style={{
-                    marginTop: 2,
-                    paddingLeft: '0.25rem',
-                  }}
-                >
-                  Bs. {item.finalPrice ?? item.price}
-                </div>
+                {item.discount &&
+                item.discount > 0 &&
+                item.finalPrice != null ? (
+                  <div style={{ marginTop: 2, paddingLeft: '0.25rem' }}>
+                    <div
+                      style={{
+                        fontSize: '0.7rem',
+                        color: '#9ca3af',
+                        textDecoration: 'line-through',
+                        lineHeight: 1,
+                      }}
+                    >
+                      Bs. {item.price}
+                    </div>
+                    <div
+                      className="text-base font-bold"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.15rem',
+                        color: '#dc2626',
+                      }}
+                    >
+                      Bs. {item.finalPrice}
+                      <FireIcon size={14} color="#dc2626" />
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="text-base font-bold"
+                    style={{
+                      marginTop: 2,
+                      paddingLeft: '0.25rem',
+                    }}
+                  >
+                    Bs. {item.finalPrice ?? item.price}
+                  </div>
+                )}
 
                 {item.sizes && item.sizes.length > 0 && (
                   <div className="flex items-center justify-center">

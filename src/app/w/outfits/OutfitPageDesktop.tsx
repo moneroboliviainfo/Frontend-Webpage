@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import buildProductSlug from '@/utils/buildProductSlug';
 import { addToCart } from '@/utils/cartStorage';
 import type { CartItem } from '@/types/cart';
+import FireIcon from '@/components/FireIcon';
 
 type OutfitDetails = {
   multimedia: Array<{ image: string; label: string }>;
@@ -99,6 +100,38 @@ const ArrowButton: React.FC<{
   );
 };
 
+// Defined outside OutfitPageDesktop to prevent remount on parent re-renders
+const ItemImage: React.FC<{
+  src?: string | null;
+  alt?: string;
+  sizes?: string;
+}> = ({ src, alt, sizes }) => {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && (
+        <div className="absolute inset-0">
+          <SkeletonLoader variant="shimmer" showIcon={false} />
+        </div>
+      )}
+      {src ? (
+        <Image
+          src={src}
+          alt={alt || ''}
+          fill
+          style={{
+            objectFit: 'cover',
+            opacity: loaded ? 1 : 0,
+            transition: 'opacity 300ms ease',
+          }}
+          sizes={sizes}
+          onLoadingComplete={() => setLoaded(true)}
+        />
+      ) : null}
+    </>
+  );
+};
+
 const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
   const router = useRouter();
   const sliderControlsRef = useRef<{
@@ -114,38 +147,6 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
     show: boolean;
     cartItem: CartItem;
   } | null>(null);
-
-  // Small helper component to handle image loading + skeleton
-  const ItemImage: React.FC<{
-    src?: string | null;
-    alt?: string;
-    sizes?: string;
-  }> = ({ src, alt, sizes }) => {
-    const [loaded, setLoaded] = useState(false);
-    return (
-      <>
-        {!loaded && (
-          <div className="absolute inset-0">
-            <SkeletonLoader variant="shimmer" showIcon={false} />
-          </div>
-        )}
-        {src ? (
-          <Image
-            src={src}
-            alt={alt || ''}
-            fill
-            style={{
-              objectFit: 'cover',
-              opacity: loaded ? 1 : 0,
-              transition: 'opacity 300ms ease',
-            }}
-            sizes={sizes}
-            onLoadingComplete={() => setLoaded(true)}
-          />
-        ) : null}
-      </>
-    );
-  };
 
   return (
     <div className="w-full h-screen flex">
@@ -253,11 +254,17 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                 <div
                   className="text-lg font-bold mb-3"
                   style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.2rem',
                     color:
                       item.discount && item.discount > 0 ? '#dc2626' : '#000',
                   }}
                 >
                   Bs. {item.finalPrice ?? item.price}
+                  {item.discount && item.discount > 0 && (
+                    <FireIcon size={14} color="#dc2626" />
+                  )}
                 </div>
 
                 {/* Size selector - same as mobile */}
