@@ -1,7 +1,8 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 type Props = {
   src: string;
@@ -22,6 +23,7 @@ const OutfitsGalleryItem: React.FC<Props> = ({
   const aspect = '5 / 7';
 
   const router = useRouter();
+  const [imageLoaded, setImageLoaded] = useState(false);
   const outfitParam =
     productId !== undefined && productId !== null ? productId.toString() : '1';
 
@@ -52,12 +54,25 @@ const OutfitsGalleryItem: React.FC<Props> = ({
     >
       {/* aspect-ratio ensures height is derived from width so it always keeps the same relation */}
       <div className="relative" style={{ width: '100%', aspectRatio: aspect }}>
-        <Image
-          src={src}
-          alt={`Outfit ${productId || ''}`}
-          fill
-          style={{ objectFit: 'cover' }}
-        />
+        {!imageLoaded && (!src || src === '') && (
+          <div className="absolute inset-0">
+            <SkeletonLoader variant="shimmer" showIcon={false} />
+          </div>
+        )}
+        {!imageLoaded && src && (
+          <div className="absolute inset-0">
+            <SkeletonLoader variant="shimmer" showIcon={false} />
+          </div>
+        )}
+        {src ? (
+          <Image
+            src={src}
+            alt={`Outfit ${productId || ''}`}
+            fill
+            style={{ objectFit: 'cover', opacity: imageLoaded ? 1 : 0 }}
+            onLoadingComplete={() => setImageLoaded(true)}
+          />
+        ) : null}
 
         {/* Group icon in top right corner */}
         <div

@@ -4,6 +4,7 @@ import BottomSheet from '@/components/BottomSheet/BottomSheet';
 import BasketConfirmation from '@/components/BasketConfirmation';
 import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
+import SkeletonLoader from '@/components/SkeletonLoader';
 import { useRouter } from 'next/navigation';
 import buildProductSlug from '@/utils/buildProductSlug';
 import { addToCart } from '@/utils/cartStorage';
@@ -126,6 +127,38 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
     setIsDragging(false);
   };
 
+  // Helper ItemImage used to show skeleton while image loads
+  const ItemImage: React.FC<{
+    src?: string | null;
+    alt?: string;
+    sizes?: string;
+  }> = ({ src, alt, sizes }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+      <>
+        {!loaded && (
+          <div className="absolute inset-0">
+            <SkeletonLoader variant="shimmer" showIcon={false} />
+          </div>
+        )}
+        {src ? (
+          <Image
+            src={src}
+            alt={alt || ''}
+            fill
+            style={{
+              objectFit: 'cover',
+              opacity: loaded ? 1 : 0,
+              transition: 'opacity 300ms ease',
+            }}
+            sizes={sizes}
+            onLoadingComplete={() => setLoaded(true)}
+          />
+        ) : null}
+      </>
+    );
+  };
+
   return (
     <div className="w-full relative">
       <div
@@ -170,12 +203,12 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                 style={{ width: slideWidth, height: slideHeight }}
                 className="relative overflow-hidden rounded-lg"
               >
-                {item.multimedia && item.multimedia.length > 0 ? (
-                  <Image
+                {item.multimedia &&
+                item.multimedia.length > 0 &&
+                item.multimedia[0].image ? (
+                  <ItemImage
                     src={item.multimedia[0].image}
                     alt={item.name}
-                    fill
-                    style={{ objectFit: 'cover' }}
                     sizes="35vw"
                   />
                 ) : (
@@ -212,52 +245,46 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                   style={{
                     marginTop: 2,
                     paddingLeft: '0.25rem',
-                    color:
-                      item.discount && item.discount > 0 ? '#dc2626' : '#000',
                   }}
                 >
                   Bs. {item.finalPrice ?? item.price}
                 </div>
-              </div>
 
-              {/* Size selector - similar to product page */}
-              {item.sizes && item.sizes.length > 0 && (
-                <div
-                  className="flex items-center justify-center"
-                  style={{ paddingLeft: '0.3rem', paddingRight: '0.3rem' }}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowSizePopup(idx);
-                    }}
-                    disabled={
-                      sizeSelected[idx] ||
-                      !item.sizes.some((s) => s.availability > 0)
-                    }
-                    className="px-3 py-1 text-xs font-medium w-100"
-                    style={{
-                      backgroundColor: sizeSelected[idx] ? '#6B7280' : '#000',
-                      color: '#fff',
-                      borderRadius: 4,
-                      border: 'none',
-                      cursor:
+                {item.sizes && item.sizes.length > 0 && (
+                  <div className="flex items-center justify-center">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowSizePopup(idx);
+                      }}
+                      disabled={
                         sizeSelected[idx] ||
                         !item.sizes.some((s) => s.availability > 0)
-                          ? 'default'
-                          : 'pointer',
-                      opacity:
-                        sizeSelected[idx] ||
-                        !item.sizes.some((s) => s.availability > 0)
-                          ? 0.7
-                          : 1,
-                      padding: '0.25rem 0.5rem',
-                    }}
-                  >
-                    {sizeSelected[idx] ? 'En Carrito' : 'Talla'}
-                  </button>
-                </div>
-              )}
+                      }
+                      className="px-3 py-1 text-xs font-medium w-full"
+                      style={{
+                        backgroundColor: sizeSelected[idx] ? '#6B7280' : '#000',
+                        color: '#fff',
+                        borderRadius: 4,
+                        border: 'none',
+                        cursor:
+                          sizeSelected[idx] ||
+                          !item.sizes.some((s) => s.availability > 0)
+                            ? 'default'
+                            : 'pointer',
+                        opacity:
+                          sizeSelected[idx] ||
+                          !item.sizes.some((s) => s.availability > 0)
+                            ? 0.7
+                            : 1,
+                        padding: '0.25rem 0.5rem',
+                      }}
+                    >
+                      {sizeSelected[idx] ? 'En Carrito' : 'Talla'}
+                    </button>
+                  </div>
+                )}
+              </div>
             </li>
           ))}
         </ul>

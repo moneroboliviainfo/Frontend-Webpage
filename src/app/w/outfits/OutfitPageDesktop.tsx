@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
+import SkeletonLoader from '@/components/SkeletonLoader';
 import sortSizes from '@/utils/sizeSorter';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BasketConfirmation from '@/components/BasketConfirmation';
@@ -114,6 +115,38 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
     cartItem: CartItem;
   } | null>(null);
 
+  // Small helper component to handle image loading + skeleton
+  const ItemImage: React.FC<{
+    src?: string | null;
+    alt?: string;
+    sizes?: string;
+  }> = ({ src, alt, sizes }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+      <>
+        {!loaded && (
+          <div className="absolute inset-0">
+            <SkeletonLoader variant="shimmer" showIcon={false} />
+          </div>
+        )}
+        {src ? (
+          <Image
+            src={src}
+            alt={alt || ''}
+            fill
+            style={{
+              objectFit: 'cover',
+              opacity: loaded ? 1 : 0,
+              transition: 'opacity 300ms ease',
+            }}
+            sizes={sizes}
+            onLoadingComplete={() => setLoaded(true)}
+          />
+        ) : null}
+      </>
+    );
+  };
+
   return (
     <div className="w-full h-screen flex">
       {/* Left side - Image Slider (50% width) */}
@@ -189,28 +222,14 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                 {item.multimedia &&
                 item.multimedia.length > 0 &&
                 item.multimedia[0].image ? (
-                  <Image
+                  <ItemImage
                     src={item.multimedia[0].image}
                     alt={item.name}
-                    fill
-                    style={{ objectFit: 'cover' }}
                     sizes="25vw"
                   />
                 ) : (
                   <div className="absolute inset-0">
-                    {/* show skeleton when no image available */}
-                    <div style={{ position: 'absolute', inset: 0 }}>
-                      {/* use existing SkeletonLoader component visually */}
-                      {/* lazy require to avoid import cycle: render a simple div with background */}
-                      <div
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          background:
-                            'linear-gradient(90deg,#f0f0f0 0%,#e0e0e0 20%,#f0f0f0 40%)',
-                        }}
-                      />
-                    </div>
+                    <SkeletonLoader variant="shimmer" showIcon={false} />
                   </div>
                 )}
               </div>
