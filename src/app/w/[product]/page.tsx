@@ -1,7 +1,7 @@
 'use client';
 import NavBar from '@/components/nav/NavBar';
 import useIsMobile from '@/hooks/useIsMobile';
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { calculatePrice, DiscountShape } from '@/utils/price';
 import buildProductSlug from '@/utils/buildProductSlug';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
@@ -218,7 +218,10 @@ function transformApiProduct(
   };
 }
 
-const ProductPage = () => {
+// Extract the main logic into a child component that uses `useSearchParams()`
+// and wrap it with Suspense in the default export to satisfy Next.js
+// App Router requirement.
+const ProductPageContent = () => {
   const isMobile = useIsMobile();
   const router = useRouter();
   const params = useParams();
@@ -355,6 +358,14 @@ const ProductPage = () => {
         </>
       )}
     </>
+  );
+};
+
+const ProductPage = () => {
+  return (
+    <Suspense fallback={<LoadingScreen message="Cargando producto..." />}>
+      <ProductPageContent />
+    </Suspense>
   );
 };
 

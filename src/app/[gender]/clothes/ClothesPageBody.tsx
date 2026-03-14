@@ -1,6 +1,7 @@
 'use client';
-import React from 'react';
+import React, { Suspense } from 'react';
 import ClothesGallery from './ClothesGallery';
+import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 
 type Props = {
   gender: string;
@@ -8,8 +9,15 @@ type Props = {
 };
 
 const ClothesPageBody: React.FC<Props> = ({ gender, category }) => {
-  // ClothesGallery now renders ClothesPageNavBar internally, so only render ClothesGallery here
-  return <ClothesGallery />;
+  // Wrap ClothesGallery in Suspense as required by Next.js App Router when
+  // a child component uses useSearchParams(). Without the boundary, Next.js
+  // performs extraneous History.replaceState calls on back-navigation which
+  // can trigger postMessage errors in third-party analytics scripts (Clarity).
+  return (
+    <Suspense fallback={<LoadingScreen message="Cargando productos..." />}>
+      <ClothesGallery />
+    </Suspense>
+  );
 };
 
 export default ClothesPageBody;
