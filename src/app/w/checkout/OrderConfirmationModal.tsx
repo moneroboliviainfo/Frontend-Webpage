@@ -40,6 +40,7 @@ interface OrderConfirmationModalProps {
     postalCode: string;
     // Optional billing fields
     billingCI?: string;
+    billingComplemento?: string;
     billingName?: string;
   };
 }
@@ -89,6 +90,10 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
         billing: {
           ci: formData.billingCI,
           name: formData.billingName,
+          phone: `${formData.countryCode} ${formData.phone}`,
+          email: formData.email,
+          complemento: formData.billingComplemento || undefined,
+          codigoTipoDocumentoIdentidad: 1,
         },
         shipment: selectedShipment.id,
         address: addressId,

@@ -236,6 +236,7 @@ const CheckoutPage: React.FC = () => {
     detailedAddress: '',
     // Billing fields
     billingCI: '',
+    billingComplemento: '',
     billingName: '',
     city: '',
     streetNumber: '',
@@ -823,6 +824,10 @@ const CheckoutPage: React.FC = () => {
         billing: {
           ci: formData.billingCI,
           name: formData.billingName,
+          phone: `${formData.countryCode} ${formData.phone}`,
+          email: formData.email,
+          complemento: formData.billingComplemento || undefined,
+          codigoTipoDocumentoIdentidad: 1,
         },
         shipment: selectedShipment.id,
         address: addressId,
@@ -1260,15 +1265,42 @@ const CheckoutPage: React.FC = () => {
                               </h2>
 
                               <div className="checkout-field">
-                                <label className="checkout-label">CI/NIT</label>
-                                <input
-                                  type="text"
-                                  name="billingCI"
-                                  value={formData.billingCI}
-                                  onChange={handleInputChange}
-                                  className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
-                                  placeholder="CI o NIT"
-                                />
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                  <div style={{ flex: 1 }}>
+                                    <label className="checkout-label">
+                                      CI/NIT
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="billingCI"
+                                      value={formData.billingCI}
+                                      onChange={handleInputChange}
+                                      className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
+                                      placeholder="CI o NIT"
+                                    />
+                                    {errors.billingCI && (
+                                      <p className="checkout-error-text">
+                                        {errors.billingCI}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div
+                                    style={{ width: '110px', flexShrink: 0 }}
+                                  >
+                                    <label className="checkout-label">
+                                      Complemento
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="billingComplemento"
+                                      value={formData.billingComplemento}
+                                      onChange={handleInputChange}
+                                      className="checkout-input"
+                                      placeholder="Opcional"
+                                      maxLength={4}
+                                    />
+                                  </div>
+                                </div>
                               </div>
 
                               <div className="checkout-field">
@@ -1817,15 +1849,38 @@ const CheckoutPage: React.FC = () => {
                       </h2>
 
                       <div className="checkout-field">
-                        <label className="checkout-label">CI/NIT</label>
-                        <input
-                          type="text"
-                          name="billingCI"
-                          value={formData.billingCI}
-                          onChange={handleInputChange}
-                          className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
-                          placeholder="CI o NIT"
-                        />
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <div style={{ flex: 1 }}>
+                            <label className="checkout-label">CI/NIT</label>
+                            <input
+                              type="text"
+                              name="billingCI"
+                              value={formData.billingCI}
+                              onChange={handleInputChange}
+                              className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
+                              placeholder="CI o NIT"
+                            />
+                            {errors.billingCI && (
+                              <p className="checkout-error-text">
+                                {errors.billingCI}
+                              </p>
+                            )}
+                          </div>
+                          <div style={{ width: '110px', flexShrink: 0 }}>
+                            <label className="checkout-label">
+                              Complemento
+                            </label>
+                            <input
+                              type="text"
+                              name="billingComplemento"
+                              value={formData.billingComplemento}
+                              onChange={handleInputChange}
+                              className="checkout-input"
+                              placeholder="Opcional"
+                              maxLength={4}
+                            />
+                          </div>
+                        </div>
                       </div>
 
                       <div className="checkout-field">

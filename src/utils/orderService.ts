@@ -15,6 +15,10 @@ interface CreateOrderRequest {
   billing?: {
     ci?: string;
     name?: string;
+    phone?: string;
+    email?: string;
+    complemento?: string;
+    codigoTipoDocumentoIdentidad?: number;
   };
 }
 
