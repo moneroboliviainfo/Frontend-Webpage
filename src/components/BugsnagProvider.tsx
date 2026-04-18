@@ -17,6 +17,34 @@ function initBugsnag() {
     Bugsnag.start({
       apiKey: BUGSNAG_API_KEY,
       plugins: [new BugsnagPluginReact()],
+      onError: (event: any) => {
+        try {
+          const err = event?.errors?.[0];
+          const message = err?.errorMessage ?? '';
+          const klass = err?.errorClass ?? '';
+
+          if (
+            klass === 'ChunkLoadError' ||
+            /Loading chunk/.test(message) ||
+            /ChunkLoadError/.test(message)
+          ) {
+            // Likely a stale/cached asset or missing chunk on the host.
+            // Attempt a full reload to recover and don't send this to Bugsnag.
+            if (typeof window !== 'undefined') {
+              try {
+                window.location.reload();
+              } catch (e) {
+                // ignore
+              }
+            }
+            // `event.ignore()` is available at runtime from Bugsnag but
+            // the TS type may not include it — cast to `any` to call.
+            (event as any).ignore && (event as any).ignore();
+          }
+        } catch (e) {
+          // swallow any errors in the filter
+        }
+      },
     });
 
     // Performance is optional; start if available
