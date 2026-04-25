@@ -202,7 +202,7 @@ const GalleryItem: React.FC<Props> = ({
                   transition: 'opacity 120ms ease, transform 120ms ease',
                   opacity: hovered === i ? 0.6 : 1,
                   transform: hovered === i ? 'scale(0.98)' : 'none',
-                  //   border: i === 0 ? '2px solid #000' : '1px solid #eee',
+                  border: '1px solid #9ca3af',
                 }}
               />
             ))}

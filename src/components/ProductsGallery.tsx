@@ -115,12 +115,16 @@ export const transformProductsToClothesItems = (
         finalPrice,
       } = calculatePrice(product.price, product.discount);
 
+      const sortedColors = [...product.productColors].sort(
+        (a, b) => a.id - b.id,
+      );
+
       return {
         productId: product.id,
-        src: getProductImage(product.productColors[0]?.multimedia || []),
+        src: getProductImage(sortedColors[0]?.multimedia || []),
         name: product.name,
         price: roundedBasePrice,
-        colors: product.productColors
+        colors: sortedColors
           .filter((pc) => pc.color)
           .map((pc) => pc.color.code),
         isNew: isProductNew(product.createdAt),

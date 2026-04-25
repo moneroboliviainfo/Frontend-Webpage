@@ -30,16 +30,12 @@ export function extractProductsFromCategory(
   categoryData.subcategories.forEach((subcategory) => {
     if (!subcategory.enabled) return;
     subcategory.products.forEach((product) => {
-      // Ensure productColors are ordered oldest -> newest by createdAt
+      // Ensure productColors are ordered by id ascending (lowest id first)
       if (
         Array.isArray(product.productColors) &&
         product.productColors.length > 0
       ) {
-        product.productColors.sort((a, b) => {
-          const ta = Date.parse(a.createdAt || '') || 0;
-          const tb = Date.parse(b.createdAt || '') || 0;
-          return ta - tb;
-        });
+        product.productColors.sort((a, b) => a.id - b.id);
       }
 
       if (product.enabled && product.productColors.length > 0) {

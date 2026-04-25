@@ -19,7 +19,7 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
 
   // Get search recommendations from Redux
   const searchRecommendations = useSelector(
-    (state: RootState) => state.clothing.searchRecommendations
+    (state: RootState) => state.clothing.searchRecommendations,
   );
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
       try {
         // Use search recommendations from Redux instead of fetching
         const searchs = searchRecommendations.filter(
-          (s) => !gender || s.gender === gender
+          (s) => !gender || s.gender === gender,
         );
 
         for (const s of searchs) {
@@ -49,7 +49,7 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
           if (!name) continue;
 
           const adv = await fetch(
-            `${API_URL}searchs/advanced?search=${encodeURIComponent(name)}`
+            `${API_URL}searchs/advanced?search=${encodeURIComponent(name)}`,
           );
           if (!adv.ok) continue;
           const advJson = await adv.json();
@@ -72,9 +72,12 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
 
             seen.add(p.id);
 
+            const sortedColors = [...p.productColors].sort(
+              (a, b) => a.id - b.id,
+            );
             const img =
-              p.productColors && p.productColors.length > 0
-                ? p.productColors[0].multimedia?.[0] ||
+              sortedColors.length > 0
+                ? sortedColors[0].multimedia?.[0] ||
                   p.subcategory?.category?.image ||
                   ''
                 : p.subcategory?.category?.image || '';

@@ -89,6 +89,7 @@ type ApiProduct = {
   isNew?: boolean;
   description?: string;
   productColors?: Array<{
+    id?: number;
     multimedia?: string[];
     pdfs?: string[];
     videos?: string[];
@@ -125,12 +126,17 @@ function transformApiProduct(
   } = calculatePrice(price, api.discount as unknown as DiscountShape);
   const discount = discountPercent;
 
+  // Sort productColors by id ascending (lowest id first)
+  const sortedProductColors = Array.isArray(api.productColors)
+    ? [...api.productColors].sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+    : [];
+
   // multimedia from all colors
   const multimediaUrls: string[] = [];
   // track start index for each productColor's multimedia
   const colorStartIndexes: number[] = [];
-  if (Array.isArray(api.productColors)) {
-    api.productColors.forEach((pc) => {
+  if (sortedProductColors.length > 0) {
+    sortedProductColors.forEach((pc) => {
       // record start index before adding this color's media
       colorStartIndexes.push(multimediaUrls.length);
       if (Array.isArray(pc.multimedia)) {
@@ -144,8 +150,8 @@ function transformApiProduct(
 
   // size guide pdf: first pdf from first productColor that has pdfs
   let sizeGuidePdf: string | null = null;
-  if (Array.isArray(api.productColors)) {
-    const withPdfs = api.productColors.find(
+  {
+    const withPdfs = sortedProductColors.find(
       (pc) => Array.isArray(pc.pdfs) && pc.pdfs.length > 0,
     );
     if (withPdfs && withPdfs.pdfs && withPdfs.pdfs.length > 0)
@@ -161,8 +167,8 @@ function transformApiProduct(
   ) {
     sizeGuideVideo = api.subcategory.videos[0] ?? null;
   }
-  if (!sizeGuideVideo && Array.isArray(api.productColors)) {
-    const withVideos = api.productColors.find(
+  if (!sizeGuideVideo) {
+    const withVideos = sortedProductColors.find(
       (pc) => Array.isArray(pc.videos) && pc.videos.length > 0,
     );
     if (withVideos && withVideos.videos && withVideos.videos.length > 0)
@@ -170,32 +176,29 @@ function transformApiProduct(
   }
 
   // colors with sizes
-  const colorsWithSizes = Array.isArray(api.productColors)
-    ? api.productColors.map((pc, idx) => ({
-        color: pc.color?.code || pc.color?.name || '#000000',
-        colorName: pc.color?.name || 'Color',
-        sizes: (() => {
-          const rawSizes = Array.isArray(pc.variants)
-            ? pc.variants.map((v) => ({
-                size: String(
-                  (v.size &&
-                    (typeof v.size === 'object' ? v.size.name : v.size)) ||
-                    '',
-                ),
-                availability: Number(v.availableStock ?? 0),
-                id: (v.size && typeof v.size === 'object'
-                  ? (v.size.id ?? null)
-                  : null) as number | null,
-                variantId: v.id ?? null,
-              }))
-            : [];
+  const colorsWithSizes = sortedProductColors.map((pc, idx) => ({
+    color: pc.color?.code || pc.color?.name || '#000000',
+    colorName: pc.color?.name || 'Color',
+    sizes: (() => {
+      const rawSizes = Array.isArray(pc.variants)
+        ? pc.variants.map((v) => ({
+            size: String(
+              (v.size && (typeof v.size === 'object' ? v.size.name : v.size)) ||
+                '',
+            ),
+            availability: Number(v.availableStock ?? 0),
+            id: (v.size && typeof v.size === 'object'
+              ? (v.size.id ?? null)
+              : null) as number | null,
+            variantId: v.id ?? null,
+          }))
+        : [];
 
-          return sortSizes(rawSizes);
-        })(),
-        // attach firstMultimediaIndex from earlier pass
-        firstMultimediaIndex: colorStartIndexes[idx] ?? 0,
-      }))
-    : [];
+      return sortSizes(rawSizes);
+    })(),
+    // attach firstMultimediaIndex from earlier pass
+    firstMultimediaIndex: colorStartIndexes[idx] ?? 0,
+  }));
 
   const description = api.description || '';
   const slug = slugFromUrl || buildProductSlug(name, productId);
