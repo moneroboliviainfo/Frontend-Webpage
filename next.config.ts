@@ -24,6 +24,11 @@ const nextConfig: NextConfig = {
         destination: 'https://www.moneroget.com/:path*',
         permanent: true,
       },
+      {
+        source: '/cyberweb',
+        destination: '/men',
+        permanent: true,
+      },
     ];
   },
 };
