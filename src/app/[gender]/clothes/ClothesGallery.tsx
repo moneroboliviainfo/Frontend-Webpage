@@ -60,7 +60,7 @@ export default function ClothesGallery() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`${API_URL}categories/${categoryId}`);
+        const response = await fetch(`${API_URL}web-page/categories/${categoryId}`);
 
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);

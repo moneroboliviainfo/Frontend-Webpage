@@ -295,7 +295,7 @@ const ProductPageContent = () => {
     // show loader while fetching
     setLoading(true);
 
-    fetch(`${API_URL}products/${id}`)
+    fetch(`${API_URL}web-page/products/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('network');
         return res.json();

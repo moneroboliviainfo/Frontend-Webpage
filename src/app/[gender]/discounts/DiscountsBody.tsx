@@ -91,7 +91,7 @@ export default function DiscountsBody({ gender }: DiscountsBodyProps) {
         setError(null);
 
         const response = await fetch(
-          `${API_URL}products?discounts=true&page=${page}`,
+          `${API_URL}web-page/products?discounts=true&page=${page}`,
         );
         if (!response.ok)
           throw new Error(`Error ${response.status}: ${response.statusText}`);

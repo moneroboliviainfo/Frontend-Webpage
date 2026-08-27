@@ -95,7 +95,7 @@ export default function AccessoriesSlider({
 
     try {
       // Fetch full product details with sizes
-      const response = await fetch(`${API_URL}products/${product.id}`);
+      const response = await fetch(`${API_URL}web-page/products/${product.id}`);
       if (response.ok) {
         const data: ProductWithSizes = await response.json();
         setProductWithSizes(data);

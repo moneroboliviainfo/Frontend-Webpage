@@ -50,7 +50,7 @@ export default function CategoriesGallery({
 
     async function loadCategories() {
       try {
-        const res = await fetch(`${API_URL}categories`);
+        const res = await fetch(`${API_URL}web-page/categories`);
         if (!res.ok) throw new Error('Failed to fetch categories');
         const data = (await res.json()) as CategoryApi[];
 

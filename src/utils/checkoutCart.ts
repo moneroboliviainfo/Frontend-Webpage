@@ -77,7 +77,7 @@ export interface RepriceErrorResponse {
 export async function createBackendCart(
   items: Array<{ variantId: number; quantity: number }>
 ): Promise<CartApiResponse> {
-  const response = await fetch(`${API_URL}cart`, {
+  const response = await fetch(`${API_URL}cart?type=online`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

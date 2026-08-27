@@ -266,7 +266,7 @@ const OutfitsPageContent = () => {
     let mounted = true;
     setLoading(true);
 
-    fetch(`${API_URL}outfits/${id}`)
+    fetch(`${API_URL}web-page/outfits/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('network');
         return res.json();

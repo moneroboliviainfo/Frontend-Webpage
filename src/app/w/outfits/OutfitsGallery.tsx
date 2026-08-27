@@ -38,7 +38,7 @@ export default function OutfitsGallery({ gender = 'female' }: Props) {
 
     async function load() {
       try {
-        const res = await fetch(`${API_URL}outfits`);
+        const res = await fetch(`${API_URL}web-page/outfits`);
         if (!res.ok) throw new Error('Fetch outfits failed');
         const data = await res.json();
 

@@ -108,7 +108,7 @@ const ProductPageDesktop: React.FC<Props> = ({
             ? ACCESSORIES_CATEGORY_IDS.men
             : ACCESSORIES_CATEGORY_IDS.women;
 
-        const response = await fetch(`${API_URL}categories/${categoryId}`);
+        const response = await fetch(`${API_URL}web-page/categories/${categoryId}`);
         if (!response.ok) return;
 
         const categoryData: CategoryResponse = await response.json();

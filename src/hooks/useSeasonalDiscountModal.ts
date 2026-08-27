@@ -49,7 +49,7 @@ export const useSeasonalDiscountModal = () => {
       }
 
       try {
-        const response = await fetch(`${API_URL}discounts`);
+        const response = await fetch(`${API_URL}web-page/discounts`);
         if (!response.ok) return;
 
         const data: unknown = await response.json();
