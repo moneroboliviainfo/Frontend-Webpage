@@ -148,6 +148,41 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Scan QR Message */}
+        <div
+          className="text-center"
+          style={{
+            marginBottom: '1rem',
+          }}
+        >
+          <p
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              margin: 0,
+              marginBottom: '0.25rem',
+              color: '#10b981',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <span>✓</span>
+            ¡Tu QR está listo!
+          </p>
+          <p
+            style={{
+              fontSize: '1rem',
+              color: '#374151',
+              fontWeight: '600',
+              margin: 0,
+            }}
+          >
+            Pedido #{orderId}
+          </p>
+        </div>
+
         {/* QR Code Image */}
         <div className="flex justify-center" style={{ marginBottom: '1rem' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
