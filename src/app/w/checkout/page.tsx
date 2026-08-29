@@ -11,6 +11,10 @@ import InsufficientStockModal from '@/components/InsufficientStockModal';
 import ErrorModal from '@/components/ErrorModal';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
 import QRPaymentModal from '@/components/QRPaymentModal';
+import CardPaymentModal from '@/components/CardPaymentModal';
+import PaymentMethodSelectionSection, {
+  type PaymentMethodId,
+} from './PaymentMethodSelectionSection';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectClient, type UserAddress } from '@/store/clientSlice';
 import {
@@ -44,6 +48,8 @@ import {
 } from '@/utils/checkoutCart';
 import { createOrder, generateQR } from '@/utils/orderService';
 import { saveGuestOrderAccess } from '@/utils/guestOrderAccess';
+import { type CybersourceBilling } from '@/services/cybersourceService';
+import { buildCybersourceBilling } from '@/utils/cybersourcePayment';
 import type { CartItem } from '@/types/cart';
 import { API_URL } from '@/config/env';
 import { GenderStorage } from '@/utils/genderStorage';
@@ -95,9 +101,12 @@ const CheckoutPage: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState('Bolivia');
   const [showCountryCodeModal, setShowCountryCodeModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+  const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
   const [showOrderConfirmationModal, setShowOrderConfirmationModal] =
     useState(false);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<PaymentMethodId | null>(null);
   const [modalType, setModalType] = useState<'countryCode' | 'country'>(
     'countryCode',
   );
@@ -108,12 +117,12 @@ const CheckoutPage: React.FC = () => {
   const [departments, setDepartments] = useState<Place[]>([]);
   const [isLoadingDepartments, setIsLoadingDepartments] = useState(true);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1); // 1: Detalles, 2: Método de envío, 3: Pago
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1); // 1: Detalles, 2: Método de envío, 3: Método de pago, 4: Pago
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   // Manage simulated navigation steps in browser history so back/forward stays inside checkout
-  const goToStep = useCallback((step: 1 | 2 | 3, replace = false) => {
+  const goToStep = useCallback((step: 1 | 2 | 3 | 4, replace = false) => {
     setCurrentStep(step);
     try {
       const url = new URL(window.location.href);
@@ -147,19 +156,26 @@ const CheckoutPage: React.FC = () => {
 
     const onPop = (ev: PopStateEvent) => {
       const stateStep = (ev.state && (ev.state as any).checkoutStep) || null;
-      if (stateStep && stateStep >= 1 && stateStep <= 3) {
-        const step = stateStep as 1 | 2 | 3;
+      if (stateStep && stateStep >= 1 && stateStep <= 4) {
+        const step = stateStep as 1 | 2 | 3 | 4;
         setCurrentStep(step);
         // Sync mobile modals with step
         if (window.innerWidth < 1024) {
           if (step === 2) {
             setShowDeliveryModal(true);
+            setShowPaymentMethodModal(false);
             setShowOrderConfirmationModal(false);
           } else if (step === 3) {
             setShowDeliveryModal(false);
+            setShowPaymentMethodModal(true);
+            setShowOrderConfirmationModal(false);
+          } else if (step === 4) {
+            setShowDeliveryModal(false);
+            setShowPaymentMethodModal(false);
             setShowOrderConfirmationModal(true);
           } else {
             setShowDeliveryModal(false);
+            setShowPaymentMethodModal(false);
             setShowOrderConfirmationModal(false);
           }
         }
@@ -169,7 +185,7 @@ const CheckoutPage: React.FC = () => {
           const url = new URL(window.location.href);
           const stepParam = url.searchParams.get('checkoutStep');
           const s = stepParam ? Number(stepParam) : 1;
-          setCurrentStep(s as 1 | 2 | 3);
+          setCurrentStep(s as 1 | 2 | 3 | 4);
         } catch (err) {
           setCurrentStep(1);
         }
@@ -217,6 +233,16 @@ const CheckoutPage: React.FC = () => {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string>('');
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+
+  // Desktop card payment modal state
+  const [showDesktopCardModal, setShowDesktopCardModal] = useState(false);
+  const [cybersourceOrderId, setCybersourceOrderId] = useState<number | null>(
+    null,
+  );
+  const [cardPaymentAmount, setCardPaymentAmount] = useState<string>('0.00');
+  const [cardBilling, setCardBilling] = useState<CybersourceBilling | null>(
+    null,
+  );
 
   // Step labels - shared between mobile and desktop
   const stepLabels = {
@@ -788,19 +814,38 @@ const CheckoutPage: React.FC = () => {
     }
     setSelectedDeliveryMethod(shipmentName);
     setShowDeliveryModal(false);
-    goToStep(3); // Move to payment step (and push history)
+    goToStep(3); // Move to payment method selection step (and push history)
+    // Only show modal on mobile (desktop uses currentStep to render content)
+    if (window.innerWidth < 1024) {
+      setShowPaymentMethodModal(true);
+    }
+  };
+
+  const handleBackToDelivery = () => {
+    setShowPaymentMethodModal(false);
+    goToStep(2); // Back to delivery step (and push history)
+    // Only show modal on mobile (desktop uses currentStep to render content)
+    if (window.innerWidth < 1024) {
+      setShowDeliveryModal(true);
+    }
+  };
+
+  const handlePaymentMethodSelect = (method: PaymentMethodId) => {
+    setSelectedPaymentMethod(method);
+    setShowPaymentMethodModal(false);
+    goToStep(4); // Move to order review step (and push history)
     // Only show modal on mobile (desktop uses currentStep to render content)
     if (window.innerWidth < 1024) {
       setShowOrderConfirmationModal(true);
     }
   };
 
-  const handleBackToDelivery = () => {
+  const handleBackToPaymentMethod = () => {
     setShowOrderConfirmationModal(false);
-    goToStep(2); // Back to delivery step (and push history)
+    goToStep(3); // Back to payment method step (and push history)
     // Only show modal on mobile (desktop uses currentStep to render content)
     if (window.innerWidth < 1024) {
-      setShowDeliveryModal(true);
+      setShowPaymentMethodModal(true);
     }
   };
 
@@ -820,6 +865,7 @@ const CheckoutPage: React.FC = () => {
         items: cartToken,
         name: formData.name,
         phone: `${formData.countryCode} ${formData.phone}`,
+        payment_type: selectedPaymentMethod === 'card' ? 'card_online' : 'qr',
         email: formData.email,
         billing: {
           ci: formData.billingCI,
@@ -833,16 +879,41 @@ const CheckoutPage: React.FC = () => {
         address: addressId,
       });
 
-      // Step 2: Generate QR code
-      const qrResponse = await generateQR(orderResponse.id);
-
-      // Step 3: Show QR payment modal and store order ID
       setCreatedOrderId(orderResponse.id);
-      setQrImageBase64(qrResponse.qr);
-      setQrGloss(qrResponse.gloss || '');
-      setShowDesktopQRModal(true);
+
+      if (selectedPaymentMethod === 'card') {
+        // Card flow: reuse the store order as the Cybersource reference (same backend now, no separate reservation call)
+        const total =
+          (repriceData ? parseFloat(repriceData.total) : 0) +
+          parseFloat(selectedShipment.price);
+        const totalPrice = total.toFixed(2);
+
+        const billing = buildCybersourceBilling({
+          name: formData.name,
+          email: formData.email,
+          selectedCountry,
+          detailedAddress: formData.detailedAddress,
+          cityProvince: formData.cityProvince,
+          departamento: formData.departamento,
+          city: formData.city,
+          streetNumber: formData.streetNumber,
+          postalCode: formData.postalCode,
+          isLoggedIn: !!client && !isGuestUser,
+        });
+
+        setCybersourceOrderId(orderResponse.id);
+        setCardPaymentAmount(totalPrice);
+        setCardBilling(billing);
+        setShowDesktopCardModal(true);
+      } else {
+        // QR flow: generate the QR code for the store order
+        const qrResponse = await generateQR(orderResponse.id);
+        setQrImageBase64(qrResponse.qr);
+        setQrGloss(qrResponse.gloss || '');
+        setShowDesktopQRModal(true);
+      }
     } catch (error) {
-      console.error('Error creating order or generating QR:', error);
+      console.error('Error creating order or preparing payment:', error);
       setOrderError(
         error instanceof Error
           ? error.message
@@ -867,6 +938,17 @@ const CheckoutPage: React.FC = () => {
         // ignore localStorage errors
       }
       router.push(`/w/checkout/order-confirmed?orderId=${orderId}`);
+    }
+  };
+
+  const handleCardPaymentBeforeRedirect = () => {
+    // Save guest order access before the browser navigates away to Cybersource
+    if (createdOrderId && isGuestUser) {
+      try {
+        saveGuestOrderAccess(createdOrderId);
+      } catch (e) {
+        // ignore localStorage errors
+      }
     }
   };
 
@@ -1001,7 +1083,7 @@ const CheckoutPage: React.FC = () => {
                         style={{
                           color: currentStep >= 3 ? '#000' : '#9ca3af',
                           fontSize: '0.875rem',
-                          fontWeight: currentStep === 3 ? '600' : '400',
+                          fontWeight: currentStep >= 3 ? '600' : '400',
                         }}
                       >
                         {stepLabels[3]}
@@ -1523,6 +1605,52 @@ const CheckoutPage: React.FC = () => {
 
                   {currentStep === 3 && (
                     <>
+                      {/* Payment Method Selection Section */}
+                      <div className="checkout-section">
+                        <h2 className="checkout-section-title">
+                          Elige un método de pago
+                        </h2>
+
+                        <PaymentMethodSelectionSection
+                          onSelect={handlePaymentMethodSelect}
+                          isMobile={false}
+                        />
+
+                        {/* Back Button */}
+                        <div className="checkout-back-btn-wrapper">
+                          <button
+                            onClick={() => {
+                              if (
+                                typeof window !== 'undefined' &&
+                                window.history &&
+                                window.history.length > 0
+                              ) {
+                                window.history.back();
+                              } else {
+                                handleBackToDelivery();
+                              }
+                            }}
+                            className="checkout-back-btn"
+                          >
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="m15 18-6-6 6-6" />
+                            </svg>
+                            Volver a método de envío
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {currentStep === 4 && (
+                    <>
                       {/* Payment Section */}
                       <div className="checkout-section">
                         <h2 className="checkout-section-title">
@@ -1539,8 +1667,9 @@ const CheckoutPage: React.FC = () => {
                               ? parseFloat(selectedShipment.price)
                               : 0
                           }
+                          paymentMethod={selectedPaymentMethod ?? 'qr'}
                           onConfirmOrder={handleConfirmOrder}
-                          onBackToDelivery={handleBackToDelivery}
+                          onBackToDelivery={handleBackToPaymentMethod}
                           showBackButton={true}
                           showConfirmButton={true}
                           showSectionTitles={true}
@@ -2180,14 +2309,93 @@ const CheckoutPage: React.FC = () => {
             </div>
           )}
 
+          {/* Payment Method Selection Modal */}
+          {showPaymentMethodModal && (
+            <div className="checkout-modal">
+              {/* Modal Top Bar */}
+              <div className="checkout-modal-topbar">
+                {/* Back Arrow */}
+                <button
+                  onClick={() => {
+                    // emulate browser back so popstate handles step change and modal sync
+                    if (
+                      typeof window !== 'undefined' &&
+                      window.history &&
+                      window.history.length > 0
+                    ) {
+                      window.history.back();
+                    } else {
+                      setShowPaymentMethodModal(false);
+                    }
+                  }}
+                  className="checkout-icon-btn"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
+
+                {/* Title */}
+                <h2 className="checkout-topbar-title--left">Método de pago</h2>
+
+                {/* Close Button - Close modal */}
+                <button
+                  onClick={() => setShowPaymentMethodModal(false)}
+                  className="checkout-icon-btn"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    style={{ color: '#374151' }}
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div
+                className="checkout-modal-body"
+                style={{ paddingBottom: '8rem' }}
+              >
+                <PaymentMethodSelectionSection
+                  onSelect={handlePaymentMethodSelect}
+                  isMobile={true}
+                />
+              </div>
+
+              {/* Checkout Cost Summary */}
+              <CheckoutCostSummary
+                subtotal={repriceData ? parseFloat(repriceData.total) : 0}
+                selectedCountry={selectedCountry}
+                deliveryCost={
+                  selectedShipment ? parseFloat(selectedShipment.price) : 0
+                }
+                repriceData={repriceData}
+              />
+            </div>
+          )}
+
           {/* Order Confirmation Modal */}
           <OrderConfirmationModal
             isOpen={showOrderConfirmationModal}
             onClose={() => setShowOrderConfirmationModal(false)}
-            onBackToDelivery={handleBackToDelivery}
+            onBackToDelivery={handleBackToPaymentMethod}
             selectedCountry={selectedCountry}
             selectedDeliveryMethod={selectedDeliveryMethod}
             formData={formData}
+            paymentMethod={selectedPaymentMethod ?? 'qr'}
           />
 
           {/* Desktop QR Payment Modal */}
@@ -2199,6 +2407,16 @@ const CheckoutPage: React.FC = () => {
               orderId={createdOrderId}
               onPaymentConfirmed={handlePaymentConfirmed}
               gloss={qrGloss}
+            />
+          )}
+
+          {/* Desktop Card Payment Modal */}
+          {showDesktopCardModal && cybersourceOrderId && cardBilling && (
+            <CardPaymentModal
+              isOpen={showDesktopCardModal}
+              orderId={cybersourceOrderId}
+              billing={cardBilling}
+              onBeforeRedirect={handleCardPaymentBeforeRedirect}
             />
           )}
         </>

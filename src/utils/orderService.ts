@@ -10,6 +10,8 @@ interface CreateOrderRequest {
   phone: string;
   shipment: number;
   address: number;
+  // Payment type: 'qr' or 'card_online'
+  payment_type?: 'qr' | 'card_online';
   // Optional fields
   email?: string;
   billing?: {
@@ -70,7 +72,9 @@ const checkForWomenItems = async (cartItems: CartItem[]): Promise<boolean> => {
     const genderChecks = await Promise.all(
       cartItems.map(async (item) => {
         try {
-          const response = await fetch(`${API_URL}web-page/products/${item.productId}`);
+          const response = await fetch(
+            `${API_URL}web-page/products/${item.productId}`,
+          );
           if (!response.ok) return false;
 
           const product = await response.json();

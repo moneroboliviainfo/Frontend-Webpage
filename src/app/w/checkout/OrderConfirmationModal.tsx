@@ -9,6 +9,7 @@ import { GenderStorage } from '@/utils/genderStorage';
 import TermsAndConditions from '@/components/TermsAndConditions';
 import PrivacyPolicy from '@/components/PrivacyPolicy';
 import QRPaymentModal from '@/components/QRPaymentModal';
+import CardPaymentModal from '@/components/CardPaymentModal';
 import {
   selectSelectedShipment,
   selectAddressId,
@@ -18,6 +19,8 @@ import {
 } from '@/store/checkoutSlice';
 import { createOrder, generateQR } from '@/utils/orderService';
 import { saveGuestOrderAccess } from '@/utils/guestOrderAccess';
+import { type CybersourceBilling } from '@/services/cybersourceService';
+import { buildCybersourceBilling } from '@/utils/cybersourcePayment';
 import { selectClient } from '@/store/clientSlice';
 
 interface OrderConfirmationModalProps {
@@ -26,6 +29,7 @@ interface OrderConfirmationModalProps {
   onBackToDelivery: () => void;
   selectedCountry: string;
   selectedDeliveryMethod: string;
+  paymentMethod?: 'qr' | 'card';
   formData: {
     name: string;
     email: string;
@@ -51,6 +55,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   selectedCountry,
   selectedDeliveryMethod,
   formData,
+  paymentMethod = 'qr',
 }) => {
   const router = useRouter();
   const selectedShipment = useAppSelector(selectSelectedShipment);
@@ -59,6 +64,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   const cartItems = useAppSelector(selectCheckoutCartItems);
   const repriceData = useAppSelector(selectRepriceData);
   const client = useAppSelector(selectClient);
+  const isGuestUser = client?.email === 'guest@moneroget.com';
 
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [showQRPayment, setShowQRPayment] = useState(false);
@@ -69,6 +75,16 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+
+  // Card payment modal state
+  const [showCardPayment, setShowCardPayment] = useState(false);
+  const [cybersourceOrderId, setCybersourceOrderId] = useState<number | null>(
+    null,
+  );
+  const [cardAmount, setCardAmount] = useState<string>('0.00');
+  const [cardBilling, setCardBilling] = useState<CybersourceBilling | null>(
+    null,
+  );
 
   const handlePayOrder = async () => {
     if (!hasAcceptedTerms) return;
@@ -87,6 +103,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
         name: formData.name,
         phone: `${formData.countryCode} ${formData.phone}`,
         email: formData.email,
+        payment_type: paymentMethod === 'card' ? 'card_online' : 'qr',
         billing: {
           ci: formData.billingCI,
           name: formData.billingName,
@@ -99,16 +116,41 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
         address: addressId,
       });
 
-      // Step 2: Generate QR code
-      const qrResponse = await generateQR(orderResponse.id);
-
-      // Step 3: Show QR payment modal
       setCreatedOrderId(orderResponse.id);
-      setQrImageBase64(qrResponse.qr);
-      setQrGloss(qrResponse.gloss || '');
-      setShowQRPayment(true);
+
+      if (paymentMethod === 'card') {
+        // Card flow: reuse the store order as the Cybersource reference (same backend now, no separate reservation call)
+        const total =
+          (repriceData ? parseFloat(repriceData.total) : 0) +
+          parseFloat(selectedShipment.price);
+        const totalPrice = total.toFixed(2);
+
+        const billing = buildCybersourceBilling({
+          name: formData.name,
+          email: formData.email,
+          selectedCountry,
+          detailedAddress: formData.detailedAddress,
+          cityProvince: formData.cityProvince,
+          departamento: formData.departamento,
+          city: formData.city,
+          streetNumber: formData.streetNumber,
+          postalCode: formData.postalCode,
+          isLoggedIn: !!client && !isGuestUser,
+        });
+
+        setCybersourceOrderId(orderResponse.id);
+        setCardAmount(totalPrice);
+        setCardBilling(billing);
+        setShowCardPayment(true);
+      } else {
+        // Step 2: Generate QR code
+        const qrResponse = await generateQR(orderResponse.id);
+        setQrImageBase64(qrResponse.qr);
+        setQrGloss(qrResponse.gloss || '');
+        setShowQRPayment(true);
+      }
     } catch (error) {
-      console.error('Error creating order or generating QR:', error);
+      console.error('Error creating order or preparing payment:', error);
       setOrderError(
         error instanceof Error
           ? error.message
@@ -116,6 +158,17 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
       );
     } finally {
       setIsCreatingOrder(false);
+    }
+  };
+
+  const handleCardPaymentBeforeRedirect = () => {
+    // Save guest order access before the browser navigates away to Cybersource
+    if (createdOrderId && isGuestUser) {
+      try {
+        saveGuestOrderAccess(createdOrderId);
+      } catch (e) {
+        // ignore localStorage errors
+      }
     }
   };
 
@@ -307,29 +360,45 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                 height: '30px',
               }}
             >
-              {/* QR Code Icon */}
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{ color: '#3b82f6' }}
-              >
-                <rect x="3" y="3" width="5" height="5" />
-                <rect x="3" y="16" width="5" height="5" />
-                <rect x="16" y="3" width="5" height="5" />
-                <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
-                <path d="M21 21v.01" />
-                <path d="M12 7v3a2 2 0 0 1-2 2H7" />
-                <path d="M3 12h.01" />
-                <path d="M12 3h.01" />
-                <path d="M12 16v.01" />
-                <path d="M16 12h1" />
-                <path d="M21 12v.01" />
-                <path d="M12 21v-1" />
-              </svg>
+              {paymentMethod === 'card' ? (
+                /* Card Icon */
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ color: '#3b82f6' }}
+                >
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <path d="M2 10h20" />
+                </svg>
+              ) : (
+                /* QR Code Icon */
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ color: '#3b82f6' }}
+                >
+                  <rect x="3" y="3" width="5" height="5" />
+                  <rect x="3" y="16" width="5" height="5" />
+                  <rect x="16" y="3" width="5" height="5" />
+                  <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+                  <path d="M21 21v.01" />
+                  <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+                  <path d="M3 12h.01" />
+                  <path d="M12 3h.01" />
+                  <path d="M12 16v.01" />
+                  <path d="M16 12h1" />
+                  <path d="M21 12v.01" />
+                  <path d="M12 21v-1" />
+                </svg>
+              )}
             </div>
             <div>
               <div
@@ -339,7 +408,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                   color: '#111827',
                 }}
               >
-                Pago por QR
+                {paymentMethod === 'card' ? 'Pago por Tarjeta' : 'Pago por QR'}
               </div>
               <div
                 style={{
@@ -347,9 +416,20 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                   color: '#6b7280',
                 }}
               >
-                Se generará un código QR válido por{' '}
-                {QR_PAYMENT_DURATION_MINUTES} minutos. Si no se completa el pago
-                en este tiempo, la orden será cancelada automáticamente.
+                {paymentMethod === 'card' ? (
+                  <>
+                    Ingresa los datos de tu tarjeta para completar el pago. Si
+                    no se completa el pago en {QR_PAYMENT_DURATION_MINUTES}{' '}
+                    minutos, la orden será cancelada automáticamente.
+                  </>
+                ) : (
+                  <>
+                    Se generará un código QR válido por{' '}
+                    {QR_PAYMENT_DURATION_MINUTES} minutos. Si no se completa el
+                    pago en este tiempo, la orden será cancelada
+                    automáticamente.
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -566,6 +646,8 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                 </svg>
                 Creando orden...
               </>
+            ) : paymentMethod === 'card' ? (
+              'Ingresar datos de tarjeta y pagar'
             ) : (
               'Generar QR y pagar orden'
             )}
@@ -772,6 +854,16 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           orderId={createdOrderId}
           onPaymentConfirmed={handlePaymentConfirmed}
           gloss={qrGloss}
+        />
+      )}
+
+      {/* Card Payment Popup */}
+      {showCardPayment && cybersourceOrderId && cardBilling && (
+        <CardPaymentModal
+          isOpen={showCardPayment}
+          orderId={cybersourceOrderId}
+          billing={cardBilling}
+          onBeforeRedirect={handleCardPaymentBeforeRedirect}
         />
       )}
     </div>

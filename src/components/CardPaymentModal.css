@@ -1,0 +1,122 @@
+.card-payment-modal {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  width: 90%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.card-payment-modal__title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  color: #111827;
+}
+
+.card-payment-modal__field {
+  margin-bottom: 1rem;
+}
+
+.card-payment-modal__row {
+  display: flex;
+  gap: 1rem;
+}
+
+.card-payment-modal__label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 0.4rem;
+}
+
+.card-payment-modal__input-wrapper {
+  position: relative;
+}
+
+.card-payment-modal__input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.card-payment-modal__input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.card-payment-modal__input-wrapper .card-payment-modal__input {
+  padding-left: 2.5rem;
+}
+
+.card-payment-modal__input:focus {
+  border-color: #111827;
+}
+
+.card-payment-modal__input--error {
+  border-color: #ef4444;
+}
+
+.card-payment-modal__counter {
+  text-align: right;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+}
+
+.card-payment-modal__error-text {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.card-payment-modal__submit-error {
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.card-payment-modal__pay-btn {
+  width: 100%;
+  background-color: #000;
+  color: white;
+  font-weight: 700;
+  padding: 0.9rem;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.card-payment-modal__pay-btn:disabled {
+  background-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.card-payment-modal__timer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 1rem;
+}

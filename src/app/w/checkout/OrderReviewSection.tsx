@@ -44,6 +44,7 @@ interface OrderReviewSectionProps {
   };
   repriceData?: RepriceData | null;
   deliveryCost?: number;
+  paymentMethod?: 'qr' | 'card';
   onConfirmOrder?: () => void;
   onBackToDelivery?: () => void;
   showBackButton?: boolean;
@@ -63,6 +64,7 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
   formData,
   repriceData: repriceDataProp,
   deliveryCost = 0,
+  paymentMethod = 'qr',
   onConfirmOrder,
   onBackToDelivery,
   showBackButton = true,
@@ -178,29 +180,45 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
                 height: '30px',
               }}
             >
-              {/* QR Code Icon */}
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{ color: '#3b82f6' }}
-              >
-                <rect x="3" y="3" width="5" height="5" />
-                <rect x="3" y="16" width="5" height="5" />
-                <rect x="16" y="3" width="5" height="5" />
-                <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
-                <path d="M21 21v.01" />
-                <path d="M12 7v3a2 2 0 0 1-2 2H7" />
-                <path d="M3 12h.01" />
-                <path d="M12 3h.01" />
-                <path d="M12 16v.01" />
-                <path d="M16 12h1" />
-                <path d="M21 12v.01" />
-                <path d="M12 21v-1" />
-              </svg>
+              {paymentMethod === 'card' ? (
+                /* Card Icon */
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ color: '#3b82f6' }}
+                >
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <path d="M2 10h20" />
+                </svg>
+              ) : (
+                /* QR Code Icon */
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ color: '#3b82f6' }}
+                >
+                  <rect x="3" y="3" width="5" height="5" />
+                  <rect x="3" y="16" width="5" height="5" />
+                  <rect x="16" y="3" width="5" height="5" />
+                  <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+                  <path d="M21 21v.01" />
+                  <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+                  <path d="M3 12h.01" />
+                  <path d="M12 3h.01" />
+                  <path d="M12 16v.01" />
+                  <path d="M16 12h1" />
+                  <path d="M21 12v.01" />
+                  <path d="M12 21v-1" />
+                </svg>
+              )}
             </div>
             <div>
               <div
@@ -210,7 +228,7 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
                   color: '#111827',
                 }}
               >
-                Pago por QR
+                {paymentMethod === 'card' ? 'Pago por Tarjeta' : 'Pago por QR'}
               </div>
               <div
                 style={{
@@ -218,9 +236,20 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
                   color: '#6b7280',
                 }}
               >
-                Se generará un código QR válido por{' '}
-                {QR_PAYMENT_DURATION_MINUTES} minutos. Si no se completa el pago
-                en este tiempo, la orden será cancelada automáticamente.
+                {paymentMethod === 'card' ? (
+                  <>
+                    Ingresa los datos de tu tarjeta para completar el pago. Si
+                    no se completa el pago en {QR_PAYMENT_DURATION_MINUTES}{' '}
+                    minutos, la orden será cancelada automáticamente.
+                  </>
+                ) : (
+                  <>
+                    Se generará un código QR válido por{' '}
+                    {QR_PAYMENT_DURATION_MINUTES} minutos. Si no se completa el
+                    pago en este tiempo, la orden será cancelada
+                    automáticamente.
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -381,6 +410,8 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
               </svg>
               Creando orden...
             </>
+          ) : paymentMethod === 'card' ? (
+            'Ingresar datos de tarjeta y pagar'
           ) : (
             'Generar QR y pagar orden'
           )}
@@ -424,7 +455,7 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
             >
               <path d="m15 18-6-6 6-6" />
             </svg>
-            Volver a método de envío
+            Volver a método de pago
           </button>
         </div>
       )}
