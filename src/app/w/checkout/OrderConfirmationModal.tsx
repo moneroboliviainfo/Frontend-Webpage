@@ -17,7 +17,13 @@ import {
   selectCheckoutCartItems,
   selectRepriceData,
 } from '@/store/checkoutSlice';
-import { createOrder, generateQR } from '@/utils/orderService';
+import {
+  createOrder,
+  generateQR,
+  checkForWomenItems,
+} from '@/utils/orderService';
+import { FEATURE_FLAGS } from '@/config/features';
+import { getCart } from '@/utils/cartStorage';
 import { saveGuestOrderAccess } from '@/utils/guestOrderAccess';
 import { type CybersourceBilling } from '@/services/cybersourceService';
 import { buildCybersourceBilling } from '@/utils/cybersourcePayment';
@@ -91,6 +97,22 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     if (!selectedShipment || !addressId || !cartToken) {
       setOrderError('Missing required order information. Please try again.');
       return;
+    }
+
+    // Prevent order creation if women's section is disabled and cart has women's items
+    if (!FEATURE_FLAGS.WOMEN_ENABLED) {
+      try {
+        const cart = getCart();
+        const hasWomen = await checkForWomenItems(cart.items);
+        if (hasWomen) {
+          setOrderError(
+            'La compra está temporalmente deshabilitada para prendas de categoría mujeres.',
+          );
+          return;
+        }
+      } catch (e) {
+        // ignore errors and continue
+      }
     }
 
     try {

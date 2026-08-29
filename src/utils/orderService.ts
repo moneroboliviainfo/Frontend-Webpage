@@ -66,7 +66,9 @@ export const createOrder = async (
  * Check if cart contains any women's clothing items
  * Fetches product details for each cart item to determine gender
  */
-const checkForWomenItems = async (cartItems: CartItem[]): Promise<boolean> => {
+export const checkForWomenItems = async (
+  cartItems: CartItem[],
+): Promise<boolean> => {
   try {
     // Fetch product details for each cart item to check gender
     const genderChecks = await Promise.all(
@@ -100,6 +102,9 @@ const checkForWomenItems = async (cartItems: CartItem[]): Promise<boolean> => {
 export const generateQR = async (
   orderId: number,
 ): Promise<GenerateQRResponse> => {
+  if (!orderId) {
+    throw new Error('orderId is required to generate QR');
+  }
   // Check if women's section is disabled and cart contains women's items
   if (!FEATURE_FLAGS.WOMEN_ENABLED) {
     const cart = getCart();
