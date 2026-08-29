@@ -253,7 +253,8 @@ const CheckoutPage: React.FC = () => {
   const stepLabels = {
     1: 'Detalles del destinatario',
     2: 'Método de envío',
-    3: 'Pago',
+    3: 'Método de pago',
+    4: 'Pago',
   };
 
   const [formData, setFormData] = useState({
@@ -1098,16 +1099,42 @@ const CheckoutPage: React.FC = () => {
                       <path d="M9 18l6-6-6-6" />
                     </svg>
 
-                    {/* Step 3: Pago */}
+                    {/* Step 3: Método de pago */}
                     <div className="checkout-step-item">
                       <span
                         style={{
                           color: currentStep >= 3 ? '#000' : '#9ca3af',
                           fontSize: '0.875rem',
-                          fontWeight: currentStep >= 3 ? '600' : '400',
+                          fontWeight: currentStep === 3 ? '600' : '400',
                         }}
                       >
                         {stepLabels[3]}
+                      </span>
+                    </div>
+
+                    {/* Arrow */}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      style={{ color: '#9ca3af' }}
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+
+                    {/* Step 4: Pago */}
+                    <div className="checkout-step-item">
+                      <span
+                        style={{
+                          color: currentStep >= 4 ? '#000' : '#9ca3af',
+                          fontSize: '0.875rem',
+                          fontWeight: currentStep >= 4 ? '600' : '400',
+                        }}
+                      >
+                        {stepLabels[4]}
                       </span>
                     </div>
                   </div>
@@ -1631,6 +1658,7 @@ const CheckoutPage: React.FC = () => {
                         <h2 className="checkout-section-title">
                           Elige un método de pago
                         </h2>
+                        {/* showing only the step title "Método de pago" per design */}
 
                         <PaymentMethodSelectionSection
                           onSelect={handlePaymentMethodSelect}
