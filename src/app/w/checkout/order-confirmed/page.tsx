@@ -298,31 +298,124 @@ const OrderConfirmedContent: React.FC = () => {
           {/* Centered Content */}
           <div className="flex justify-center" style={{ padding: '2rem' }}>
             <div style={{ maxWidth: '600px', width: '100%' }}>
-              {/* Order Confirmation Title */}
+              {/* Success Banner */}
               <div
                 className="text-center"
                 style={{
                   marginBottom: '1.5rem',
                 }}
               >
-                <h2
-                  className="font-bold"
-                  style={{
-                    fontSize: '1.5rem',
-                    color: '#111827',
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  Confirmamos tu pedido
-                </h2>
+                {/* Green Success Circle with Check */}
                 <div
-                  className="font-medium"
                   style={{
-                    fontSize: '1.125rem',
-                    color: '#6b7280',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    marginBottom: '1rem',
                   }}
                 >
-                  Pedido: #{orderData.orderNumber}
+                  <div
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      backgroundColor: '#10b981',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                    }}
+                  >
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Success Message Box */}
+                <div
+                  style={{
+                    backgroundColor: '#ecfdf5',
+                    border: '1px solid #10b981',
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  <p
+                    style={{
+                      color: '#065f46',
+                      fontSize: '1.125rem',
+                      fontWeight: '700',
+                      margin: 0,
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    ¡Compra realizada con éxito!
+                  </p>
+                  <h2
+                    className="font-bold"
+                    style={{
+                      fontSize: '1.5rem',
+                      color: '#111827',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    Confirmamos tu pedido
+                  </h2>
+                  <div
+                    className="font-medium"
+                    style={{
+                      fontSize: '1.125rem',
+                      color: '#065f46',
+                    }}
+                  >
+                    Pedido: #{orderData.orderNumber}
+                  </div>
+                </div>
+
+                {/* Email Notice */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    padding: '0.75rem',
+                    backgroundColor: '#f3f4f6',
+                    borderRadius: '0.5rem',
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#6b7280"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="M22 7l-10 7L2 7" />
+                  </svg>
+                  <p
+                    style={{
+                      color: '#4b5563',
+                      fontSize: '0.875rem',
+                      margin: 0,
+                    }}
+                  >
+                    Revisa tu correo para información sobre tu pedido y factura
+                  </p>
                 </div>
               </div>
 
@@ -409,31 +502,124 @@ const OrderConfirmedContent: React.FC = () => {
           style={{ padding: '2rem', paddingBottom: '8rem' }}
         >
           <div style={{ maxWidth: '600px', width: '100%' }}>
-            {/* Order Confirmation Title */}
+            {/* Success Banner */}
             <div
               className="text-center"
               style={{
                 marginBottom: '1.5rem',
               }}
             >
-              <h2
-                className="font-bold"
-                style={{
-                  fontSize: '1.5rem',
-                  color: '#111827',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                Confirmamos tu pedido
-              </h2>
+              {/* Green Success Circle with Check */}
               <div
-                className="font-medium"
                 style={{
-                  fontSize: '1.125rem',
-                  color: '#6b7280',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginBottom: '1rem',
                 }}
               >
-                Pedido: #{orderData.orderNumber}
+                <div
+                  style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    backgroundColor: '#10b981',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                  }}
+                >
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Success Message Box */}
+              <div
+                style={{
+                  backgroundColor: '#ecfdf5',
+                  border: '1px solid #10b981',
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  marginBottom: '1rem',
+                }}
+              >
+                <p
+                  style={{
+                    color: '#065f46',
+                    fontSize: '1.125rem',
+                    fontWeight: '700',
+                    margin: 0,
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  ¡Compra realizada con éxito!
+                </p>
+                <h2
+                  className="font-bold"
+                  style={{
+                    fontSize: '1.5rem',
+                    color: '#111827',
+                    marginBottom: '0.25rem',
+                  }}
+                >
+                  Confirmamos tu pedido
+                </h2>
+                <div
+                  className="font-medium"
+                  style={{
+                    fontSize: '1.125rem',
+                    color: '#065f46',
+                  }}
+                >
+                  Pedido: #{orderData.orderNumber}
+                </div>
+              </div>
+
+              {/* Email Notice */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem',
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: '0.5rem',
+                }}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#6b7280"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="M22 7l-10 7L2 7" />
+                </svg>
+                <p
+                  style={{
+                    color: '#4b5563',
+                    fontSize: '0.875rem',
+                    margin: 0,
+                  }}
+                >
+                  Revisa tu correo para información sobre tu pedido y factura
+                </p>
               </div>
             </div>
 
