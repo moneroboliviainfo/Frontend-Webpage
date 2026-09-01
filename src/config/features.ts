@@ -8,5 +8,5 @@ export const FEATURE_FLAGS = {
    * Enable/disable women's section
    * When false, homepage (/) redirects to /men
    */
-  WOMEN_ENABLED: true,
+  WOMEN_ENABLED: false,
 } as const;
