@@ -25,6 +25,18 @@
 .card-payment-modal__row {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.card-payment-modal__field--cvv {
+  flex: 1;
+  min-width: 120px;
+}
+
+.card-payment-modal__row
+  .card-payment-modal__field:not(.card-payment-modal__field--cvv) {
+  flex: 1;
+  min-width: 80px;
 }
 
 .card-payment-modal__label {
@@ -38,16 +50,17 @@
 }
 
 .card-payment-modal__input-wrapper {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
 }
 
-.card-payment-modal__input-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7280;
-  pointer-events: none;
+.card-payment-modal__input-wrapper:focus-within {
+  border-color: #111827;
 }
 
 .card-payment-modal__input {
@@ -61,14 +74,30 @@
 }
 
 .card-payment-modal__input-wrapper .card-payment-modal__input {
-  padding-left: 2.5rem;
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  padding: 0.25rem 0;
+  background: transparent;
 }
 
 .card-payment-modal__input:focus {
   border-color: #111827;
 }
 
+.card-payment-modal__input-wrapper:focus-within {
+  border-color: #111827;
+}
+
 .card-payment-modal__input--error {
+  border-color: #ef4444;
+}
+
+.card-payment-modal__input-wrapper .card-payment-modal__input--error {
+  border-color: transparent;
+}
+
+.card-payment-modal__input-wrapper:has(.card-payment-modal__input--error) {
   border-color: #ef4444;
 }
 

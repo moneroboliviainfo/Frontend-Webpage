@@ -5,6 +5,7 @@ export type PaymentMethodId = 'qr' | 'card';
 interface PaymentMethodOption {
   id: PaymentMethodId;
   label: string;
+  subtitle: string;
   icon: React.ReactNode;
 }
 
@@ -15,8 +16,8 @@ interface PaymentMethodSelectionSectionProps {
 
 const QrIcon: React.FC = () => (
   <svg
-    width="20"
-    height="20"
+    width="24"
+    height="24"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -40,22 +41,48 @@ const QrIcon: React.FC = () => (
 
 const CardIcon: React.FC = () => (
   <svg
-    width="20"
-    height="20"
+    width="26"
+    height="26"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
     strokeWidth="2"
     aria-hidden="true"
   >
-    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <rect x="2" y="4" width="20" height="16" rx="2" />
     <path d="M2 10h20" />
   </svg>
 );
 
+const VisaLogo: React.FC = () => (
+  <img
+    src="/logos/visa.png"
+    alt="Visa"
+    style={{ height: '24px', width: 'auto' }}
+  />
+);
+
+const MastercardLogo: React.FC = () => (
+  <img
+    src="/logos/master_card.png"
+    alt="Mastercard"
+    style={{ height: '17px', width: 'auto' }}
+  />
+);
+
 const PAYMENT_METHOD_OPTIONS: PaymentMethodOption[] = [
-  { id: 'qr', label: 'Código QR', icon: <QrIcon /> },
-  { id: 'card', label: 'Tarjeta', icon: <CardIcon /> },
+  {
+    id: 'qr',
+    label: 'Código QR',
+    subtitle: 'Escanea el código desde tu banca móvil de confianza',
+    icon: <QrIcon />,
+  },
+  {
+    id: 'card',
+    label: 'TARJETA DE CRÉDITO O DÉBITO',
+    subtitle: 'Nacional o internacional',
+    icon: <CardIcon />,
+  },
 ];
 
 export const PaymentMethodSelectionSection: React.FC<
@@ -70,9 +97,27 @@ export const PaymentMethodSelectionSection: React.FC<
           onClick={() => onSelect(option.id)}
           className="payment-method-option"
         >
-          <span className="payment-method-option__label">{option.label}</span>
+          <span className="payment-method-option__icon">{option.icon}</span>
+          <div className="payment-method-option__content">
+            <span className="payment-method-option__label">{option.label}</span>
+            <span className="payment-method-option__subtitle">
+              {option.id === 'card' && (
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '0.5rem',
+                    alignItems: 'center',
+                    marginRight: '0.5rem',
+                  }}
+                >
+                  <VisaLogo />
+                  <MastercardLogo />
+                </div>
+              )}
+              {option.subtitle}
+            </span>
+          </div>
           <span className="payment-method-option__actions">
-            <span className="payment-method-option__icon">{option.icon}</span>
             <svg
               width="16"
               height="16"

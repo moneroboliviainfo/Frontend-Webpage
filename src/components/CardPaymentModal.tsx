@@ -16,6 +16,22 @@ import {
 } from '@/services/cybersourceService';
 import './CardPaymentModal.css';
 
+const VisaLogo: React.FC = () => (
+  <img
+    src="/logos/visa.png"
+    alt="Visa"
+    style={{ height: '38px', width: 'auto' }}
+  />
+);
+
+const MastercardLogo: React.FC = () => (
+  <img
+    src="/logos/master_card.png"
+    alt="Mastercard"
+    style={{ height: '24px', width: 'auto' }}
+  />
+);
+
 interface CardPaymentModalProps {
   isOpen: boolean;
   orderId: number;
@@ -215,6 +231,12 @@ const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
               }`}
               maxLength={23}
             />
+            <div
+              style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+            >
+              <VisaLogo />
+              <MastercardLogo />
+            </div>
           </div>
           <div className="card-payment-modal__counter">
             {cardNumber.replace(/\s/g, '').length}/19
@@ -227,7 +249,7 @@ const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
         </div>
 
         <div className="card-payment-modal__row">
-          <div className="card-payment-modal__field" style={{ flex: 1 }}>
+          <div className="card-payment-modal__field">
             <label className="card-payment-modal__label">Válida hasta</label>
             <input
               type="text"
@@ -246,19 +268,21 @@ const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
             )}
           </div>
 
-          <div className="card-payment-modal__field" style={{ flex: 1 }}>
+          <div className="card-payment-modal__field card-payment-modal__field--cvv">
             <label className="card-payment-modal__label">CVV</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="cc-csc"
-              value={cvv}
-              onChange={handleCvvChange}
-              placeholder="123"
-              className={`card-payment-modal__input ${
-                errors.cvv ? 'card-payment-modal__input--error' : ''
-              }`}
-            />
+            <div className="card-payment-modal__input-wrapper">
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="cc-csc"
+                value={cvv}
+                onChange={handleCvvChange}
+                placeholder="123"
+                className={`card-payment-modal__input ${
+                  errors.cvv ? 'card-payment-modal__input--error' : ''
+                }`}
+              />
+            </div>
             <div className="card-payment-modal__counter">{cvv.length}/3</div>
             {errors.cvv && (
               <p className="card-payment-modal__error-text">{errors.cvv}</p>
