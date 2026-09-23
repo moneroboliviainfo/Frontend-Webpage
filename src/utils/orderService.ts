@@ -8,8 +8,10 @@ interface CreateOrderRequest {
   items: string; // cart token
   name: string;
   phone: string;
-  shipment: number;
+  shipment?: number;
   address: number;
+  // When using prepaid FedEx, send the selected service type
+  selectedServiceType?: string;
   // Payment type: 'qr' or 'card_online'
   payment_type?: 'qr' | 'card_online';
   // Optional fields

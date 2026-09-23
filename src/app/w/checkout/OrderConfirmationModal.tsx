@@ -16,6 +16,7 @@ import {
   selectCartToken,
   selectCheckoutCartItems,
   selectRepriceData,
+  selectFedexShippingToken,
   selectSelectedFedexService,
 } from '@/store/checkoutSlice';
 import {
@@ -67,6 +68,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   const router = useRouter();
   const selectedShipment = useAppSelector(selectSelectedShipment);
   const selectedFedexService = useAppSelector(selectSelectedFedexService);
+  const fedexShippingToken = useAppSelector(selectFedexShippingToken);
   const addressId = useAppSelector(selectAddressId);
   const cartToken = useAppSelector(selectCartToken);
   const cartItems = useAppSelector(selectCheckoutCartItems);
@@ -96,7 +98,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
 
   const handlePayOrder = async () => {
     if (!hasAcceptedTerms) return;
-    if (!selectedShipment || !addressId || !cartToken) {
+    if (!addressId || (!cartToken && !fedexShippingToken)) {
       setOrderError('Missing required order information. Please try again.');
       return;
     }
@@ -123,11 +125,14 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
 
       // Step 1: Create the order
       const orderResponse = await createOrder({
-        items: cartToken,
+        items: fedexShippingToken || cartToken || '',
         name: formData.name,
         phone: `${formData.countryCode} ${formData.phone}`,
         email: formData.email,
         payment_type: paymentMethod === 'card' ? 'card_online' : 'qr',
+        selectedServiceType: selectedFedexService
+          ? selectedFedexService.serviceType
+          : undefined,
         billing: {
           ci: formData.billingCI,
           name: formData.billingName,
@@ -136,7 +141,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           complemento: formData.billingComplemento || undefined,
           codigoTipoDocumentoIdentidad: 1,
         },
-        shipment: selectedShipment.id,
+        shipment: selectedShipment ? selectedShipment.id : undefined,
         address: addressId,
       });
 
@@ -146,7 +151,9 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
         // Card flow: reuse the store order as the Cybersource reference (same backend now, no separate reservation call)
         const total =
           (repriceData ? parseFloat(repriceData.total || '0') : 0) +
-          parseFloat(selectedShipment.price);
+          (selectedFedexService
+            ? selectedFedexService.amountBOB
+            : parseFloat(selectedShipment?.price || '0'));
         const totalPrice = total.toFixed(2);
 
         const billing = buildCybersourceBilling({

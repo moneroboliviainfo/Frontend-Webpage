@@ -1040,7 +1040,7 @@ const CheckoutPage: React.FC = () => {
 
   const handleConfirmOrder = async () => {
     if (!hasAcceptedTerms) return;
-    if (!selectedShipment || !addressId || !cartToken) {
+    if (!addressId || (!cartToken && !fedexShippingToken)) {
       setOrderError('Missing required order information. Please try again.');
       return;
     }
@@ -1067,10 +1067,13 @@ const CheckoutPage: React.FC = () => {
 
       // Step 1: Create the order
       const orderResponse = await createOrder({
-        items: cartToken,
+        items: fedexShippingToken || cartToken || '',
         name: formData.name,
         phone: `${formData.countryCode} ${formData.phone}`,
         payment_type: selectedPaymentMethod === 'card' ? 'card_online' : 'qr',
+        selectedServiceType: selectedFedexService
+          ? selectedFedexService.serviceType
+          : undefined,
         email: formData.email,
         billing: {
           ci: formData.billingCI,
@@ -1080,7 +1083,7 @@ const CheckoutPage: React.FC = () => {
           complemento: formData.billingComplemento || undefined,
           codigoTipoDocumentoIdentidad: 1,
         },
-        shipment: selectedShipment.id,
+        shipment: selectedShipment ? selectedShipment.id : undefined,
         address: addressId,
       });
 
@@ -1090,7 +1093,9 @@ const CheckoutPage: React.FC = () => {
         // Card flow: reuse the store order as the Cybersource reference (same backend now, no separate reservation call)
         const total =
           (repriceData ? parseFloat(repriceData.total || '0') : 0) +
-          parseFloat(selectedShipment.price);
+          (selectedFedexService
+            ? selectedFedexService.amountBOB
+            : parseFloat(selectedShipment?.price || '0'));
         const totalPrice = total.toFixed(2);
 
         const billing = buildCybersourceBilling({
