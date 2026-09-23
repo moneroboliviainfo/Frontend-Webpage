@@ -439,7 +439,7 @@ const OrderConfirmedContent: React.FC = () => {
                   showDeliveryCostMessage={
                     orderData.selectedCountry !== 'Bolivia'
                   }
-                  deliveryCostMessage="Costo determinado por DHL cuando lo recibas"
+                  deliveryCostMessage="Costo calculado por FedEx (pagado por adelantado; no incluye impuestos ni aranceles)"
                 />
               </div>
 

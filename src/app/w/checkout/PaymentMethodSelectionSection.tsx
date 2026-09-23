@@ -12,6 +12,7 @@ interface PaymentMethodOption {
 interface PaymentMethodSelectionSectionProps {
   onSelect: (method: PaymentMethodId) => void;
   isMobile?: boolean;
+  isFedexShipment?: boolean;
 }
 
 const QrIcon: React.FC = () => (
@@ -87,10 +88,15 @@ const PAYMENT_METHOD_OPTIONS: PaymentMethodOption[] = [
 
 export const PaymentMethodSelectionSection: React.FC<
   PaymentMethodSelectionSectionProps
-> = ({ onSelect, isMobile = false }) => {
+> = ({ onSelect, isMobile = false, isFedexShipment = false }) => {
+  // For international (FedEx) shipments, only show card payment
+  const availableOptions = isFedexShipment
+    ? PAYMENT_METHOD_OPTIONS.filter((option) => option.id === 'card')
+    : PAYMENT_METHOD_OPTIONS;
+
   return (
     <div className={isMobile ? 'payment-method-list' : 'payment-method-grid'}>
-      {PAYMENT_METHOD_OPTIONS.map((option) => (
+      {availableOptions.map((option) => (
         <button
           key={option.id}
           type="button"

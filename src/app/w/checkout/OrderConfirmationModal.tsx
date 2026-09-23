@@ -16,6 +16,7 @@ import {
   selectCartToken,
   selectCheckoutCartItems,
   selectRepriceData,
+  selectSelectedFedexService,
 } from '@/store/checkoutSlice';
 import {
   createOrder,
@@ -65,6 +66,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
 }) => {
   const router = useRouter();
   const selectedShipment = useAppSelector(selectSelectedShipment);
+  const selectedFedexService = useAppSelector(selectSelectedFedexService);
   const addressId = useAppSelector(selectAddressId);
   const cartToken = useAppSelector(selectCartToken);
   const cartItems = useAppSelector(selectCheckoutCartItems);
@@ -143,7 +145,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
       if (paymentMethod === 'card') {
         // Card flow: reuse the store order as the Cybersource reference (same backend now, no separate reservation call)
         const total =
-          (repriceData ? parseFloat(repriceData.total) : 0) +
+          (repriceData ? parseFloat(repriceData.total || '0') : 0) +
           parseFloat(selectedShipment.price);
         const totalPrice = total.toFixed(2);
 
@@ -570,14 +572,18 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                 }}
               >
                 Bs.{' '}
-                {repriceData
-                  ? (
-                      parseFloat(repriceData.total) +
-                      (selectedShipment
-                        ? parseFloat(selectedShipment.price)
-                        : 0)
-                    ).toFixed(2)
-                  : '0.00'}
+                {(() => {
+                  const delivery = selectedFedexService
+                    ? selectedFedexService.amountBOB
+                    : selectedShipment
+                      ? parseFloat(selectedShipment.price)
+                      : 0;
+                  return repriceData
+                    ? (parseFloat(repriceData.total || '0') + delivery).toFixed(
+                        2,
+                      )
+                    : '0.00';
+                })()}
               </span>
               <button
                 className="flex items-center justify-center hover:bg-gray-100 rounded-full"

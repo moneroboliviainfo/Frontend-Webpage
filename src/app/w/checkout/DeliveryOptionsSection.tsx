@@ -1,4 +1,5 @@
 import React from 'react';
+import type { FedexService } from '@/store/checkoutSlice';
 
 interface DeliveryOption {
   id: string;
@@ -19,6 +20,8 @@ interface DeliveryOptionsProps {
   onDeliveryOptionSelect: (shipmentId: number, shipmentName: string) => void;
   isMobile?: boolean;
   shipments?: Shipment[];
+  fedexServices?: FedexService[];
+  onFedexServiceSelect?: (service: FedexService) => void;
 }
 
 export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
@@ -26,10 +29,14 @@ export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
   onDeliveryOptionSelect,
   isMobile = false,
   shipments = [],
+  fedexServices = [],
+  onFedexServiceSelect,
 }) => {
+  const isBolivia = selectedCountry === 'Bolivia';
+
   // Use API shipments if available, otherwise use fallback options
   const deliveryOptions =
-    selectedCountry === 'Bolivia' && shipments.length > 0
+    isBolivia && shipments.length > 0
       ? shipments
           .filter((shipment) => shipment.enabled)
           .map((shipment) => ({
@@ -38,41 +45,60 @@ export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
             description: 'Disponible',
             price: `Bs. ${shipment.price}`,
           }))
-      : selectedCountry === 'Bolivia'
-      ? [
-          {
-            id: 'terminal',
-            title: 'Envío a terminal',
-            description: 'Recibelo en 24 horas',
-            price: 'Bs. 30',
-          },
-          {
-            id: 'domicilio',
-            title: 'Envío a domicilio',
-            description: 'Recibelo en 48 horas',
-            price: 'Bs. 50',
-          },
-          {
-            id: 'provincia',
-            title: 'Envío a provincia',
-            description: 'Recibelo en 72 horas',
-            price: 'Bs. 50',
-          },
-          {
-            id: 'avion',
-            title: 'Envío por avión',
-            description: 'Recibelo lo más pronto posible hasta su domicilio',
-            price: 'Bs. 60',
-          },
-        ]
-      : [
-          {
-            id: 'dhl',
-            title: 'Envío por DHL',
-            description: 'Tiempo determinado por DHL',
-            price: 'Costo determinado por DHL cuando lo recibas',
-          },
-        ];
+      : isBolivia
+        ? [
+            {
+              id: 'terminal',
+              title: 'Envío a terminal',
+              description: 'Recibelo en 24 horas',
+              price: 'Bs. 30',
+            },
+            {
+              id: 'domicilio',
+              title: 'Envío a domicilio',
+              description: 'Recibelo en 48 horas',
+              price: 'Bs. 50',
+            },
+            {
+              id: 'provincia',
+              title: 'Envío a provincia',
+              description: 'Recibelo en 72 horas',
+              price: 'Bs. 50',
+            },
+            {
+              id: 'avion',
+              title: 'Envío por avión',
+              description: 'Recibelo lo más pronto posible hasta su domicilio',
+              price: 'Bs. 60',
+            },
+          ]
+        : fedexServices.length > 0
+          ? fedexServices.map((service) => ({
+              id: service.code,
+              title: service.serviceName,
+              description: service.description,
+              price: `Bs. ${service.amountBOB.toFixed(2)}`,
+            }))
+          : [
+              {
+                id: 'fedex',
+                title: 'Envío internacional (FedEx)',
+                description:
+                  'Tiempo estimado por FedEx (costo calculado; pagado por adelantado; no incluye impuestos ni aranceles)',
+                price: 'Costo calculado por FedEx (pagado por adelantado)',
+              },
+            ];
+
+  const handleOptionSelect = (option: DeliveryOption) => {
+    if (!isBolivia && fedexServices.length > 0) {
+      const service = fedexServices.find((s) => s.code === option.id);
+      if (service) {
+        onFedexServiceSelect?.(service);
+      }
+      return;
+    }
+    onDeliveryOptionSelect(Number(option.id), option.title);
+  };
 
   const renderDeliveryOption = (option: DeliveryOption) => {
     const Component = isMobile ? 'div' : 'button';
@@ -93,7 +119,7 @@ export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
     return (
       <Component
         key={option.id}
-        onClick={() => onDeliveryOptionSelect(Number(option.id), option.title)}
+        onClick={() => handleOptionSelect(option)}
         className={className}
         style={containerStyle}
       >

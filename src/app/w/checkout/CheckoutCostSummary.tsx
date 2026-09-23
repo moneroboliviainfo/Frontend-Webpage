@@ -1,16 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-
-interface RepriceData {
-  items: Array<{
-    variantId: number;
-    quantity: number;
-    unit_price: number;
-    discountValue: number;
-    totalPrice: string;
-  }>;
-  total: string;
-}
+import type { RepriceData } from '@/store/checkoutSlice';
 
 interface CheckoutCostSummaryProps {
   subtotal: number;
@@ -43,7 +33,7 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
     if (selectedCountry === 'Bolivia') {
       return '-'; // For now, will be replaced with selected option cost later
     } else {
-      return 'DHL';
+      return 'Calculado por FedEx (pagado por adelantado; no incluye impuestos ni aranceles)';
     }
   };
 
@@ -51,17 +41,17 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
   const itemsSubtotal = repriceData
     ? repriceData.items.reduce(
         (sum, item) => sum + item.unit_price * item.quantity,
-        0
+        0,
       )
     : subtotal;
 
   // Calculate total discount based on the difference between subtotal and reprice total
   const totalDiscount = repriceData
-    ? itemsSubtotal - parseFloat(repriceData.total)
+    ? itemsSubtotal - parseFloat(repriceData.total || '0')
     : 0;
 
   const subtotalAfterDiscount = repriceData
-    ? parseFloat(repriceData.total)
+    ? parseFloat(repriceData.total || '0')
     : itemsSubtotal;
   const total = subtotalAfterDiscount + (deliveryCost || 0);
 

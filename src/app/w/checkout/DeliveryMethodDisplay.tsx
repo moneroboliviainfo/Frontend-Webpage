@@ -7,6 +7,7 @@ interface DeliveryMethodDisplayProps {
   price?: number;
   showTitle?: boolean;
   placeId?: number;
+  serviceDescription?: string;
 }
 
 const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
@@ -15,6 +16,7 @@ const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
   price,
   showTitle = true,
   placeId,
+  serviceDescription,
 }) => {
   const getDeliveryDescription = () => {
     if (country === 'Bolivia') {
@@ -37,7 +39,9 @@ const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
           return '';
       }
     } else {
-      return 'Tiempo determinado por DHL';
+      // For international shipments, prefer an explicit service description
+      if (serviceDescription) return serviceDescription;
+      return 'Tiempo calculado por FedEx (envío pagado por adelantado; no incluye impuestos ni aranceles)';
     }
   };
 
@@ -60,7 +64,7 @@ const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
           return '';
       }
     } else {
-      return 'Costo determinado por DHL cuando lo recibas';
+      return 'Costo calculado por FedEx (pagado por adelantado; no incluye impuestos ni aranceles)';
     }
   };
 

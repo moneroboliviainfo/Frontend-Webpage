@@ -12,19 +12,10 @@ import {
   selectCheckoutCartItems,
   selectRepriceData,
   selectSelectedShipment,
+  selectSelectedFedexService,
   selectSelectedPlace,
+  type RepriceData,
 } from '@/store/checkoutSlice';
-
-interface RepriceData {
-  items: Array<{
-    variantId: number;
-    quantity: number;
-    unit_price: number;
-    discountValue: number;
-    totalPrice: string;
-  }>;
-  total: string;
-}
 
 interface OrderReviewSectionProps {
   selectedDeliveryMethod: string;
@@ -86,15 +77,19 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
   const repriceDataRedux = useAppSelector(selectRepriceData);
   const selectedShipment = useAppSelector(selectSelectedShipment);
   const selectedPlace = useAppSelector(selectSelectedPlace);
+  const selectedFedexService = useAppSelector(selectSelectedFedexService);
 
   // Use Redux data if available, otherwise fall back to prop
   const repriceData = repriceDataRedux || repriceDataProp;
-  const deliveryCostFromRedux = selectedShipment
-    ? parseFloat(selectedShipment.price)
-    : 0;
-  const finalDeliveryCost = deliveryCostFromRedux || deliveryCost;
 
   // Calculate pricing
+  const deliveryCostFromRedux = selectedFedexService
+    ? selectedFedexService.amountBOB
+    : selectedShipment
+      ? parseFloat(selectedShipment.price)
+      : 0;
+  const finalDeliveryCost = deliveryCostFromRedux || deliveryCost;
+
   const itemsSubtotal = repriceData
     ? repriceData.items.reduce(
         (sum, item) => sum + item.unit_price * item.quantity,
@@ -102,13 +97,8 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
       )
     : 0;
 
-  // Calculate total discount based on the difference between subtotal and reprice total
-  const totalDiscount = repriceData
-    ? itemsSubtotal - parseFloat(repriceData.total)
-    : 0;
-
   const subtotalAfterDiscount = repriceData
-    ? parseFloat(repriceData.total)
+    ? parseFloat(repriceData.total || '0')
     : itemsSubtotal;
   const total = subtotalAfterDiscount + finalDeliveryCost;
 
@@ -138,8 +128,8 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
             subtotal={subtotalAfterDiscount}
             deliveryCost={finalDeliveryCost}
             total={total}
-            showDeliveryCostMessage={selectedCountry !== 'Bolivia'}
-            deliveryCostMessage="Costo determinado por DHL cuando lo recibas"
+            showDeliveryCostMessage={false}
+            deliveryCostMessage=""
           />
         </div>
       )}
@@ -152,6 +142,7 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
           price={finalDeliveryCost}
           showTitle={showSectionTitles}
           placeId={selectedPlace?.id}
+          serviceDescription={selectedFedexService?.description}
         />
       )}
 

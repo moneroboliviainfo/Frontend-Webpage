@@ -24,12 +24,20 @@ import {
   setCartToken,
   setSelectedShipment,
   setCheckoutCartItems,
-  setRepriceData as setRepriceDataRedux,
+  setRepriceData,
+  setFedexRates,
+  setSelectedFedexService,
   selectSelectedPlace,
   selectSelectedShipment,
   selectAddressId,
   selectCartToken,
+  selectFedexServices,
+  selectFedexShippingToken,
+  selectRepriceData,
+  selectSelectedFedexService,
   type Place,
+  type FedexService,
+  type RepriceData,
 } from '@/store/checkoutSlice';
 import {
   createAddress,
@@ -51,6 +59,7 @@ import {
   generateQR,
   checkForWomenItems,
 } from '@/utils/orderService';
+import { getFedexRates, buildFedexRecipient } from '@/utils/shippingRates';
 import { FEATURE_FLAGS } from '@/config/features';
 import { saveGuestOrderAccess } from '@/utils/guestOrderAccess';
 import { type CybersourceBilling } from '@/services/cybersourceService';
@@ -91,9 +100,110 @@ interface FormErrors {
   billingName?: string;
   city?: string;
   streetNumber?: string;
+  stateProvince?: string;
   postalCode?: string;
 }
 
+// Region lists for supported countries (display label + ISO-3166-2 code)
+const REGION_CODES: Record<string, { code: string; name: string }[]> = {
+  AR: [
+    { code: 'C', name: 'Ciudad Autónoma de Buenos Aires' },
+    { code: 'B', name: 'Buenos Aires' },
+    { code: 'K', name: 'Catamarca' },
+    { code: 'H', name: 'Chaco' },
+    { code: 'U', name: 'Chubut' },
+    { code: 'X', name: 'Córdoba' },
+    { code: 'W', name: 'Corrientes' },
+    { code: 'E', name: 'Entre Ríos' },
+    { code: 'P', name: 'Formosa' },
+    { code: 'Y', name: 'Jujuy' },
+    { code: 'L', name: 'La Pampa' },
+    { code: 'F', name: 'La Rioja' },
+    { code: 'M', name: 'Mendoza' },
+    { code: 'N', name: 'Misiones' },
+    { code: 'Q', name: 'Neuquén' },
+    { code: 'R', name: 'Río Negro' },
+    { code: 'A', name: 'Salta' },
+    { code: 'J', name: 'San Juan' },
+    { code: 'D', name: 'San Luis' },
+    { code: 'Z', name: 'Santa Cruz' },
+    { code: 'S', name: 'Santa Fe' },
+    { code: 'G', name: 'Santiago del Estero' },
+    { code: 'V', name: 'Tierra del Fuego' },
+    { code: 'T', name: 'Tucumán' },
+  ],
+  CL: [
+    { code: 'AI', name: 'Aisén del General Carlos Ibáñez del Campo' },
+    { code: 'AN', name: 'Antofagasta' },
+    { code: 'AR', name: 'Araucanía' },
+    { code: 'AP', name: 'Arica y Parinacota' },
+    { code: 'AT', name: 'Atacama' },
+    { code: 'BI', name: 'Biobío' },
+    { code: 'CO', name: 'Coquimbo' },
+    { code: 'LI', name: 'Libertador General Bernardo O’Higgins' },
+    { code: 'LL', name: 'Los Lagos' },
+    { code: 'LR', name: 'Los Ríos' },
+    { code: 'MA', name: 'Magallanes y de la Antártica Chilena' },
+    { code: 'ML', name: 'Maule' },
+    { code: 'RM', name: 'Región Metropolitana de Santiago' },
+    { code: 'TA', name: 'Tarapacá' },
+    { code: 'VS', name: 'Valparaíso' },
+  ],
+  BR: [
+    { code: 'AC', name: 'Acre' },
+    { code: 'AL', name: 'Alagoas' },
+    { code: 'AP', name: 'Amapá' },
+    { code: 'AM', name: 'Amazonas' },
+    { code: 'BA', name: 'Bahia' },
+    { code: 'CE', name: 'Ceará' },
+    { code: 'DF', name: 'Distrito Federal' },
+    { code: 'ES', name: 'Espírito Santo' },
+    { code: 'GO', name: 'Goiás' },
+    { code: 'MA', name: 'Maranhão' },
+    { code: 'MT', name: 'Mato Grosso' },
+    { code: 'MS', name: 'Mato Grosso do Sul' },
+    { code: 'MG', name: 'Minas Gerais' },
+    { code: 'PA', name: 'Pará' },
+    { code: 'PB', name: 'Paraíba' },
+    { code: 'PR', name: 'Paraná' },
+    { code: 'PE', name: 'Pernambuco' },
+    { code: 'PI', name: 'Piauí' },
+    { code: 'RJ', name: 'Rio de Janeiro' },
+    { code: 'RN', name: 'Rio Grande do Norte' },
+    { code: 'RS', name: 'Rio Grande do Sul' },
+    { code: 'RO', name: 'Rondônia' },
+    { code: 'RR', name: 'Roraima' },
+    { code: 'SC', name: 'Santa Catarina' },
+    { code: 'SP', name: 'São Paulo' },
+    { code: 'SE', name: 'Sergipe' },
+    { code: 'TO', name: 'Tocantins' },
+  ],
+  PE: [
+    { code: 'AC', name: 'Amazonas' },
+    { code: 'AN', name: 'Ancash' },
+    { code: 'AP', name: 'Apurímac' },
+    { code: 'AR', name: 'Arequipa' },
+    { code: 'AM', name: 'Áncash' },
+    { code: 'AY', name: 'Ayacucho' },
+    { code: 'CJ', name: 'Cajamarca' },
+    { code: 'CL', name: 'Callao' },
+    { code: 'CU', name: 'Cusco' },
+    { code: 'HV', name: 'Huancavelica' },
+    { code: 'HU', name: 'Huánuco' },
+    { code: 'IC', name: 'Ica' },
+    { code: 'JL', name: 'Junín' },
+    { code: 'LP', name: 'La Libertad' },
+    { code: 'LM', name: 'Lima' },
+    { code: 'LR', name: 'Lambayeque' },
+    { code: 'MO', name: 'Moquegua' },
+    { code: 'PA', name: 'Pasco' },
+    { code: 'PI', name: 'Piura' },
+    { code: 'PU', name: 'Puno' },
+    { code: 'SM', name: 'San Martín' },
+    { code: 'TA', name: 'Tacna' },
+    { code: 'TU', name: 'Tumbes' },
+  ],
+};
 const CheckoutPage: React.FC = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -103,6 +213,10 @@ const CheckoutPage: React.FC = () => {
   const selectedShipment = useAppSelector(selectSelectedShipment);
   const addressId = useAppSelector(selectAddressId);
   const cartToken = useAppSelector(selectCartToken);
+  const fedexServices = useAppSelector(selectFedexServices);
+  const fedexShippingToken = useAppSelector(selectFedexShippingToken);
+  const reduxRepriceData = useAppSelector(selectRepriceData);
+  const selectedFedexService = useAppSelector(selectSelectedFedexService);
   const [selectedCountry, setSelectedCountry] = useState('Bolivia');
   const [showCountryCodeModal, setShowCountryCodeModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
@@ -211,6 +325,8 @@ const CheckoutPage: React.FC = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isCreatingAddress, setIsCreatingAddress] = useState(false);
+  const [isFetchingShippingRates, setIsFetchingShippingRates] = useState(false);
+  const [isRepricing, setIsRepricing] = useState(false);
 
   // Address selection state
   const [selectedAddressOption, setSelectedAddressOption] = useState<
@@ -220,16 +336,7 @@ const CheckoutPage: React.FC = () => {
   const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
 
   // Cart reprice data state
-  const [repriceData, setRepriceData] = useState<{
-    items: Array<{
-      variantId: number;
-      quantity: number;
-      unit_price: number;
-      discountValue: number;
-      totalPrice: string;
-    }>;
-    total: string;
-  } | null>(null);
+  const [repriceData, setLocalRepriceData] = useState<RepriceData | null>(null);
 
   // Desktop QR modal state
   const [showDesktopQRModal, setShowDesktopQRModal] = useState(false);
@@ -263,6 +370,7 @@ const CheckoutPage: React.FC = () => {
     phone: '',
     countryCode: '+591',
     country: 'Bolivia',
+    countryIso: 'BO',
     departamento: '',
     cityProvince: '',
     detailedAddress: '',
@@ -272,6 +380,7 @@ const CheckoutPage: React.FC = () => {
     billingName: '',
     city: '',
     streetNumber: '',
+    stateProvince: '',
     postalCode: '',
   });
 
@@ -518,12 +627,12 @@ const CheckoutPage: React.FC = () => {
           // Load updated cart from localStorage and dispatch to Redux
           const updatedCart = getCart();
           dispatch(setCheckoutCartItems(updatedCart.items));
-          dispatch(setRepriceDataRedux(repriceResponse));
+          dispatch(setRepriceData(repriceResponse));
 
           // Store cart token in Redux
           dispatch(setCartToken(cartResponse.token));
           // Store reprice data for local state (can be removed later)
-          setRepriceData(repriceResponse);
+          setLocalRepriceData(repriceResponse);
           setIsValidatingCart(false);
         }
       } catch (error) {
@@ -617,6 +726,17 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
+  // When a region is selected from REGION_CODES, mirror its name into `city`
+  useEffect(() => {
+    if (!formData.countryIso || !formData.stateProvince) return;
+    const regions = REGION_CODES[formData.countryIso];
+    if (!regions) return;
+    const found = regions.find((r) => r.code === formData.stateProvince);
+    if (found && formData.city !== found.name) {
+      setFormData((prev) => ({ ...prev, city: found.name }));
+    }
+  }, [formData.countryIso, formData.stateProvince]);
+
   const handleSearchCountries = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
@@ -641,6 +761,7 @@ const CheckoutPage: React.FC = () => {
       setFormData((prev) => ({
         ...prev,
         country: country.name,
+        countryIso: country.code,
       }));
     }
     setShowCountryCodeModal(false);
@@ -649,6 +770,7 @@ const CheckoutPage: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
+    console.debug('validateForm input', formData);
     const newErrors: FormErrors = {};
 
     // Name validation
@@ -691,6 +813,9 @@ const CheckoutPage: React.FC = () => {
       if (!formData.streetNumber.trim()) {
         newErrors.streetNumber = 'La calle y número son obligatorios';
       }
+      if (!formData.stateProvince.trim()) {
+        newErrors.stateProvince = 'El estado/provincia es obligatorio';
+      }
       if (!formData.postalCode.trim()) {
         newErrors.postalCode = 'El código postal es obligatorio';
       } else {
@@ -703,20 +828,31 @@ const CheckoutPage: React.FC = () => {
 
     // Billing validation
     if (!formData.billingCI || !formData.billingCI.trim()) {
-      newErrors.billingCI = 'CI/NIT es obligatorio';
+      newErrors.billingCI =
+        selectedCountry === 'Bolivia'
+          ? 'CI/NIT es obligatorio'
+          : 'Documento de identidad es obligatorio';
     }
     if (!formData.billingName || !formData.billingName.trim()) {
       newErrors.billingName = 'El nombre para la factura es obligatorio';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    console.debug('validateForm result', { isValid, errors: newErrors });
+    return isValid;
   };
 
   const handleContinue = async () => {
+    console.debug('handleContinue invoked', {
+      selectedCountry,
+      selectedAddressOption,
+    });
     if (validateForm()) {
+      console.debug('handleContinue: validation passed');
       try {
         setIsCreatingAddress(true);
+        console.debug('handleContinue: setIsCreatingAddress(true)');
 
         // Store form data in Redux
         dispatch(setCheckoutFormData(formData));
@@ -739,11 +875,6 @@ const CheckoutPage: React.FC = () => {
         ) {
           // Using existing address - address ID already stored in Redux
           // No need to call address API
-          goToStep(2);
-          // Only show modal on mobile (desktop uses currentStep to render content)
-          if (window.innerWidth < 1024) {
-            setShowDeliveryModal(true);
-          }
         } else {
           // Creating new address - call API
           // Prepare address data for API
@@ -775,20 +906,54 @@ const CheckoutPage: React.FC = () => {
           }
 
           // Call address API
+          console.debug('handleContinue: creating address', addressData);
           const addressResponse = await createAddress(addressData);
 
           // Store address ID in Redux
           dispatch(setAddressId(addressResponse.id));
+          console.debug('handleContinue: address created', addressResponse.id);
+        }
 
-          // Form is valid, update step (desktop will show step 2, mobile needs modal)
-          goToStep(2);
-          // Only show modal on mobile (desktop uses currentStep to render content)
-          if (window.innerWidth < 1024) {
-            setShowDeliveryModal(true);
+        setIsCreatingAddress(false);
+        console.debug('handleContinue: setIsCreatingAddress(false)');
+
+        // International addresses need FedEx rates before advancing to step 2
+        if (selectedCountry !== 'Bolivia') {
+          if (!cartToken) {
+            throw new Error(
+              'No se encontró el carrito. Por favor recarga la página.',
+            );
           }
+          setIsFetchingShippingRates(true);
+          console.debug('handleContinue: fetching FedEx rates');
+          const ratesResponse = await getFedexRates(
+            cartToken,
+            buildFedexRecipient(formData),
+          );
+          console.debug('handleContinue: fetched FedEx rates', {
+            token: ratesResponse.fedexShippingToken,
+            servicesCount: ratesResponse.services?.length,
+          });
+          dispatch(
+            setFedexRates({
+              token: ratesResponse.fedexShippingToken,
+              services: ratesResponse.services,
+            }),
+          );
+          setIsFetchingShippingRates(false);
+          console.debug('handleContinue: setIsFetchingShippingRates(false)');
+        }
+
+        // Form is valid, update step (desktop will show step 2, mobile needs modal)
+        goToStep(2);
+        console.debug('handleContinue: goToStep(2)');
+        // Only show modal on mobile (desktop uses currentStep to render content)
+        if (window.innerWidth < 1024) {
+          setShowDeliveryModal(true);
+          console.debug('handleContinue: setShowDeliveryModal(true)');
         }
       } catch (error) {
-        console.error('Error creating address:', error);
+        console.error('Error preparing shipping step:', error);
         setErrorMessage(
           error instanceof Error
             ? error.message
@@ -797,6 +962,7 @@ const CheckoutPage: React.FC = () => {
         setShowErrorModal(true);
       } finally {
         setIsCreatingAddress(false);
+        setIsFetchingShippingRates(false);
       }
     } else {
       // Scroll to first error
@@ -823,6 +989,23 @@ const CheckoutPage: React.FC = () => {
     goToStep(3); // Move to payment method selection step (and push history)
     // Only show modal on mobile (desktop uses currentStep to render content)
     if (window.innerWidth < 1024) {
+      setShowPaymentMethodModal(true);
+    }
+  };
+
+  const handleFedexServiceSelect = (service: FedexService) => {
+    // Store the selected FedEx service with its price
+    dispatch(setSelectedFedexService(service));
+
+    // Set the delivery method to display in order review
+    setSelectedDeliveryMethod(service.serviceName);
+
+    // Move to step 3 (payment method selection)
+    goToStep(3);
+
+    // On mobile, show the payment method modal
+    if (window.innerWidth < 1024) {
+      setShowDeliveryModal(false);
       setShowPaymentMethodModal(true);
     }
   };
@@ -906,7 +1089,7 @@ const CheckoutPage: React.FC = () => {
       if (selectedPaymentMethod === 'card') {
         // Card flow: reuse the store order as the Cybersource reference (same backend now, no separate reservation call)
         const total =
-          (repriceData ? parseFloat(repriceData.total) : 0) +
+          (repriceData ? parseFloat(repriceData.total || '0') : 0) +
           parseFloat(selectedShipment.price);
         const totalPrice = total.toFixed(2);
 
@@ -1448,27 +1631,83 @@ const CheckoutPage: React.FC = () => {
                           </>
                         ) : (
                           <>
-                            {/* City for Other Countries */}
+                            {/* City for Other Countries - only show free-text city when no region list available */}
+                            {!REGION_CODES[formData.countryIso || ''] && (
+                              <div className="checkout-field">
+                                <label className="checkout-label">Ciudad</label>
+                                <input
+                                  type="text"
+                                  name="city"
+                                  value={formData.city}
+                                  onChange={handleInputChange}
+                                  className={`checkout-input ${errors.city ? 'checkout-input--error' : ''}`}
+                                  style={{
+                                    backgroundColor: isFormReadOnly
+                                      ? '#f3f4f6'
+                                      : 'white',
+                                    opacity: isFormReadOnly ? 0.6 : 1,
+                                  }}
+                                  placeholder="Ingresa tu ciudad"
+                                  readOnly={isFormReadOnly}
+                                />
+                                {errors.city && (
+                                  <p className="checkout-error-text">
+                                    {errors.city}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* State/Province for Other Countries (required by FedEx) */}
                             <div className="checkout-field">
-                              <label className="checkout-label">Ciudad</label>
-                              <input
-                                type="text"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleInputChange}
-                                className={`checkout-input ${errors.city ? 'checkout-input--error' : ''}`}
-                                style={{
-                                  backgroundColor: isFormReadOnly
-                                    ? '#f3f4f6'
-                                    : 'white',
-                                  opacity: isFormReadOnly ? 0.6 : 1,
-                                }}
-                                placeholder="Ingresa tu ciudad"
-                                readOnly={isFormReadOnly}
-                              />
-                              {errors.city && (
+                              <label className="checkout-label">
+                                Estado / Provincia
+                              </label>
+                              {REGION_CODES[formData.countryIso || ''] ? (
+                                <select
+                                  name="stateProvince"
+                                  value={formData.stateProvince}
+                                  onChange={handleInputChange}
+                                  className={`checkout-input ${errors.stateProvince ? 'checkout-input--error' : ''}`}
+                                  style={{
+                                    backgroundColor: isFormReadOnly
+                                      ? '#f3f4f6'
+                                      : 'white',
+                                    opacity: isFormReadOnly ? 0.6 : 1,
+                                  }}
+                                  disabled={isFormReadOnly}
+                                >
+                                  <option value="">
+                                    Selecciona Estado / Provincia
+                                  </option>
+                                  {REGION_CODES[formData.countryIso || ''].map(
+                                    (r) => (
+                                      <option key={r.code} value={r.code}>
+                                        {r.name} ({r.code})
+                                      </option>
+                                    ),
+                                  )}
+                                </select>
+                              ) : (
+                                <input
+                                  type="text"
+                                  name="stateProvince"
+                                  value={formData.stateProvince}
+                                  onChange={handleInputChange}
+                                  className={`checkout-input ${errors.stateProvince ? 'checkout-input--error' : ''}`}
+                                  style={{
+                                    backgroundColor: isFormReadOnly
+                                      ? '#f3f4f6'
+                                      : 'white',
+                                    opacity: isFormReadOnly ? 0.6 : 1,
+                                  }}
+                                  placeholder="Ej. NY, CA, Florida"
+                                  readOnly={isFormReadOnly}
+                                />
+                              )}
+                              {errors.stateProvince && (
                                 <p className="checkout-error-text">
-                                  {errors.city}
+                                  {errors.stateProvince}
                                 </p>
                               )}
                             </div>
@@ -1477,21 +1716,21 @@ const CheckoutPage: React.FC = () => {
                             <div className="checkout-grid-2">
                               <div>
                                 <label className="checkout-label">
-                                  Número de calle
+                                  Calle y número
                                 </label>
-                                <input
-                                  type="text"
+                                <textarea
                                   name="streetNumber"
                                   value={formData.streetNumber}
                                   onChange={handleInputChange}
-                                  className={`checkout-input ${errors.streetNumber ? 'checkout-input--error' : ''}`}
+                                  className={`checkout-textarea ${errors.streetNumber ? 'checkout-textarea--error' : ''}`}
                                   style={{
                                     backgroundColor: isFormReadOnly
                                       ? '#f3f4f6'
                                       : 'white',
                                     opacity: isFormReadOnly ? 0.6 : 1,
+                                    minHeight: '72px',
                                   }}
-                                  placeholder="123"
+                                  placeholder="Calle y número, barrio, referencias..."
                                   readOnly={isFormReadOnly}
                                 />
                                 {errors.streetNumber && (
@@ -1534,7 +1773,9 @@ const CheckoutPage: React.FC = () => {
 
                                 <div className="checkout-field">
                                   <label className="checkout-label">
-                                    CI/NIT
+                                    {selectedCountry === 'Bolivia'
+                                      ? 'CI/NIT'
+                                      : 'DNI / ID'}
                                   </label>
                                   <input
                                     type="text"
@@ -1542,7 +1783,11 @@ const CheckoutPage: React.FC = () => {
                                     value={formData.billingCI}
                                     onChange={handleInputChange}
                                     className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
-                                    placeholder="CI o NIT"
+                                    placeholder={
+                                      selectedCountry === 'Bolivia'
+                                        ? 'CI o NIT'
+                                        : 'DNI o ID'
+                                    }
                                   />
                                 </div>
 
@@ -1567,10 +1812,12 @@ const CheckoutPage: React.FC = () => {
                         {/* Continue Button */}
                         <button
                           onClick={handleContinue}
-                          disabled={isCreatingAddress}
+                          disabled={
+                            isCreatingAddress || isFetchingShippingRates
+                          }
                           className="checkout-submit-btn"
                         >
-                          {isCreatingAddress ? (
+                          {isCreatingAddress || isFetchingShippingRates ? (
                             <>
                               <svg
                                 className="checkout-spinner"
@@ -1592,7 +1839,9 @@ const CheckoutPage: React.FC = () => {
                                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                 ></path>
                               </svg>
-                              Guardando...
+                              {isFetchingShippingRates
+                                ? 'Cargando opciones de envío...'
+                                : 'Guardando...'}
                             </>
                           ) : (
                             'Continuar'
@@ -1616,6 +1865,8 @@ const CheckoutPage: React.FC = () => {
                           onDeliveryOptionSelect={handleDeliveryOptionSelect}
                           isMobile={false}
                           shipments={selectedPlace?.shipments || []}
+                          fedexServices={fedexServices}
+                          onFedexServiceSelect={handleFedexServiceSelect}
                         />
 
                         {/* Back Button */}
@@ -1663,6 +1914,7 @@ const CheckoutPage: React.FC = () => {
                         <PaymentMethodSelectionSection
                           onSelect={handlePaymentMethodSelect}
                           isMobile={false}
+                          isFedexShipment={!!selectedFedexService}
                         />
 
                         {/* Back Button */}
@@ -1710,11 +1962,13 @@ const CheckoutPage: React.FC = () => {
                           selectedDeliveryMethod={selectedDeliveryMethod}
                           selectedCountry={selectedCountry}
                           formData={formData}
-                          repriceData={repriceData}
+                          repriceData={reduxRepriceData || repriceData}
                           deliveryCost={
-                            selectedShipment
-                              ? parseFloat(selectedShipment.price)
-                              : 0
+                            selectedFedexService
+                              ? selectedFedexService.amountBOB
+                              : selectedShipment
+                                ? parseFloat(selectedShipment.price)
+                                : 0
                           }
                           paymentMethod={selectedPaymentMethod ?? 'qr'}
                           onConfirmOrder={handleConfirmOrder}
@@ -1741,9 +1995,13 @@ const CheckoutPage: React.FC = () => {
               <DesktopCartSummary
                 selectedCountry={selectedCountry}
                 selectedDeliveryMethod={selectedDeliveryMethod}
-                repriceData={repriceData}
+                repriceData={reduxRepriceData || repriceData}
                 deliveryCost={
-                  selectedShipment ? parseFloat(selectedShipment.price) : 0
+                  selectedFedexService
+                    ? selectedFedexService.amountBOB
+                    : selectedShipment
+                      ? parseFloat(selectedShipment.price)
+                      : 0
                 }
               />
             </div>
@@ -2029,14 +2287,22 @@ const CheckoutPage: React.FC = () => {
                       <div className="checkout-field">
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <div style={{ flex: 1 }}>
-                            <label className="checkout-label">CI/NIT</label>
+                            <label className="checkout-label">
+                              {selectedCountry === 'Bolivia'
+                                ? 'CI/NIT'
+                                : 'DNI / ID'}
+                            </label>
                             <input
                               type="text"
                               name="billingCI"
                               value={formData.billingCI}
                               onChange={handleInputChange}
                               className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
-                              placeholder="CI o NIT"
+                              placeholder={
+                                selectedCountry === 'Bolivia'
+                                  ? 'CI o NIT'
+                                  : 'DNI o ID'
+                              }
                             />
                             {errors.billingCI && (
                               <p className="checkout-error-text">
@@ -2076,46 +2342,102 @@ const CheckoutPage: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    {/* City for Other Countries */}
-                    <div className="checkout-field">
-                      <label className="checkout-label">Ciudad</label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        className={`checkout-input ${errors.city ? 'checkout-input--error' : ''}`}
-                        style={{
-                          backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
-                          opacity: isFormReadOnly ? 0.6 : 1,
-                        }}
-                        placeholder="Nombre de la ciudad"
-                        readOnly={isFormReadOnly}
-                      />
-                      {errors.city && (
-                        <p className="checkout-error-text">{errors.city}</p>
-                      )}
-                    </div>
+                    {/* City for Other Countries - only show free-text city when no region list available */}
+                    {!REGION_CODES[formData.countryIso || ''] && (
+                      <div className="checkout-field">
+                        <label className="checkout-label">Ciudad</label>
+                        <input
+                          type="text"
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          className={`checkout-input ${errors.city ? 'checkout-input--error' : ''}`}
+                          style={{
+                            backgroundColor: isFormReadOnly
+                              ? '#f3f4f6'
+                              : 'white',
+                            opacity: isFormReadOnly ? 0.6 : 1,
+                          }}
+                          placeholder="Nombre de la ciudad"
+                          readOnly={isFormReadOnly}
+                        />
+                        {errors.city && (
+                          <p className="checkout-error-text">{errors.city}</p>
+                        )}
+                      </div>
+                    )}
 
-                    {/* Street and Number for Other Countries */}
+                    {/* Street and Number for Other Countries (combined textarea) */}
                     <div className="checkout-field">
                       <label className="checkout-label">Calle y número</label>
-                      <input
-                        type="text"
+                      <textarea
                         name="streetNumber"
                         value={formData.streetNumber}
                         onChange={handleInputChange}
-                        className={`checkout-input ${errors.streetNumber ? 'checkout-input--error' : ''}`}
+                        className={`checkout-textarea ${errors.streetNumber ? 'checkout-textarea--error' : ''}`}
                         style={{
                           backgroundColor: isFormReadOnly ? '#f3f4f6' : 'white',
                           opacity: isFormReadOnly ? 0.6 : 1,
+                          minHeight: '72px',
                         }}
-                        placeholder="Calle Principal 123"
+                        placeholder="Calle y número, barrio, referencias..."
                         readOnly={isFormReadOnly}
                       />
                       {errors.streetNumber && (
                         <p className="checkout-error-text">
                           {errors.streetNumber}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* State/Province for Other Countries (required by FedEx) */}
+                    <div className="checkout-field">
+                      <label className="checkout-label">
+                        Estado / Provincia
+                      </label>
+                      {REGION_CODES[formData.countryIso || ''] ? (
+                        <select
+                          name="stateProvince"
+                          value={formData.stateProvince}
+                          onChange={handleInputChange}
+                          className={`checkout-input ${errors.stateProvince ? 'checkout-input--error' : ''}`}
+                          style={{
+                            backgroundColor: isFormReadOnly
+                              ? '#f3f4f6'
+                              : 'white',
+                            opacity: isFormReadOnly ? 0.6 : 1,
+                          }}
+                          disabled={isFormReadOnly}
+                        >
+                          <option value="">
+                            Selecciona Estado / Provincia
+                          </option>
+                          {REGION_CODES[formData.countryIso || ''].map((r) => (
+                            <option key={r.code} value={r.code}>
+                              {r.name} ({r.code})
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          name="stateProvince"
+                          value={formData.stateProvince}
+                          onChange={handleInputChange}
+                          className={`checkout-input ${errors.stateProvince ? 'checkout-input--error' : ''}`}
+                          style={{
+                            backgroundColor: isFormReadOnly
+                              ? '#f3f4f6'
+                              : 'white',
+                            opacity: isFormReadOnly ? 0.6 : 1,
+                          }}
+                          placeholder="Ej. NY, CA, Florida"
+                          readOnly={isFormReadOnly}
+                        />
+                      )}
+                      {errors.stateProvince && (
+                        <p className="checkout-error-text">
+                          {errors.stateProvince}
                         </p>
                       )}
                     </div>
@@ -2142,6 +2464,54 @@ const CheckoutPage: React.FC = () => {
                         </p>
                       )}
                     </div>
+                    {/* Billing Section for other countries (mobile) */}
+                    <div className="checkout-section">
+                      <h2 className="checkout-section-title--sm">
+                        Datos de facturación
+                      </h2>
+
+                      <div className="checkout-field">
+                        <label className="checkout-label">
+                          {selectedCountry === 'Bolivia'
+                            ? 'CI/NIT'
+                            : 'DNI / ID'}
+                        </label>
+                        <input
+                          type="text"
+                          name="billingCI"
+                          value={formData.billingCI}
+                          onChange={handleInputChange}
+                          className={`checkout-input ${errors.billingCI ? 'checkout-input--error' : ''}`}
+                          placeholder={
+                            selectedCountry === 'Bolivia'
+                              ? 'CI o NIT'
+                              : 'DNI o ID'
+                          }
+                        />
+                        {errors.billingCI && (
+                          <p className="checkout-error-text">
+                            {errors.billingCI}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="checkout-field">
+                        <label className="checkout-label">Nombre</label>
+                        <input
+                          type="text"
+                          name="billingName"
+                          value={formData.billingName}
+                          onChange={handleInputChange}
+                          className={`checkout-input ${errors.billingName ? 'checkout-input--error' : ''}`}
+                          placeholder="Nombre para la factura"
+                        />
+                        {errors.billingName && (
+                          <p className="checkout-error-text">
+                            {errors.billingName}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </>
                 )}
               </div>
@@ -2149,10 +2519,10 @@ const CheckoutPage: React.FC = () => {
               {/* Continue Button */}
               <button
                 onClick={handleContinue}
-                disabled={isCreatingAddress}
+                disabled={isCreatingAddress || isFetchingShippingRates}
                 className="checkout-submit-btn"
               >
-                {isCreatingAddress ? (
+                {isCreatingAddress || isFetchingShippingRates ? (
                   <>
                     <svg
                       className="checkout-spinner"
@@ -2174,7 +2544,9 @@ const CheckoutPage: React.FC = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Guardando...
+                    {isFetchingShippingRates
+                      ? 'Cargando opciones de envío...'
+                      : 'Guardando...'}
                   </>
                 ) : (
                   'Continuar'
@@ -2343,15 +2715,23 @@ const CheckoutPage: React.FC = () => {
                   onDeliveryOptionSelect={handleDeliveryOptionSelect}
                   isMobile={true}
                   shipments={selectedPlace?.shipments || []}
+                  fedexServices={fedexServices}
+                  onFedexServiceSelect={handleFedexServiceSelect}
                 />
               </div>
 
               {/* Checkout Cost Summary */}
               <CheckoutCostSummary
-                subtotal={repriceData ? parseFloat(repriceData.total) : 0}
+                subtotal={
+                  repriceData ? parseFloat(repriceData.total || '0') : 0
+                }
                 selectedCountry={selectedCountry}
                 deliveryCost={
-                  selectedShipment ? parseFloat(selectedShipment.price) : 0
+                  selectedFedexService
+                    ? selectedFedexService.amountBOB
+                    : selectedShipment
+                      ? parseFloat(selectedShipment.price)
+                      : 0
                 }
                 repriceData={repriceData}
               />
@@ -2421,15 +2801,22 @@ const CheckoutPage: React.FC = () => {
                 <PaymentMethodSelectionSection
                   onSelect={handlePaymentMethodSelect}
                   isMobile={true}
+                  isFedexShipment={!!selectedFedexService}
                 />
               </div>
 
               {/* Checkout Cost Summary */}
               <CheckoutCostSummary
-                subtotal={repriceData ? parseFloat(repriceData.total) : 0}
+                subtotal={
+                  repriceData ? parseFloat(repriceData.total || '0') : 0
+                }
                 selectedCountry={selectedCountry}
                 deliveryCost={
-                  selectedShipment ? parseFloat(selectedShipment.price) : 0
+                  selectedFedexService
+                    ? selectedFedexService.amountBOB
+                    : selectedShipment
+                      ? parseFloat(selectedShipment.price)
+                      : 0
                 }
                 repriceData={repriceData}
               />

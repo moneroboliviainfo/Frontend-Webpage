@@ -7,17 +7,7 @@ import {
   selectCheckoutCartItems,
   selectRepriceData,
 } from '@/store/checkoutSlice';
-
-interface RepriceData {
-  items: Array<{
-    variantId: number;
-    quantity: number;
-    unit_price: number;
-    discountValue: number;
-    totalPrice: string;
-  }>;
-  total: string;
-}
+import type { RepriceData } from '@/store/checkoutSlice';
 
 interface DesktopCartSummaryProps {
   selectedCountry: string;
@@ -42,13 +32,13 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
   const itemsSubtotal = repriceData
     ? repriceData.items.reduce(
         (sum, item) => sum + item.unit_price * item.quantity,
-        0
+        0,
       )
     : cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   // Calculate total discount based on the difference between subtotal and reprice total
   const totalDiscount = repriceData
-    ? itemsSubtotal - parseFloat(repriceData.total)
+    ? itemsSubtotal - parseFloat(repriceData.total || '0')
     : 0;
 
   return (
@@ -187,7 +177,7 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
           <span style={{ color: '#111827' }}>
             Bs.{' '}
             {(repriceData
-              ? parseFloat(repriceData.total)
+              ? parseFloat(repriceData.total || '0')
               : itemsSubtotal
             ).toFixed(2)}
           </span>
@@ -206,8 +196,8 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
             {!selectedDeliveryMethod
               ? '-'
               : deliveryCost > 0
-              ? `Bs. ${deliveryCost.toFixed(2)}`
-              : 'Gratis'}
+                ? `Bs. ${deliveryCost.toFixed(2)}`
+                : 'Gratis'}
           </span>
         </div>
 
@@ -224,7 +214,7 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
           <span style={{ color: '#111827' }}>
             Bs.{' '}
             {repriceData
-              ? (parseFloat(repriceData.total) + deliveryCost).toFixed(2)
+              ? (parseFloat(repriceData.total || '0') + deliveryCost).toFixed(2)
               : (itemsSubtotal + deliveryCost).toFixed(2)}
           </span>
         </div>

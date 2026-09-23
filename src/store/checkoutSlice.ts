@@ -15,6 +15,16 @@ export interface Place {
   shipments: Shipment[];
 }
 
+export interface FedexService {
+  serviceType: string;
+  serviceName: string;
+  code: string;
+  amountUSD: number;
+  amountBOB: number;
+  currency: string;
+  description: string;
+}
+
 export interface RepriceData {
   items: Array<{
     variantId: number;
@@ -23,7 +33,23 @@ export interface RepriceData {
     discountValue: number;
     totalPrice: string;
   }>;
-  total: string;
+  total?: string;
+  summary?: {
+    subtotalBOB: number;
+    shippingBOB: number;
+    totalBOB: number;
+    currency: string;
+  };
+  fedexShipment?: {
+    serviceType: string;
+    serviceName: string;
+    amountBOB: number;
+    amountUSD: number;
+  };
+  debugMetadata?: {
+    calculatedBoxes: number;
+    calculatedTotalWeightKg: number;
+  };
 }
 
 export interface CheckoutFormData {
@@ -35,11 +61,13 @@ export interface CheckoutFormData {
   billingName?: string;
   countryCode: string;
   country: string;
+  countryIso: string;
   departamento: string;
   cityProvince: string;
   detailedAddress: string;
   city: string;
   streetNumber: string;
+  stateProvince: string;
   postalCode: string;
 }
 
@@ -51,6 +79,9 @@ interface CheckoutState {
   cartToken: string | null;
   checkoutCartItems: CartItem[];
   repriceData: RepriceData | null;
+  fedexShippingToken: string | null;
+  fedexServices: FedexService[];
+  selectedFedexService: FedexService | null;
 }
 
 const initialState: CheckoutState = {
@@ -61,6 +92,9 @@ const initialState: CheckoutState = {
   cartToken: null,
   checkoutCartItems: [],
   repriceData: null,
+  fedexShippingToken: null,
+  fedexServices: [],
+  selectedFedexService: null,
 };
 
 const checkoutSlice = createSlice({
@@ -88,6 +122,17 @@ const checkoutSlice = createSlice({
     setRepriceData: (state, action: PayloadAction<RepriceData>) => {
       state.repriceData = action.payload;
     },
+    setFedexRates: (
+      state,
+      action: PayloadAction<{ token: string; services: FedexService[] }>,
+    ) => {
+      state.fedexShippingToken = action.payload.token;
+      state.fedexServices = action.payload.services;
+      state.selectedFedexService = null;
+    },
+    setSelectedFedexService: (state, action: PayloadAction<FedexService>) => {
+      state.selectedFedexService = action.payload;
+    },
     clearCheckoutData: (state) => {
       state.formData = null;
       state.selectedPlace = null;
@@ -96,6 +141,9 @@ const checkoutSlice = createSlice({
       state.cartToken = null;
       state.checkoutCartItems = [];
       state.repriceData = null;
+      state.fedexShippingToken = null;
+      state.fedexServices = [];
+      state.selectedFedexService = null;
     },
   },
 });
@@ -108,6 +156,8 @@ export const {
   setCartToken,
   setCheckoutCartItems,
   setRepriceData,
+  setFedexRates,
+  setSelectedFedexService,
   clearCheckoutData,
 } = checkoutSlice.actions;
 
@@ -124,5 +174,11 @@ export const selectCheckoutCartItems = (state: RootState) =>
   state.checkout.checkoutCartItems;
 export const selectRepriceData = (state: RootState) =>
   state.checkout.repriceData;
+export const selectFedexShippingToken = (state: RootState) =>
+  state.checkout.fedexShippingToken;
+export const selectFedexServices = (state: RootState) =>
+  state.checkout.fedexServices;
+export const selectSelectedFedexService = (state: RootState) =>
+  state.checkout.selectedFedexService;
 
 export default checkoutSlice.reducer;
