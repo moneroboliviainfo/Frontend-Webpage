@@ -98,11 +98,12 @@ export async function createBackendCart(
 export async function repriceCart(
   token: string
 ): Promise<RepriceSuccessResponse | RepriceErrorResponse> {
-  const response = await fetch(`${API_URL}orders/reprice/${token}?type=online`, {
+  const response = await fetch(`${API_URL}orders/reprice`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
+    body: JSON.stringify({ items: token, type: 'online' }),
   });
 
   const data = await response.json();

@@ -65,10 +65,10 @@ export async function getFedexRates(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_URL}shipping/rates/${cartToken}`, {
+  const response = await fetch(`${API_URL}shipping/rates`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ recipient }),
+    body: JSON.stringify({ items: cartToken, recipient }),
   });
 
   if (!response.ok) {
