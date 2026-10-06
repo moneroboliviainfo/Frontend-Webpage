@@ -328,6 +328,22 @@ const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
           Tu orden se cancelará automáticamente en {formatTime(timeLeft)} si no
           completas el pago
         </p>
+
+        <div className="card-payment-modal__security">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+          <span>Pago 100% seguro y protegido por Linkser</span>
+        </div>
       </div>
     </div>
   );

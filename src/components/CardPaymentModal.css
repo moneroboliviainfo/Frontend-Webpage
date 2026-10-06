@@ -149,3 +149,25 @@
   color: #6b7280;
   margin-top: 1rem;
 }
+
+.card-payment-modal__security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0.65rem auto 0;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #a7f3d0;
+  border-radius: 999px;
+  background-color: #f0fdf4;
+  color: #00856a;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  box-sizing: border-box;
+}
+
+.card-payment-modal__security svg {
+  flex: 0 0 16px;
+}
