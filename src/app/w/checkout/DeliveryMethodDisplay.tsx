@@ -8,6 +8,7 @@ interface DeliveryMethodDisplayProps {
   showTitle?: boolean;
   placeId?: number;
   serviceDescription?: string;
+  arrivalEstimate?: string;
 }
 
 const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
@@ -17,6 +18,7 @@ const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
   showTitle = true,
   placeId,
   serviceDescription,
+  arrivalEstimate,
 }) => {
   const getDeliveryDescription = () => {
     if (country === 'Bolivia') {
@@ -108,6 +110,31 @@ const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
       >
         {getDeliveryDescription()}
       </div>
+      {arrivalEstimate && (
+        <div
+          className="flex items-center"
+          style={{
+            gap: '0.375rem',
+            fontSize: '0.875rem',
+            color: '#00856a',
+            marginTop: '0.5rem',
+          }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            aria-hidden="true"
+          >
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M16 3v4M8 3v4M3 10h18" />
+          </svg>
+          <span>{arrivalEstimate}</span>
+        </div>
+      )}
       <div
         className="font-semibold"
         style={{

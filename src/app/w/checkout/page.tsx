@@ -78,16 +78,21 @@ interface Country {
   dialCode: string;
 }
 
-interface APICountry {
-  name: {
-    common: string;
-  };
-  cca2: string;
-  idd?: {
-    root?: string;
-    suffixes?: string[];
-  };
-}
+const SUPPORTED_COUNTRIES: Country[] = [
+  { name: 'Alemania', code: 'DE', dialCode: '+49' },
+  { name: 'Argentina', code: 'AR', dialCode: '+54' },
+  { name: 'Bolivia', code: 'BO', dialCode: '+591' },
+  { name: 'Brasil', code: 'BR', dialCode: '+55' },
+  { name: 'Canadá', code: 'CA', dialCode: '+1' },
+  { name: 'Chile', code: 'CL', dialCode: '+56' },
+  { name: 'Costa Rica', code: 'CR', dialCode: '+506' },
+  { name: 'El Salvador', code: 'SV', dialCode: '+503' },
+  { name: 'España', code: 'ES', dialCode: '+34' },
+  { name: 'Estados Unidos', code: 'US', dialCode: '+1' },
+  { name: 'Francia', code: 'FR', dialCode: '+33' },
+  { name: 'México', code: 'MX', dialCode: '+52' },
+  { name: 'Perú', code: 'PE', dialCode: '+51' },
+];
 
 interface FormErrors {
   name?: string;
@@ -202,6 +207,225 @@ const REGION_CODES: Record<string, { code: string; name: string }[]> = {
     { code: 'SM', name: 'San Martín' },
     { code: 'TA', name: 'Tacna' },
     { code: 'TU', name: 'Tumbes' },
+  ],
+  DE: [
+    { code: 'BW', name: 'Baden-Württemberg' },
+    { code: 'BY', name: 'Baviera' },
+    { code: 'BE', name: 'Berlín' },
+    { code: 'BB', name: 'Brandeburgo' },
+    { code: 'HB', name: 'Bremen' },
+    { code: 'HH', name: 'Hamburgo' },
+    { code: 'HE', name: 'Hesse' },
+    { code: 'MV', name: 'Mecklemburgo-Pomerania Occidental' },
+    { code: 'NI', name: 'Baja Sajonia' },
+    { code: 'NW', name: 'Renania del Norte-Westfalia' },
+    { code: 'RP', name: 'Renania-Palatinado' },
+    { code: 'SL', name: 'Sarre' },
+    { code: 'SN', name: 'Sajonia' },
+    { code: 'ST', name: 'Sajonia-Anhalt' },
+    { code: 'SH', name: 'Schleswig-Holstein' },
+    { code: 'TH', name: 'Turingia' },
+  ],
+  ES: [
+    { code: 'A', name: 'Alicante' },
+    { code: 'AB', name: 'Albacete' },
+    { code: 'AL', name: 'Almería' },
+    { code: 'VI', name: 'Álava' },
+    { code: 'O', name: 'Asturias' },
+    { code: 'AV', name: 'Ávila' },
+    { code: 'BA', name: 'Badajoz' },
+    { code: 'PM', name: 'Islas Baleares' },
+    { code: 'B', name: 'Barcelona' },
+    { code: 'BI', name: 'Bizkaia' },
+    { code: 'BU', name: 'Burgos' },
+    { code: 'CC', name: 'Cáceres' },
+    { code: 'CA', name: 'Cádiz' },
+    { code: 'S', name: 'Cantabria' },
+    { code: 'CS', name: 'Castellón' },
+    { code: 'CE', name: 'Ceuta' },
+    { code: 'CR', name: 'Ciudad Real' },
+    { code: 'CO', name: 'Córdoba' },
+    { code: 'C', name: 'A Coruña' },
+    { code: 'CU', name: 'Cuenca' },
+    { code: 'GI', name: 'Girona' },
+    { code: 'GR', name: 'Granada' },
+    { code: 'GU', name: 'Guadalajara' },
+    { code: 'SS', name: 'Gipuzkoa' },
+    { code: 'H', name: 'Huelva' },
+    { code: 'HU', name: 'Huesca' },
+    { code: 'J', name: 'Jaén' },
+    { code: 'LE', name: 'León' },
+    { code: 'L', name: 'Lleida' },
+    { code: 'LO', name: 'La Rioja' },
+    { code: 'GC', name: 'Las Palmas' },
+    { code: 'LU', name: 'Lugo' },
+    { code: 'M', name: 'Madrid' },
+    { code: 'MA', name: 'Málaga' },
+    { code: 'ML', name: 'Melilla' },
+    { code: 'MU', name: 'Murcia' },
+    { code: 'NA', name: 'Navarra' },
+    { code: 'OR', name: 'Ourense' },
+    { code: 'P', name: 'Palencia' },
+    { code: 'PO', name: 'Pontevedra' },
+    { code: 'SA', name: 'Salamanca' },
+    { code: 'TF', name: 'Santa Cruz de Tenerife' },
+    { code: 'SG', name: 'Segovia' },
+    { code: 'SE', name: 'Sevilla' },
+    { code: 'SO', name: 'Soria' },
+    { code: 'T', name: 'Tarragona' },
+    { code: 'TE', name: 'Teruel' },
+    { code: 'TO', name: 'Toledo' },
+    { code: 'V', name: 'Valencia' },
+    { code: 'VA', name: 'Valladolid' },
+    { code: 'Z', name: 'Zaragoza' },
+    { code: 'ZA', name: 'Zamora' },
+  ],
+  US: [
+    { code: 'AL', name: 'Alabama' },
+    { code: 'AK', name: 'Alaska' },
+    { code: 'AZ', name: 'Arizona' },
+    { code: 'AR', name: 'Arkansas' },
+    { code: 'CA', name: 'California' },
+    { code: 'CO', name: 'Colorado' },
+    { code: 'CT', name: 'Connecticut' },
+    { code: 'DE', name: 'Delaware' },
+    { code: 'DC', name: 'Distrito de Columbia' },
+    { code: 'FL', name: 'Florida' },
+    { code: 'GA', name: 'Georgia' },
+    { code: 'HI', name: 'Hawái' },
+    { code: 'ID', name: 'Idaho' },
+    { code: 'IL', name: 'Illinois' },
+    { code: 'IN', name: 'Indiana' },
+    { code: 'IA', name: 'Iowa' },
+    { code: 'KS', name: 'Kansas' },
+    { code: 'KY', name: 'Kentucky' },
+    { code: 'LA', name: 'Luisiana' },
+    { code: 'ME', name: 'Maine' },
+    { code: 'MD', name: 'Maryland' },
+    { code: 'MA', name: 'Massachusetts' },
+    { code: 'MI', name: 'Míchigan' },
+    { code: 'MN', name: 'Minnesota' },
+    { code: 'MS', name: 'Misisipi' },
+    { code: 'MO', name: 'Misuri' },
+    { code: 'MT', name: 'Montana' },
+    { code: 'NE', name: 'Nebraska' },
+    { code: 'NV', name: 'Nevada' },
+    { code: 'NH', name: 'Nuevo Hampshire' },
+    { code: 'NJ', name: 'Nueva Jersey' },
+    { code: 'NM', name: 'Nuevo México' },
+    { code: 'NY', name: 'Nueva York' },
+    { code: 'NC', name: 'Carolina del Norte' },
+    { code: 'ND', name: 'Dakota del Norte' },
+    { code: 'OH', name: 'Ohio' },
+    { code: 'OK', name: 'Oklahoma' },
+    { code: 'OR', name: 'Oregón' },
+    { code: 'PA', name: 'Pensilvania' },
+    { code: 'RI', name: 'Rhode Island' },
+    { code: 'SC', name: 'Carolina del Sur' },
+    { code: 'SD', name: 'Dakota del Sur' },
+    { code: 'TN', name: 'Tennessee' },
+    { code: 'TX', name: 'Texas' },
+    { code: 'UT', name: 'Utah' },
+    { code: 'VT', name: 'Vermont' },
+    { code: 'VA', name: 'Virginia' },
+    { code: 'WA', name: 'Washington' },
+    { code: 'WV', name: 'Virginia Occidental' },
+    { code: 'WI', name: 'Wisconsin' },
+    { code: 'WY', name: 'Wyoming' },
+  ],
+  MX: [
+    { code: 'AGU', name: 'Aguascalientes' },
+    { code: 'BCN', name: 'Baja California' },
+    { code: 'BCS', name: 'Baja California Sur' },
+    { code: 'CAM', name: 'Campeche' },
+    { code: 'CHP', name: 'Chiapas' },
+    { code: 'CHH', name: 'Chihuahua' },
+    { code: 'CMX', name: 'Ciudad de México' },
+    { code: 'COA', name: 'Coahuila' },
+    { code: 'COL', name: 'Colima' },
+    { code: 'DUR', name: 'Durango' },
+    { code: 'GUA', name: 'Guanajuato' },
+    { code: 'GRO', name: 'Guerrero' },
+    { code: 'HID', name: 'Hidalgo' },
+    { code: 'JAL', name: 'Jalisco' },
+    { code: 'MEX', name: 'Estado de México' },
+    { code: 'MIC', name: 'Michoacán' },
+    { code: 'MOR', name: 'Morelos' },
+    { code: 'NAY', name: 'Nayarit' },
+    { code: 'NLE', name: 'Nuevo León' },
+    { code: 'OAX', name: 'Oaxaca' },
+    { code: 'PUE', name: 'Puebla' },
+    { code: 'QUE', name: 'Querétaro' },
+    { code: 'ROO', name: 'Quintana Roo' },
+    { code: 'SLP', name: 'San Luis Potosí' },
+    { code: 'SIN', name: 'Sinaloa' },
+    { code: 'SON', name: 'Sonora' },
+    { code: 'TAB', name: 'Tabasco' },
+    { code: 'TAM', name: 'Tamaulipas' },
+    { code: 'TLA', name: 'Tlaxcala' },
+    { code: 'VER', name: 'Veracruz' },
+    { code: 'YUC', name: 'Yucatán' },
+    { code: 'ZAC', name: 'Zacatecas' },
+  ],
+  SV: [
+    { code: 'AH', name: 'Ahuachapán' },
+    { code: 'CA', name: 'Cabañas' },
+    { code: 'CH', name: 'Chalatenango' },
+    { code: 'CU', name: 'Cuscatlán' },
+    { code: 'LI', name: 'La Libertad' },
+    { code: 'MO', name: 'Morazán' },
+    { code: 'PA', name: 'La Paz' },
+    { code: 'SA', name: 'Santa Ana' },
+    { code: 'SM', name: 'San Miguel' },
+    { code: 'SO', name: 'Sonsonate' },
+    { code: 'SS', name: 'San Salvador' },
+    { code: 'SV', name: 'San Vicente' },
+    { code: 'UN', name: 'La Unión' },
+    { code: 'US', name: 'Usulután' },
+  ],
+  CR: [
+    { code: 'A', name: 'Alajuela' },
+    { code: 'C', name: 'Cartago' },
+    { code: 'G', name: 'Guanacaste' },
+    { code: 'H', name: 'Heredia' },
+    { code: 'L', name: 'Limón' },
+    { code: 'P', name: 'Puntarenas' },
+    { code: 'SJ', name: 'San José' },
+  ],
+  FR: [
+    { code: 'ARA', name: 'Auvernia-Ródano-Alpes' },
+    { code: 'BFC', name: 'Borgoña-Franco Condado' },
+    { code: 'BRE', name: 'Bretaña' },
+    { code: 'CVL', name: 'Centro-Valle del Loira' },
+    { code: 'COR', name: 'Córcega' },
+    { code: 'GES', name: 'Gran Este' },
+    { code: 'HDF', name: 'Alta Francia' },
+    { code: 'IDF', name: 'Isla de Francia' },
+    { code: 'NOR', name: 'Normandía' },
+    { code: 'NAQ', name: 'Nueva Aquitania' },
+    { code: 'OCC', name: 'Occitania' },
+    { code: 'PDL', name: 'Países del Loira' },
+    { code: 'PAC', name: 'Provenza-Alpes-Costa Azul' },
+    { code: 'GP', name: 'Guadalupe' },
+    { code: 'GF', name: 'Guayana Francesa' },
+    { code: 'MQ', name: 'Martinica' },
+    { code: 'RE', name: 'Reunión' },
+    { code: 'YT', name: 'Mayotte' },
+  ],
+  CA: [
+    { code: 'AB', name: 'Alberta' },
+    { code: 'BC', name: 'Columbia Británica' },
+    { code: 'MB', name: 'Manitoba' },
+    { code: 'NB', name: 'Nuevo Brunswick' },
+    { code: 'NL', name: 'Terranova y Labrador' },
+    { code: 'NT', name: 'Territorios del Noroeste' },
+    { code: 'NS', name: 'Nueva Escocia' },
+    { code: 'NU', name: 'Nunavut' },
+    { code: 'ON', name: 'Ontario' },
+    { code: 'PE', name: 'Isla del Príncipe Eduardo' },
+    { code: 'QC', name: 'Quebec' },
+    { code: 'SK', name: 'Saskatchewan' },
+    { code: 'YT', name: 'Yukón' },
   ],
 };
 const CheckoutPage: React.FC = () => {
@@ -534,46 +758,11 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  // Fetch countries on component mount
+  // Use the supported destination list for both country and calling-code selectors.
   React.useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        setIsLoadingCountries(true);
-        // Using REST Countries API for country data
-        const response = await fetch(
-          'https://restcountries.com/v3.1/all?fields=name,cca2,idd',
-        );
-        const data: APICountry[] = await response.json();
-
-        const countryList = data
-          .filter((country: APICountry) => country.idd?.root)
-          .map((country: APICountry) => ({
-            name: country.name.common,
-            code: country.cca2,
-            dialCode: country.idd!.root! + (country.idd!.suffixes?.[0] || ''),
-          }))
-          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
-
-        setCountries(countryList);
-        setFilteredCountries(countryList);
-      } catch (error) {
-        console.error('Failed to fetch countries:', error);
-        // Fallback data
-        const fallbackCountries = [
-          { name: 'Bolivia', code: 'BO', dialCode: '+591' },
-          { name: 'Argentina', code: 'AR', dialCode: '+54' },
-          { name: 'Brasil', code: 'BR', dialCode: '+55' },
-          { name: 'Chile', code: 'CL', dialCode: '+56' },
-          { name: 'Perú', code: 'PE', dialCode: '+51' },
-        ];
-        setCountries(fallbackCountries);
-        setFilteredCountries(fallbackCountries);
-      } finally {
-        setIsLoadingCountries(false);
-      }
-    };
-
-    fetchCountries();
+    setCountries(SUPPORTED_COUNTRIES);
+    setFilteredCountries(SUPPORTED_COUNTRIES);
+    setIsLoadingCountries(false);
   }, []);
 
   // Validate cart on component mount
@@ -762,6 +951,8 @@ const CheckoutPage: React.FC = () => {
         ...prev,
         country: country.name,
         countryIso: country.code,
+        stateProvince: '',
+        city: '',
       }));
     }
     setShowCountryCodeModal(false);
@@ -1859,7 +2050,16 @@ const CheckoutPage: React.FC = () => {
                   {currentStep === 2 && (
                     <>
                       {/* Delivery Method Section */}
-                      <div className="checkout-section">
+                      <div
+                        className="checkout-section"
+                        style={{
+                          paddingBottom:
+                            selectedCountry !== 'Bolivia' &&
+                            fedexServices.length > 0
+                              ? '7rem'
+                              : undefined,
+                        }}
+                      >
                         <h2 className="checkout-section-title">
                           {stepLabels[2]}
                         </h2>
@@ -2713,7 +2913,12 @@ const CheckoutPage: React.FC = () => {
               {/* Modal Content */}
               <div
                 className="checkout-modal-body"
-                style={{ paddingBottom: '8rem' }}
+                style={{
+                  paddingBottom:
+                    selectedCountry !== 'Bolivia' && fedexServices.length > 0
+                      ? '14rem'
+                      : '8rem',
+                }}
               >
                 <DeliveryOptionsSection
                   selectedCountry={selectedCountry}
@@ -2739,6 +2944,9 @@ const CheckoutPage: React.FC = () => {
                       : 0
                 }
                 repriceData={repriceData}
+                showFedexCustomsDisclaimer={
+                  selectedCountry !== 'Bolivia' && fedexServices.length > 0
+                }
               />
             </div>
           )}

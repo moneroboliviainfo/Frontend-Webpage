@@ -1,11 +1,15 @@
 import React from 'react';
+import Image from 'next/image';
 import type { FedexService } from '@/store/checkoutSlice';
+import { formatFedexArrivalEstimate } from '@/utils/fedexArrivalEstimate';
+import FedexCustomsDisclaimer from './FedexCustomsDisclaimer';
 
 interface DeliveryOption {
   id: string;
   title: string;
   description: string;
   price: string;
+  arrivalEstimate?: string;
 }
 
 interface Shipment {
@@ -78,6 +82,7 @@ export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
               title: service.serviceName,
               description: service.description,
               price: `Bs. ${service.amountBOB.toFixed(2)}`,
+              arrivalEstimate: formatFedexArrivalEstimate(service),
             }))
           : [
               {
@@ -124,31 +129,89 @@ export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
         style={containerStyle}
       >
         <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div
-              className="font-bold"
-              style={{
-                fontSize: '1rem',
-                color: '#374151',
-                marginBottom: '0.25rem',
-              }}
-            >
-              {option.title}
-            </div>
-            <div
-              style={{
-                fontSize: '0.875rem',
-                color: '#6b7280',
-                marginBottom: '0.25rem',
-              }}
-            >
-              {option.description}
-            </div>
-            <div
-              className="font-bold"
-              style={{ fontSize: '1rem', color: '#374151' }}
-            >
-              {option.price}
+          <div
+            className="flex items-start"
+            style={{ gap: '1rem', minWidth: 0 }}
+          >
+            {!isBolivia && (
+              <div
+                style={{
+                  width: '68px',
+                  height: '40px',
+                  flex: '0 0 68px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  border: '1px solid #fed7aa',
+                  borderRadius: '4px',
+                  backgroundColor: '#fffaf5',
+                }}
+              >
+                <Image
+                  src="/logos/Fedex-logo.png"
+                  alt="FedEx"
+                  width={120}
+                  height={48}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                  }}
+                />
+              </div>
+            )}
+            <div className="flex-1" style={{ minWidth: 0 }}>
+              <div
+                className="font-bold"
+                style={{
+                  fontSize: '1rem',
+                  color: '#374151',
+                  marginBottom: '0.25rem',
+                }}
+              >
+                {option.title}
+              </div>
+              <div
+                style={{
+                  fontSize: '0.875rem',
+                  color: '#6b7280',
+                  marginBottom: '0.25rem',
+                }}
+              >
+                {option.description}
+              </div>
+              {option.arrivalEstimate && (
+                <div
+                  className="flex items-center"
+                  style={{
+                    gap: '0.375rem',
+                    fontSize: '0.875rem',
+                    color: '#00856a',
+                    marginBottom: '0.25rem',
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <rect x="3" y="5" width="18" height="16" rx="2" />
+                    <path d="M16 3v4M8 3v4M3 10h18" />
+                  </svg>
+                  <span>{option.arrivalEstimate}</span>
+                </div>
+              )}
+              <div
+                className="font-bold"
+                style={{ fontSize: '1rem', color: '#374151' }}
+              >
+                {option.price}
+              </div>
             </div>
           </div>
           <svg
@@ -168,8 +231,13 @@ export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
   };
 
   return (
-    <div style={isMobile ? {} : { display: 'grid', gap: '1rem' }}>
-      {deliveryOptions.map(renderDeliveryOption)}
-    </div>
+    <>
+      <div style={isMobile ? {} : { display: 'grid', gap: '1rem' }}>
+        {deliveryOptions.map(renderDeliveryOption)}
+      </div>
+      {!isMobile && !isBolivia && fedexServices.length > 0 && (
+        <FedexCustomsDisclaimer position="fixed" />
+      )}
+    </>
   );
 };

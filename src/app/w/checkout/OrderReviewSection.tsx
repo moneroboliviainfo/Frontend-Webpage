@@ -8,6 +8,7 @@ import DeliveryMethodDisplay from './DeliveryMethodDisplay';
 import DeliveryAddressDisplay from './DeliveryAddressDisplay';
 import OrderItemsList from './OrderItemsList';
 import OrderTotalDisplay from './OrderTotalDisplay';
+import { formatFedexArrivalEstimate } from '@/utils/fedexArrivalEstimate';
 import {
   selectCheckoutCartItems,
   selectRepriceData,
@@ -143,6 +144,11 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
           showTitle={showSectionTitles}
           placeId={selectedPlace?.id}
           serviceDescription={selectedFedexService?.description}
+          arrivalEstimate={
+            selectedFedexService
+              ? formatFedexArrivalEstimate(selectedFedexService)
+              : undefined
+          }
         />
       )}
 

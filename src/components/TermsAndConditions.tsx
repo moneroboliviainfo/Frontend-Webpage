@@ -225,6 +225,13 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
             En caso de que el paquete llegue dañado, el cliente debe reportarlo
             dentro de 24 horas.
           </li>
+          <li>
+            Si el envío es fuera de Bolivia, la tarifa seleccionada cubre
+            exclusivamente el transporte internacional hasta el país de destino.
+            No incluye aranceles aduaneros, tarifas de importación ni impuestos
+            locales que puedan ser determinados y cobrados por las autoridades
+            aduaneras pertinentes al ingresar el paquete.
+          </li>
         </ul>
       </section>
 

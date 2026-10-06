@@ -23,6 +23,12 @@ export interface FedexService {
   amountBOB: number;
   currency: string;
   description: string;
+  commit?: {
+    dateDetail?: {
+      dayOfWeek?: string;
+      dayFormat?: string;
+    };
+  };
 }
 
 export interface RepriceData {

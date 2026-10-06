@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import type { RepriceData } from '@/store/checkoutSlice';
+import FedexCustomsDisclaimer from './FedexCustomsDisclaimer';
 
 interface CheckoutCostSummaryProps {
   subtotal: number;
@@ -8,6 +9,7 @@ interface CheckoutCostSummaryProps {
   deliveryCost?: number;
   onExpandToggle?: (isExpanded: boolean) => void;
   repriceData?: RepriceData | null;
+  showFedexCustomsDisclaimer?: boolean;
 }
 
 const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
@@ -16,6 +18,7 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
   deliveryCost,
   onExpandToggle,
   repriceData,
+  showFedexCustomsDisclaimer = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -153,6 +156,11 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
           </button>
         </div>
       </div>
+      {showFedexCustomsDisclaimer && (
+        <div style={{ marginTop: '0.875rem' }}>
+          <FedexCustomsDisclaimer />
+        </div>
+      )}
     </div>
   );
 };
