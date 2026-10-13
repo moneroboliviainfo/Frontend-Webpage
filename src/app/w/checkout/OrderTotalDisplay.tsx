@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatBs } from '@/shared/lib/formatCurrency';
 
 interface OrderTotalDisplayProps {
   subtotal: number;
@@ -27,7 +28,7 @@ const OrderTotalDisplay: React.FC<OrderTotalDisplayProps> = ({
         }}
       >
         <span>Subtotal:</span>
-        <span>Bs. {subtotal.toFixed(2)}</span>
+        <span>{formatBs(subtotal, 2)}</span>
       </div>
 
       {/* Delivery Cost */}
@@ -45,7 +46,7 @@ const OrderTotalDisplay: React.FC<OrderTotalDisplayProps> = ({
             {deliveryCostMessage}
           </span>
         ) : (
-          <span>Bs. {deliveryCost.toFixed(2)}</span>
+          <span>{formatBs(deliveryCost, 2)}</span>
         )}
       </div>
 
@@ -64,7 +65,7 @@ const OrderTotalDisplay: React.FC<OrderTotalDisplayProps> = ({
         {showDeliveryCostMessage ? (
           <span style={{ fontSize: '0.875rem' }}>Por determinar</span>
         ) : (
-          <span>Bs. {total.toFixed(2)}</span>
+          <span>{formatBs(total, 2)}</span>
         )}
       </div>
     </div>

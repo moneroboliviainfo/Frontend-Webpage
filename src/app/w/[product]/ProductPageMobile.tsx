@@ -1,5 +1,6 @@
 'use client';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import BottomSheet from '@/components/BottomSheet/BottomSheet';
 import BasketConfirmation from '@/components/BasketConfirmation';
 import AccessoriesSlider from '@/components/AccessoriesSlider';
@@ -485,10 +486,10 @@ const ProductPageMobile: React.FC<Props> = ({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    Bs. {productDetails.price}
+                    {formatBs(productDetails.price)}
                   </span>
                 )}
-                Bs. {productDetails.finalPrice}
+                {formatBs(productDetails.finalPrice)}
               </div>
             </div>
           </div>

@@ -1,15 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { BREAKPOINTS } from '@/shared/lib/breakpoints';
 
 /**
- * useIsMobile
- * Tracks whether the viewport width is below the provided breakpoint.
- * Defaults to 768px.
+ * Tracks whether the viewport width is below the given breakpoint.
  *
- * Usage:
- * const isMobile = useIsMobile();
+ * Returns false on the server and on the first client render, so the desktop
+ * layout paints for one frame before correcting on mobile.
  */
-export default function useIsMobile(breakpoint = 768): boolean {
+export default function useIsMobile(
+  breakpoint: number = BREAKPOINTS.mobile,
+): boolean {
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {

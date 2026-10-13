@@ -39,9 +39,3 @@ export const getAdvertisement = async (): Promise<Advertisement | null> => {
 
   return fetchPromise;
 };
-
-// Optional: Clear cache if needed
-export const clearAdvertisementCache = () => {
-  cachedAdvertisement = null;
-  fetchPromise = null;
-};

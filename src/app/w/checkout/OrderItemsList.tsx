@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -249,7 +250,7 @@ const OrderItemsList: React.FC<OrderItemsListProps> = ({
                 flexShrink: 0,
               }}
             >
-              Bs. {item.finalPrice.toFixed(2)}
+              {formatBs(item.finalPrice, 2)}
             </div>
           </div>
         ))}

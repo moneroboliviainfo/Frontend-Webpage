@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import Image from 'next/image';
 import type { CartItem } from '@/types/cart';
 
@@ -142,7 +143,7 @@ const BasketConfirmation: React.FC<BasketConfirmationProps> = ({
               marginBottom: '4px',
             }}
           >
-            Bs. {cartItem.finalPrice}
+            {formatBs(cartItem.finalPrice)}
           </div>
           <div style={{ fontSize: '14px', color: '#000', marginBottom: '8px' }}>
             {cartItem.productName}

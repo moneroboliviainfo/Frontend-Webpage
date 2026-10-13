@@ -1,5 +1,6 @@
 'use client';
 import BasketConfirmation from '@/components/BasketConfirmation';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import AccessoriesSlider from '@/components/AccessoriesSlider';
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
@@ -426,7 +427,7 @@ const ProductPageDesktop: React.FC<Props> = ({
                   textDecoration: 'line-through',
                 }}
               >
-                Bs. {productDetails.price}
+                {formatBs(productDetails.price)}
               </span>
             )}
             <div
@@ -436,7 +437,7 @@ const ProductPageDesktop: React.FC<Props> = ({
                 color: productDetails.discount > 0 ? '#dc2626' : '#000',
               }}
             >
-              Bs. {productDetails.finalPrice}
+              {formatBs(productDetails.finalPrice)}
             </div>
             {productDetails.discount > 0 && (
               <div

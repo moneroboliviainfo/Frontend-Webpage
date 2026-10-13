@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import Image from 'next/image';
 import type { FedexService } from '@/store/checkoutSlice';
 import { formatFedexArrivalEstimate } from '@/utils/fedexArrivalEstimate';
@@ -47,7 +48,7 @@ export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
             id: shipment.id.toString(),
             title: shipment.name,
             description: 'Disponible',
-            price: `Bs. ${shipment.price}`,
+            price: formatBs(shipment.price),
           }))
       : isBolivia
         ? [
@@ -81,7 +82,7 @@ export const DeliveryOptionsSection: React.FC<DeliveryOptionsProps> = ({
               id: service.code,
               title: service.serviceName,
               description: service.description,
-              price: `Bs. ${service.amountBOB.toFixed(2)}`,
+              price: formatBs(service.amountBOB, 2),
               arrivalEstimate: formatFedexArrivalEstimate(service),
             }))
           : [

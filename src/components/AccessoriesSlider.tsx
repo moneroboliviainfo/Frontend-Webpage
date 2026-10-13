@@ -6,6 +6,7 @@ import { Product } from '@/components/ProductsGallery';
 import { API_URL } from '@/config/env';
 import buildProductSlug from '@/utils/buildProductSlug';
 import { isDiscountActive } from '@/utils/price';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import './AccessoriesSlider.css';
 
 interface AccessoriesSliderProps {
@@ -218,15 +219,15 @@ export default function AccessoriesSlider({
                             {hasDiscount ? (
                               <>
                                 <p className="accessory-price">
-                                  Bs. {finalPrice.toFixed(2)}
+                                  {formatBs(finalPrice, 2)}
                                 </p>
                                 <p className="accessory-original-price">
-                                  Bs. {price.toFixed(2)}
+                                  {formatBs(price, 2)}
                                 </p>
                               </>
                             ) : (
                               <p className="accessory-price">
-                                Bs. {price.toFixed(2)}
+                                {formatBs(price, 2)}
                               </p>
                             )}
                           </div>

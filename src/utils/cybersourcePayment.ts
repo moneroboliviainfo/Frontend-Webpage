@@ -21,7 +21,7 @@ export const generateDeviceFingerprintId = (): string => {
 export const extractCardFirst4 = (cardNumber: string): string =>
   cardNumber.replace(/\s/g, '').substring(0, 4);
 
-export const detectCardType = (cardNumber: string): string => {
+const detectCardType = (cardNumber: string): string => {
   const num = cardNumber.replace(/\s/g, '');
   if (/^4/.test(num)) return '001'; // Visa
   if (/^5[1-5]/.test(num)) return '002'; // Mastercard
@@ -30,10 +30,10 @@ export const detectCardType = (cardNumber: string): string => {
   return '001';
 };
 
-export const resolveCountryIsoCode = (countryName: string): string =>
+const resolveCountryIsoCode = (countryName: string): string =>
   COUNTRY_ISO_CODES[countryName] || 'BO';
 
-export const resolveBoliviaStateCode = (departmentName: string): string =>
+const resolveBoliviaStateCode = (departmentName: string): string =>
   BOLIVIA_STATE_CODES[departmentName] || '';
 
 interface BuildBillingInput {

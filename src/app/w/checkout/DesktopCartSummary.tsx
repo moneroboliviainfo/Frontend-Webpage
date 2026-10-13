@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAppSelector } from '@/store/hooks';
@@ -149,7 +150,7 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
                     color: item.finalPrice < item.price ? '#ef4444' : '#111827',
                   }}
                 >
-                  Bs. {(item.finalPrice * item.quantity).toFixed(2)}
+                  {formatBs(item.finalPrice * item.quantity, 2)}
                 </div>
               </div>
             </div>
@@ -175,11 +176,12 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
         >
           <span style={{ color: '#6b7280' }}>Subtotal</span>
           <span style={{ color: '#111827' }}>
-            Bs.{' '}
-            {(repriceData
-              ? parseFloat(repriceData.total || '0')
-              : itemsSubtotal
-            ).toFixed(2)}
+            {formatBs(
+              repriceData
+                ? parseFloat(repriceData.total || '0')
+                : itemsSubtotal,
+              2,
+            )}
           </span>
         </div>
 
@@ -196,7 +198,7 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
             {!selectedDeliveryMethod
               ? '-'
               : deliveryCost > 0
-                ? `Bs. ${deliveryCost.toFixed(2)}`
+                ? formatBs(deliveryCost, 2)
                 : 'Gratis'}
           </span>
         </div>
@@ -212,10 +214,12 @@ const DesktopCartSummary: React.FC<DesktopCartSummaryProps> = ({
         >
           <span style={{ color: '#111827' }}>Total</span>
           <span style={{ color: '#111827' }}>
-            Bs.{' '}
-            {repriceData
-              ? (parseFloat(repriceData.total || '0') + deliveryCost).toFixed(2)
-              : (itemsSubtotal + deliveryCost).toFixed(2)}
+            {formatBs(
+              repriceData
+                ? parseFloat(repriceData.total || '0') + deliveryCost
+                : itemsSubtotal + deliveryCost,
+              2,
+            )}
           </span>
         </div>
       </div>

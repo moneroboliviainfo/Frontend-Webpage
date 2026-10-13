@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import { useRouter } from 'next/navigation';
 import buildProductSlug from '@/utils/buildProductSlug';
 import { type ActiveDiscount, isDiscountActive } from '@/utils/price';
@@ -157,17 +158,17 @@ const GalleryItem: React.FC<Props> = ({
                 className="text-sm"
                 style={{ textDecoration: 'line-through', color: '#6b7280' }}
               >
-                {`Bs. ${price}`}
+                {formatBs(price)}
               </span>
               <span
                 className="text-sm font-bold"
                 style={{ marginLeft: 8, color: '#dc2626' }}
               >
-                {`Bs. ${finalPrice}`}
+                {formatBs(finalPrice)}
               </span>
             </>
           ) : (
-            <span className="text-sm font-bold">{`Bs. ${price}`}</span>
+            <span className="text-sm font-bold">{formatBs(price)}</span>
           )}
         </div>
         {/* color swatches row */}

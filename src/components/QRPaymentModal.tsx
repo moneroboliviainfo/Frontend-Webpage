@@ -26,6 +26,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
   gloss,
 }) => {
   const DURATION_SECONDS = QR_PAYMENT_DURATION_MINUTES * 60; // Convert minutes to seconds
+  const router = useRouter();
   const [timeLeft, setTimeLeft] = useState<number>(DURATION_SECONDS);
   const [endTimestamp, setEndTimestamp] = useState<number | null>(null);
   const [showDownloadToast, setShowDownloadToast] = useState(false);
@@ -105,19 +106,6 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
     };
   }, [isOpen, orderId, onPaymentConfirmed]);
 
-  // Format time display (MM:SS)
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds
-      .toString()
-      .padStart(2, '0')}`;
-  };
-
-  if (!isOpen) return null;
-
-  const router = useRouter();
-
   // Redirect to last gender page when timer expires
   useEffect(() => {
     if (!isOpen) return;
@@ -130,6 +118,17 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
       }
     }
   }, [timeLeft, isOpen, router]);
+
+  // Format time display (MM:SS)
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds
+      .toString()
+      .padStart(2, '0')}`;
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div

@@ -69,6 +69,7 @@ import { API_URL } from '@/config/env';
 import { GenderStorage } from '@/utils/genderStorage';
 import './checkout.css';
 import { AuthStorage } from '@/utils/authStorage';
+import { isBelowCheckoutDesktop } from '@/shared/lib/breakpoints';
 import { completeLoginWithToken } from '@/services/sessionService';
 
 // Types for country data
@@ -503,7 +504,7 @@ const CheckoutPage: React.FC = () => {
         const step = stateStep as 1 | 2 | 3 | 4;
         setCurrentStep(step);
         // Sync mobile modals with step
-        if (window.innerWidth < 1024) {
+        if (isBelowCheckoutDesktop()) {
           if (step === 2) {
             setShowDeliveryModal(true);
             setShowPaymentMethodModal(false);
@@ -1139,7 +1140,7 @@ const CheckoutPage: React.FC = () => {
         goToStep(2);
         console.debug('handleContinue: goToStep(2)');
         // Only show modal on mobile (desktop uses currentStep to render content)
-        if (window.innerWidth < 1024) {
+        if (isBelowCheckoutDesktop()) {
           setShowDeliveryModal(true);
           console.debug('handleContinue: setShowDeliveryModal(true)');
         }
@@ -1179,7 +1180,7 @@ const CheckoutPage: React.FC = () => {
     setShowDeliveryModal(false);
     goToStep(3); // Move to payment method selection step (and push history)
     // Only show modal on mobile (desktop uses currentStep to render content)
-    if (window.innerWidth < 1024) {
+    if (isBelowCheckoutDesktop()) {
       setShowPaymentMethodModal(true);
     }
   };
@@ -1195,7 +1196,7 @@ const CheckoutPage: React.FC = () => {
     goToStep(3);
 
     // On mobile, show the payment method modal
-    if (window.innerWidth < 1024) {
+    if (isBelowCheckoutDesktop()) {
       setShowDeliveryModal(false);
       setShowPaymentMethodModal(true);
     }
@@ -1205,7 +1206,7 @@ const CheckoutPage: React.FC = () => {
     setShowPaymentMethodModal(false);
     goToStep(2); // Back to delivery step (and push history)
     // Only show modal on mobile (desktop uses currentStep to render content)
-    if (window.innerWidth < 1024) {
+    if (isBelowCheckoutDesktop()) {
       setShowDeliveryModal(true);
     }
   };
@@ -1215,7 +1216,7 @@ const CheckoutPage: React.FC = () => {
     setShowPaymentMethodModal(false);
     goToStep(4); // Move to order review step (and push history)
     // Only show modal on mobile (desktop uses currentStep to render content)
-    if (window.innerWidth < 1024) {
+    if (isBelowCheckoutDesktop()) {
       setShowOrderConfirmationModal(true);
     }
   };
@@ -1224,7 +1225,7 @@ const CheckoutPage: React.FC = () => {
     setShowOrderConfirmationModal(false);
     goToStep(3); // Back to payment method step (and push history)
     // Only show modal on mobile (desktop uses currentStep to render content)
-    if (window.innerWidth < 1024) {
+    if (isBelowCheckoutDesktop()) {
       setShowPaymentMethodModal(true);
     }
   };

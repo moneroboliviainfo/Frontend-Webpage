@@ -19,7 +19,7 @@ function saveMap(map: Record<string, string>) {
   }
 }
 
-export function generateGuestOrderKey(length = 32) {
+function generateGuestOrderKey(length = 32) {
   const chars =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let out = '';
@@ -53,25 +53,3 @@ export function hasGuestOrderAccess(orderId: number | string) {
   const map = loadMap();
   return Boolean(map[id]);
 }
-
-export function getGuestOrderKey(orderId: number | string) {
-  const id = String(orderId);
-  const map = loadMap();
-  return map[id] || null;
-}
-
-export function removeGuestOrderAccess(orderId: number | string) {
-  const id = String(orderId);
-  const map = loadMap();
-  if (map[id]) {
-    delete map[id];
-    saveMap(map);
-  }
-}
-
-export default {
-  saveGuestOrderAccess,
-  hasGuestOrderAccess,
-  getGuestOrderKey,
-  removeGuestOrderAccess,
-};

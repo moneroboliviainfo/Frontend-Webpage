@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import ReduxProvider from '../store/Provider';
@@ -7,18 +6,7 @@ import AuthProvider from '../components/AuthProvider';
 import BugsnagProvider from '../components/BugsnagProvider';
 import { baseMetadata } from '../config/metadata';
 
-import '@fontsource/poppins';
 import '@fontsource/space-grotesk';
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
 
 export const metadata: Metadata = baseMetadata;
 
@@ -29,7 +17,6 @@ export default function RootLayout({
 }>) {
   // Clarity only runs in production builds or when explicitly enabled
   const isProduction = process.env.NODE_ENV === 'production';
-  console.log('isProduction:', isProduction);
 
   return (
     <html lang="es">
@@ -133,9 +120,7 @@ export default function RootLayout({
           </>
         )}
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         {isProduction && (
           <>
             <Script

@@ -11,6 +11,7 @@ import {
 } from '@/utils/cartStorage';
 import type { CartItem } from '@/types/cart';
 import buildProductSlug from '@/utils/buildProductSlug';
+import { formatBs } from '@/shared/lib/formatCurrency';
 
 const CartNavBarDialog: React.FC<{
   open: boolean;
@@ -287,7 +288,7 @@ const CartNavBarDialog: React.FC<{
                         className="font-bold"
                         style={{ fontSize: '1.1rem' }}
                       >
-                        Bs. {item.finalPrice}
+                        {formatBs(item.finalPrice)}
                       </span>
                     </div>
 
@@ -382,7 +383,7 @@ const CartNavBarDialog: React.FC<{
             >
               <span className="font-medium">Subtotal</span>
               <span className="font-bold text-lg">
-                Bs. {calculateSubtotal().toFixed(2)}
+                {formatBs(calculateSubtotal(), 2)}
               </span>
             </div>
 

@@ -1,10 +1,11 @@
 'use client';
 import React from 'react';
+import { formatBs } from '@/shared/lib/formatCurrency';
 
 interface DeliveryMethodDisplayProps {
   deliveryMethod: string;
   country: string;
-  price?: number;
+  price: number;
   showTitle?: boolean;
   placeId?: number;
   serviceDescription?: string;
@@ -44,29 +45,6 @@ const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
       // For international shipments, prefer an explicit service description
       if (serviceDescription) return serviceDescription;
       return 'Tiempo calculado por FedEx (envío pagado por adelantado; no incluye impuestos ni aranceles)';
-    }
-  };
-
-  const getPriceDisplay = () => {
-    if (price !== undefined) {
-      return `Bs. ${price.toFixed(2)}`;
-    }
-
-    if (country === 'Bolivia') {
-      switch (deliveryMethod) {
-        case 'Envío a terminal':
-          return '27.99 €';
-        case 'Envío a domicilio':
-          return 'Bs. 50';
-        case 'Envío a provincia':
-          return 'Bs. 50';
-        case 'Envío por avión':
-          return 'Bs. 60';
-        default:
-          return '';
-      }
-    } else {
-      return 'Costo calculado por FedEx (pagado por adelantado; no incluye impuestos ni aranceles)';
     }
   };
 
@@ -143,7 +121,7 @@ const DeliveryMethodDisplay: React.FC<DeliveryMethodDisplayProps> = ({
           marginTop: '0.25rem',
         }}
       >
-        {getPriceDisplay()}
+        {formatBs(price, 2)}
       </div>
     </div>
   );

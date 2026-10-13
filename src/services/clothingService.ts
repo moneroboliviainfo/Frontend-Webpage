@@ -89,54 +89,6 @@ export class ClothingApiService {
 }
 
 /**
- * Utility functions for data transformation
- * Follows Single Responsibility Principle - handles only data transformation
- */
-export class ClothingDataUtils {
-  /**
-   * Filter sliders by type and gender
-   */
-  static filterSliders(
-    sliders: Slider[],
-    type?: 'desktop' | 'mobile',
-    gender?: 'male' | 'female'
-  ): Slider[] {
-    return sliders.filter((slider) => {
-      if (type && slider.slider_type !== type) return false;
-      if (gender && slider.gender !== gender) return false;
-      return true;
-    });
-  }
-
-  /**
-   * Filter categories by gender and enabled status
-   */
-  static filterCategories(
-    categories: Category[],
-    gender?: 'male' | 'female',
-    enabledOnly = true
-  ): Category[] {
-    return categories
-      .filter((category) => {
-        if (enabledOnly && !category.enabled) return false;
-        if (gender && category.gender !== gender) return false;
-        return true;
-      })
-      .sort((a, b) => a.displayOrder - b.displayOrder);
-  }
-
-  /**
-   * Get subcategories for a specific category
-   */
-  static getSubcategoriesForCategory(
-    category: Category,
-    enabledOnly = true
-  ): typeof category.subcategories {
-    return category.subcategories.filter((sub) => !enabledOnly || sub.enabled);
-  }
-}
-
-/**
  * Constants for API endpoints and common parameters
  * Follows DRY principle - centralizes configuration
  */

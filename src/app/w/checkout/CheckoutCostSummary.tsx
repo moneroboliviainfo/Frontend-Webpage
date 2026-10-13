@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import type { RepriceData } from '@/store/checkoutSlice';
 import FedexCustomsDisclaimer from './FedexCustomsDisclaimer';
+import { formatBs } from '@/shared/lib/formatCurrency';
 
 interface CheckoutCostSummaryProps {
   subtotal: number;
@@ -28,9 +29,7 @@ const CheckoutCostSummary: React.FC<CheckoutCostSummaryProps> = ({
     onExpandToggle?.(newExpanded);
   };
 
-  const formatPrice = (price: number) => {
-    return `Bs. ${price.toFixed(2)}`;
-  };
+  const formatPrice = (price: number) => formatBs(price, 2);
 
   const getDeliveryCostDisplay = () => {
     if (selectedCountry === 'Bolivia') {

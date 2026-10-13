@@ -106,41 +106,6 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
 };
 
 /**
- * Custom hook for managing category data specifically
- * Follows Single Responsibility Principle - handles only category operations
- */
-export const useCategoriesData = (gender?: 'male' | 'female') => {
-  const categories = useSelector(
-    (state: RootState) => state.clothing.categories
-  );
-  const categoriesLoading = useSelector(
-    (state: RootState) => state.clothing.categoriesLoading
-  );
-
-  // Filter and sort categories
-  const filteredCategories = categories
-    .filter((category) => {
-      if (gender && category.gender !== gender) return false;
-      return category.enabled;
-    })
-    .sort((a, b) => a.displayOrder - b.displayOrder);
-
-  // Get categories with their subcategories
-  const categoriesWithSubcategories = filteredCategories.map((category) => ({
-    ...category,
-    subcategories: category.subcategories.filter((sub) => sub.enabled),
-  }));
-
-  return {
-    categories: filteredCategories,
-    categoriesWithSubcategories,
-    loading: categoriesLoading,
-    totalCategories: filteredCategories.length,
-    hasCategories: filteredCategories.length > 0,
-  };
-};
-
-/**
  * Custom hook for managing slider data specifically
  * Follows Single Responsibility Principle - handles only slider operations
  */

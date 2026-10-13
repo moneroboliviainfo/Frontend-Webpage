@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useRef } from 'react';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import Image from 'next/image';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import sortSizes from '@/utils/sizeSorter';
@@ -261,7 +262,7 @@ const OutfitPageDesktop: React.FC<Props> = ({ outfitDetails }) => {
                       item.discount && item.discount > 0 ? '#dc2626' : '#000',
                   }}
                 >
-                  Bs. {item.finalPrice ?? item.price}
+                  {formatBs(item.finalPrice ?? item.price)}
                   {item.discount && item.discount > 0 && (
                     <FireIcon size={14} color="#dc2626" />
                   )}

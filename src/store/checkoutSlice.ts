@@ -168,8 +168,6 @@ export const {
 } = checkoutSlice.actions;
 
 // Selectors
-export const selectCheckoutFormData = (state: RootState) =>
-  state.checkout.formData;
 export const selectSelectedPlace = (state: RootState) =>
   state.checkout.selectedPlace;
 export const selectSelectedShipment = (state: RootState) =>

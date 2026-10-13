@@ -17,7 +17,7 @@ const STORAGE_KEY = 'seasonalDiscountState';
 /**
  * Get dismissal state for a specific modal type
  */
-export function getSeasonalDiscountDismissal(
+function getSeasonalDiscountDismissal(
   modalType: ModalType,
 ): DismissalState | null {
   try {
@@ -86,40 +86,5 @@ export function setSeasonalDiscountDismissal(
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (error) {
     console.error('Error setting seasonal discount dismissal state:', error);
-  }
-}
-
-/**
- * Clear dismissal state for a specific modal type
- */
-export function clearSeasonalDiscountDismissal(modalType: ModalType): void {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return;
-
-    const state = JSON.parse(stored);
-    delete state[modalType];
-
-    if (Object.keys(state).length === 0) {
-      localStorage.removeItem(STORAGE_KEY);
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-  } catch (error) {
-    console.error('Error clearing seasonal discount dismissal state:', error);
-  }
-}
-
-/**
- * Clear all seasonal discount dismissal state
- */
-export function clearAllSeasonalDiscountDismissals(): void {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error(
-      'Error clearing all seasonal discount dismissal states:',
-      error,
-    );
   }
 }

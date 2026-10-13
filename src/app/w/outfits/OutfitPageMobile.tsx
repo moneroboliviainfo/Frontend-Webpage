@@ -1,5 +1,6 @@
 'use client';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import BottomSheet from '@/components/BottomSheet/BottomSheet';
 import BasketConfirmation from '@/components/BasketConfirmation';
 import React, { useRef, useState, useEffect } from 'react';
@@ -253,7 +254,7 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                         lineHeight: 1,
                       }}
                     >
-                      Bs. {item.price}
+                      {formatBs(item.price)}
                     </div>
                     <div
                       className="text-base font-bold"
@@ -264,7 +265,7 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                         color: '#dc2626',
                       }}
                     >
-                      Bs. {item.finalPrice}
+                      {formatBs(item.finalPrice)}
                       <FireIcon size={14} color="#dc2626" />
                     </div>
                   </div>
@@ -276,7 +277,7 @@ const OutfitItemsCarousel: React.FC<OutfitItemsCarouselProps> = ({
                       paddingLeft: '0.25rem',
                     }}
                   >
-                    Bs. {item.finalPrice ?? item.price}
+                    {formatBs(item.finalPrice ?? item.price)}
                   </div>
                 )}
 

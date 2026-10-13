@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { API_URL } from '@/config/env';
 import { calculatePrice } from '@/utils/price';
+import { formatBs } from '@/shared/lib/formatCurrency';
 import { Product } from '@/components/ProductsGallery';
 import type { RootState } from '@/store/store';
 
@@ -82,7 +83,7 @@ export default function useInterestRecommendations(gender?: string, limit = 8) {
                   ''
                 : p.subcategory?.category?.image || '';
             const priceCalc = calculatePrice(p.price ?? '0', p.discount);
-            const price = `Bs. ${priceCalc.finalPrice}`;
+            const price = formatBs(priceCalc.finalPrice);
             accumulated.push({
               id: p.id,
               name: p.name,

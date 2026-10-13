@@ -31,7 +31,7 @@ export interface FedexRatesResponse {
 }
 
 // FedEx expects a digits-only phone number (no "+" prefix or spaces)
-export const buildFedexPhoneNumber = (
+const buildFedexPhoneNumber = (
   countryCode: string,
   phone: string,
 ): string => `${countryCode}${phone}`.replace(/[^\d]/g, '');
