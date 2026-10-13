@@ -1,6 +1,15 @@
-import { API_URL } from '@/config/env';
+import { apiFetch } from '@/shared/api/client';
 import { AuthStorage } from '@/utils/authStorage';
 import { setClient, type Client } from '@/store/clientSlice';
+
+type CustomerProfile = {
+  id?: number | string;
+  name?: string;
+  email?: string;
+  address?: unknown;
+  phone?: string;
+  orders?: unknown;
+};
 
 export async function completeLoginWithToken(
   token: string,
@@ -9,16 +18,9 @@ export async function completeLoginWithToken(
   try {
     AuthStorage.storeToken(token);
 
-    const profileRes = await fetch(`${API_URL}customers/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!profileRes.ok) {
-      console.warn('Failed to fetch profile after token login');
-      return null;
-    }
-
-    const profile = await profileRes.json();
+    // The token was just stored, but pass it explicitly so this does not depend
+    // on storage having settled.
+    const profile = await apiFetch<CustomerProfile>('customers/me', { token });
 
     const client: Client = {
       clientId: String(profile.id ?? ''),

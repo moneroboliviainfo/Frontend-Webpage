@@ -222,9 +222,15 @@ El problema real que queda es el flash de SSR: el móvil pinta desktop un frame 
 corregirse, en 18 call sites. Se resuelve moviendo esas decisiones a CSS, no cambiando
 los valores.
 
-#### ⑭ Los 3 archivos de env son idénticos
+#### ⑭ Los 3 archivos de env son idénticos → 🚨 **ES UN BLOQUEANTE, no cosmético**
 
-`env.ts`, `env.qa.ts` y `env.prod.ts` apuntan los tres a `api.moneroget.com`. El script
+`env.ts`, `env.qa.ts` y `env.prod.ts` apuntan los tres a `api.moneroget.com`.
+
+> **Reclasificado el 2026-10-13.** Esto estaba listado como P2 cosmético. No lo es:
+> significa que **`pnpm run dev` escribe en producción** y que, como el backend no
+> acepta `localhost` como callback de OAuth, **no se puede estar logueado en local**.
+> Todo el checkout queda sin poder probarse. Ver el
+> [bloqueante en el protocolo](./protocolo-de-trabajo.md#-bloqueante-no-hay-entorno-de-desarrollo-real). El script
 usa `copy` (Windows) en `dev` y `cp` (Unix) en `build` — acoplado a plataforma. Y
 `env.ts` está trackeado en git pero el build lo sobreescribe → diffs sucios. No se usa
 `.env` ni `NEXT_PUBLIC_*`.

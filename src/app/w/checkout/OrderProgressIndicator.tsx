@@ -1,4 +1,5 @@
 import React from 'react';
+import { ORDER_STATUS } from '@/constants/orders';
 import './OrderProgressIndicator.css';
 
 interface OrderProgressIndicatorProps {
@@ -51,7 +52,8 @@ const OrderProgressIndicator: React.FC<OrderProgressIndicatorProps> = ({
           <line x1="2" y1="10" x2="22" y2="10" />
         </svg>
       ),
-      isActive: (status: string) => status === 'paid' || status === 'sent',
+      isActive: (status: string) =>
+        status === ORDER_STATUS.PAID || status === ORDER_STATUS.SENT,
     },
     {
       id: 'sent',
@@ -71,7 +73,7 @@ const OrderProgressIndicator: React.FC<OrderProgressIndicatorProps> = ({
           <circle cx="18.5" cy="18.5" r="2.5" />
         </svg>
       ),
-      isActive: (status: string) => status === 'sent',
+      isActive: (status: string) => status === ORDER_STATUS.SENT,
     },
   ];
 

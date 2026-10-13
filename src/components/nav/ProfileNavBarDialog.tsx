@@ -179,7 +179,7 @@ const ProfileNavBarDialog: React.FC<{
               marginBottom: '4px',
             }}
           >
-            Hi
+            Hi {client ? client.name : 'Usuario'}
           </h1>
           <p
             className="text-blue-600"

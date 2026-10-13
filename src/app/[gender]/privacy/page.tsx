@@ -5,6 +5,9 @@ import PrivacyPolicy from '@/components/PrivacyPolicy';
 import { createPageMetadata } from '@/config/metadata';
 
 export const metadata: Metadata = createPageMetadata({
+  // This text is served identically under /men and /women, so both point at
+  // one canonical instead of competing as duplicates.
+  alternates: { canonical: '/men/privacy' },
   title: 'Política de Privacidad',
   description:
     'Política de Privacidad de Monero. Conoce cómo protegemos y manejamos tus datos personales, tus derechos de privacidad y cómo usamos tu información.',

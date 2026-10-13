@@ -1,7 +1,13 @@
 import type { Metadata } from 'next';
 
+// The www host is canonical: next.config.ts 301-redirects the bare domain.
+export const SITE_URL = 'https://www.moneroget.com';
+
 // Shared metadata configuration following DRY principles
 export const baseMetadata: Metadata = {
+  // Without this, relative image paths in openGraph/twitter resolve against
+  // localhost and social previews break in production.
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'Monero | Tienda de Ropa en Sucre, Bolivia',
     template: '%s | MoneroGet',
@@ -78,7 +84,7 @@ export const baseMetadata: Metadata = {
     title: 'Monero - Tienda de Ropa en Sucre, Bolivia',
     description:
       'Monero - Tienda de ropa Monero en Sucre, Bolivia. Descubre las últimas tendencias de moda para hombres y mujeres. Ropa premium y accesorios.',
-    url: 'https://moneroget.com',
+    url: SITE_URL,
     siteName: 'MoneroGet',
     images: [
       {

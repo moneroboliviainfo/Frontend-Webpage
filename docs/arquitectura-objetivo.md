@@ -130,6 +130,28 @@ Beneficio inmediato y medible: cuando el backend cambie un contrato — como pas
 mover el token de path param a `items` en el body — es **un cambio en un archivo**,
 no una búsqueda manual archivo por archivo.
 
+### Decisión: `fetch` y no axios (2026-10-13)
+
+Se evaluó migrar a axios. **Se descartó**, por razones propias de este proyecto:
+
+1. **Next.js extiende `fetch`, no axios.** Deduplicación de requests en un render,
+   caché e invalidación opt-in (`cache: 'force-cache'`, `next: { revalidate, tags }`) y
+   la integración con server components solo existen sobre `fetch`. Hoy el proyecto usa
+   **cero** de esas extensiones, pero la **Fase 4** (SEO de producto) exige mover las
+   fichas a server components, que es exactamente donde valen. Adoptar axios cerraría
+   esa puerta antes de abrirla.
+2. **Lo que axios aporta, `client.ts` ya lo cubre:** parseo de JSON, lanzar en 4xx/5xx,
+   `baseURL` y headers centralizados. La cancelación la da `AbortController` nativo.
+3. **Costo medido:** el JS actual pesa ~1.409 KB sin comprimir; axios suma ~13 KB gzip
+   más una dependencia, a cambio de features ya resueltas, y obliga a migrar 43 sitios.
+
+**Cuándo reconsiderarlo:** si aparece necesidad de interceptores de refresh-token
+automático, progreso de subida de archivos, o branchear por código de estado en muchos
+lugares. Hoy solo 3 sitios miran el cuerpo del error, y esos conservan su `fetch` propio.
+
+> Si ese día llega, `client.ts` es el único archivo a tocar — que es el objetivo de
+> tener un cliente central.
+
 ---
 
 ## Convenciones a unificar en el camino

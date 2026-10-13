@@ -86,15 +86,25 @@ Diagnóstico detallado de la carpeta en
 
 ### 2a — Preparación (riesgo nulo, se puede hacer ya)
 - [ ] Borrar `OrderStatusDisplay.tsx` (0 consumidores)
-- [ ] Borrar los 97 bloques JSX comentados (primero, para ver el código real)
+- [x] ~~Borrar los 97 bloques JSX comentados~~ → **CANCELADO**: son etiquetas de
+      sección, no código muerto. Ver el protocolo.
 - [ ] Extraer `formatBs()` a `shared/lib/formatCurrency.ts` y migrar las **37**
       ocurrencias de `'Bs.'` + **18** de `.toFixed(2)`
 - [ ] Unificar el breakpoint: hoy el checkout usa `innerWidth < 1024` imperativo en
       7 lugares y `useIsMobile` usa 768. Llevar ambos a `shared/lib/breakpoints.ts`
-- [ ] `OrderProgressIndicator`: usar `ORDER_STATUS` en vez de los literales
-      `'paid'`/`'sent'`
+- [x] `OrderProgressIndicator`: usa `ORDER_STATUS` en vez de los literales
 
-### 2b — 🔴 Unificar el camino de pago (el paso crítico)
+### 2b — 🔴 Unificar lo duplicado (el paso crítico)
+
+> **Alcance ampliado.** Hay **dos** duplicaciones, no una:
+> 1. La lógica de pago (`handleConfirmOrder` vs `handlePayOrder`, 95 líneas cada uno)
+> 2. **El formulario entero**: 11 secciones repetidas entre el Desktop Layout (L1421) y
+>    el Mobile Layout (L2216) de `page.tsx`, ~1.343 líneas = 44% del archivo
+>
+> Atacar solo la 1 deja la mitad del problema. Ver el detalle en el protocolo.
+
+- [ ] Extraer los campos del formulario a componentes compartidos que ambos layouts
+      consuman (el estado ya es común; lo que está duplicado es el JSX)
 - [ ] Extraer **un solo** `useOrderSubmit()` que consuman desktop y mobile, y borrar la
       copia duplicada (`handleConfirmOrder` en `page.tsx` y `handlePayOrder` en
       `OrderConfirmationModal.tsx`, 95 líneas idénticas cada una)

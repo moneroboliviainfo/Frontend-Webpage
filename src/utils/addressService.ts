@@ -1,5 +1,4 @@
-import { API_URL } from '@/config/env';
-import { AuthStorage } from './authStorage';
+import { apiFetch } from '@/shared/api/client';
 
 interface CreateAddressRequest {
   address: string;
@@ -32,33 +31,15 @@ interface AddressResponse {
   };
 }
 
-export const createAddress = async (
+export const createAddress = (
   addressData: CreateAddressRequest
-): Promise<AddressResponse> => {
-  const token = AuthStorage.getToken();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_URL}addresses`, {
+): Promise<AddressResponse> =>
+  apiFetch<AddressResponse>('addresses', {
     method: 'POST',
-    headers,
-    body: JSON.stringify(addressData),
+    body: addressData,
+    auth: true,
+    errorMessage: 'Failed to create address',
   });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `Failed to create address: ${response.statusText}`
-    );
-  }
-
-  return response.json();
-};
 
 /**
  * Normalize place name from snake_case to Title Case

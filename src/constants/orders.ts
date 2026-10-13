@@ -1,5 +1,5 @@
 // Order status constants
-const ORDER_STATUS = {
+export const ORDER_STATUS = {
   EXPIRED: 'expired',
   PENDING: 'pending',
   PAID: 'paid',

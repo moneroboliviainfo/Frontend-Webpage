@@ -1,5 +1,5 @@
 import { API_URL } from '@/config/env';
-import { AuthStorage } from './authStorage';
+import { apiFetch } from '@/shared/api/client';
 import { getCart } from './cartStorage';
 import { FEATURE_FLAGS } from '@/config/features';
 import type { CartItem } from '@/types/cart';
@@ -36,33 +36,15 @@ interface GenerateQRResponse {
   gloss?: string; // optional gloss field
 }
 
-export const createOrder = async (
+export const createOrder = (
   orderData: CreateOrderRequest,
-): Promise<CreateOrderResponse> => {
-  const token = AuthStorage.getToken();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_URL}orders/online`, {
+): Promise<CreateOrderResponse> =>
+  apiFetch<CreateOrderResponse>('orders/online', {
     method: 'POST',
-    headers,
-    body: JSON.stringify(orderData),
+    body: orderData,
+    auth: true,
+    errorMessage: 'Failed to create order',
   });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `Failed to create order: ${response.statusText}`,
-    );
-  }
-
-  return response.json();
-};
 
 /**
  * Check if cart contains any women's clothing items
@@ -119,27 +101,10 @@ export const generateQR = async (
     }
   }
 
-  const token = AuthStorage.getToken();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_URL}payments/generate-qr`, {
+  return apiFetch<GenerateQRResponse>('payments/generate-qr', {
     method: 'POST',
-    headers,
-    body: JSON.stringify({ orderId: orderId }),
+    body: { orderId },
+    auth: true,
+    errorMessage: 'Failed to generate QR',
   });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `Failed to generate QR: ${response.statusText}`,
-    );
-  }
-
-  return response.json();
 };

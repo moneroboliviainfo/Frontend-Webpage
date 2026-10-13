@@ -5,6 +5,9 @@ import TermsAndConditions from '@/components/TermsAndConditions';
 import { createPageMetadata } from '@/config/metadata';
 
 export const metadata: Metadata = createPageMetadata({
+  // This text is served identically under /men and /women, so both point at
+  // one canonical instead of competing as duplicates.
+  alternates: { canonical: '/men/policies' },
   title: 'Términos y Condiciones',
   description:
     'Términos y Condiciones de Compra de Monero. Conoce nuestras políticas de venta, cambios, devoluciones y garantías.',
