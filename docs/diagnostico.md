@@ -222,7 +222,7 @@ El problema real que queda es el flash de SSR: el móvil pinta desktop un frame 
 corregirse, en 18 call sites. Se resuelve moviendo esas decisiones a CSS, no cambiando
 los valores.
 
-#### ⑭ Los 3 archivos de env son idénticos → 🚨 **ES UN BLOQUEANTE, no cosmético**
+#### ⑭ Los 3 archivos de env son idénticos → ✅ **RESUELTO (paso 32)**
 
 `env.ts`, `env.qa.ts` y `env.prod.ts` apuntan los tres a `api.moneroget.com`.
 

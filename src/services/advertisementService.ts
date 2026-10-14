@@ -1,3 +1,5 @@
+import { API_URL } from '@/config/env';
+
 interface Advertisement {
   id: number;
   text: string;
@@ -19,7 +21,7 @@ export const getAdvertisement = async (): Promise<Advertisement | null> => {
   }
 
   // Create new fetch promise
-  fetchPromise = fetch('https://api.moneroget.com/api/advertisements')
+  fetchPromise = fetch(`${API_URL}advertisements`)
     .then((response) => {
       if (response.ok) {
         return response.json();

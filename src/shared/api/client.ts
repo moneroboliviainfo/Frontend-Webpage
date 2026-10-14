@@ -42,7 +42,9 @@ export async function apiFetch<T>(
   });
 
   if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
+    // `?? {}` covers a body of literal `null`, which parses fine and would
+    // otherwise throw while reading .message.
+    const data = (await response.json().catch(() => null)) ?? {};
     const fallback = errorMessage
       ? `${errorMessage}: ${response.statusText}`
       : response.statusText;

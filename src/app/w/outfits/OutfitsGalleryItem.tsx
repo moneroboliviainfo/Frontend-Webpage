@@ -69,8 +69,9 @@ const OutfitsGalleryItem: React.FC<Props> = ({
             src={src}
             alt={`Outfit ${productId || ''}`}
             fill
+            sizes="(max-width: 768px) 50vw, 25vw"
             style={{ objectFit: 'cover', opacity: imageLoaded ? 1 : 0 }}
-            onLoadingComplete={() => setImageLoaded(true)}
+            onLoad={() => setImageLoaded(true)}
           />
         ) : null}
 

@@ -8,14 +8,13 @@
     "pnpm": ">=10.0.0"
   },
   "scripts": {
-    "dev": "copy src\\config\\env.qa.ts src\\config\\env.ts && next dev --turbopack",
-    "build": "cp src/config/env.prod.ts src/config/env.ts && next build",
+    "dev": "next dev --turbopack",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
-    "test-prod": "copy src\\config\\env.prod.ts src\\config\\env.ts && next dev --turbopack"
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\""
   },
   "dependencies": {
     "@bugsnag/browser-performance": "^3.4.1",

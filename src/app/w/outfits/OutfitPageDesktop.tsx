@@ -126,7 +126,7 @@ const ItemImage: React.FC<{
             transition: 'opacity 300ms ease',
           }}
           sizes={sizes}
-          onLoadingComplete={() => setLoaded(true)}
+          onLoad={() => setLoaded(true)}
         />
       ) : null}
     </>

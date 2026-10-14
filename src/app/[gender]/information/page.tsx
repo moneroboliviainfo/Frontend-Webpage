@@ -27,6 +27,7 @@ const SectionDivider: React.FC<{ title: string; id: string }> = ({
       src="/faqs/category.webp"
       alt={title}
       fill
+      sizes="100vw"
       style={{ objectFit: 'cover' }}
       priority
     />

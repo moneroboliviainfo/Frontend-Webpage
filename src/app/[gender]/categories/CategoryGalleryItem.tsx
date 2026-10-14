@@ -69,7 +69,7 @@ const CategoryGalleryItem: React.FC<CategoryGalleryItemProps> = ({
               opacity: imageLoaded ? 1 : 0,
               transition: 'opacity 0.3s ease-in-out',
             }}
-            onLoadingComplete={() => setImageLoaded(true)}
+            onLoad={() => setImageLoaded(true)}
           />
         </>
       ) : (

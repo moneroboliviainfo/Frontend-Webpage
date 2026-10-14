@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { API_URL } from '@/config/env';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiSearch, FiTag, FiAlertCircle } from 'react-icons/fi';
 import { useRouter, usePathname } from 'next/navigation';
@@ -162,7 +163,7 @@ const SearchNavBarDialog: React.FC<{
         abortControllerRef.current = new AbortController();
 
         const response = await fetch(
-          `https://api.moneroget.com/api/searchs/advanced?search=${encodeURIComponent(
+          `${API_URL}searchs/advanced?search=${encodeURIComponent(
             query
           )}`,
           {

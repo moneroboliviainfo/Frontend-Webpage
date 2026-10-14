@@ -245,7 +245,7 @@ const CartNavBarDialog: React.FC<{
                               opacity: imageLoaded[index] ? 1 : 0,
                               transition: 'opacity 0.3s ease-in-out',
                             }}
-                            onLoadingComplete={() => handleImageLoad(index)}
+                            onLoad={() => handleImageLoad(index)}
                           />
                         </>
                       </div>

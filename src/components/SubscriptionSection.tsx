@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { API_URL } from '@/config/env';
 
 interface SubscriptionSectionProps {
   isMobile: boolean;
@@ -40,7 +41,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
 
     try {
       const response = await fetch(
-        'https://api.moneroget.com/api/auth/subscribe',
+        `${API_URL}auth/subscribe`,
         {
           method: 'POST',
           headers: {

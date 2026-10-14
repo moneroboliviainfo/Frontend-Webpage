@@ -132,6 +132,9 @@ Se registra cada paso completado **y verificado por el usuario**.
 | 29 | 4 | Canonical en `policies`/`privacy` (contenido duplicado) | ✅ | ✅ | ✅ |
 | 30 | 4 | Sitemap: se evaluó filtrar por `WOMEN_ENABLED` → **revertido a pedido** | ✅ | ✅ | ✅ |
 | 31 | 4 | `robots.txt` → `app/robots.ts` con `SITE_URL` | ✅ | ✅ | ✅ |
+| 32 | N2 | Variables de entorno a `.env` (cierra el punto ⑭) | ✅ | ✅ | ⏳ |
+| 33 | N3 | Limpiar la consola: `sizes`, `onLoad` y 2 `console.log` | ✅ | ✅ | ⏳ |
+| 34 | 🔴 | Verificar el cliente HTTP ejecutándolo + bug del `null` arreglado | ✅ | ✅ | ✅ |
 
 **Leyenda:** ✅ ok · ⏳ pendiente · ❌ falló y se revirtió · n/a no aplica ·
 🚫 no verificable en el entorno actual
@@ -854,6 +857,193 @@ canonical ficha:  https://www.moneroget.com/w/pantal-n-monero-mom-jeans-66
 - [ ] **Considerar renderizar los links de producto en el servidor.** Hoy el sitemap es
       el único canal; que las galerías emitieran `<a href="/w/...">` en el HTML daría
       señales de enlazado interno, que es lo que Google usa para entender jerarquía
+
+### Paso 32: variables de entorno a `.env`
+
+Cierra el punto ⑭ del diagnóstico, que estaba reclasificado como bloqueante.
+
+**Lo que había:**
+
+```
+env.ts  ==  env.qa.ts  ==  env.prod.ts   →  todos a api.moneroget.com
+dev:    copy src\config\env.qa.ts src\config\env.ts     ← comando de Windows
+build:  cp src/config/env.prod.ts src/config/env.ts      ← comando de Unix
+```
+
+Tres problemas: `env.ts` estaba **trackeado en git pero el build lo sobreescribía**
+(diffs sucios en cada compilación), los scripts solo corrían en un sistema operativo, y
+no existía forma de apuntar a otro backend.
+
+**Lo que hay ahora:**
+
+- `env.ts` lee `process.env.NEXT_PUBLIC_API_URL`. Dejó de ser generado
+- `env.qa.ts` y `env.prod.ts` borrados
+- Scripts limpios: `next dev --turbopack` y `next build`. Se quitó `test-prod`, que
+  existía solo para copiar el env de producción
+- `.env.example` como plantilla, con `!.env.example` en `.gitignore` (la regla `.env*`
+  lo habría ignorado). Verificado: `.env.example` se puede commitear y `.env.local` no
+
+**El fallback y por qué avisa.** Si falta la variable, cae a la URL de producción para
+que un deploy no se caiga. Pero eso es peligroso en local: estarías escribiendo en
+producción sin saberlo. Por eso `resolveApiUrl()` emite un `console.warn` **solo en
+development**.
+
+### 🔴 Hallazgo del paso 32: 3 archivos ignoraban la variable
+
+Al verificar el bundle con un `.env.local` apuntando a `localhost:4000` aparecieron tres
+URLs hardcodeadas que **habrían seguido hablando con producción**:
+
+| Archivo | Qué rompía |
+|---|---|
+| `nav/SearchNavBarDialog.tsx:165` | la búsqueda del navbar *(ya estaba documentado)* |
+| `SubscriptionSection.tsx:43` | el newsletter *(hallazgo nuevo)* |
+| `services/advertisementService.ts:22` | los banners de anuncios *(hallazgo nuevo)* |
+
+Los tres migrados a `API_URL`. **Verificado con el bundle compilado:**
+
+| | con `.env.local` | sin `.env.local` |
+|---|---|---|
+| bundles con `localhost:4000` | **1** | 0 |
+| bundles con `api.moneroget.com` | **1** *(solo el fallback)* | 1 |
+
+> Sin este arreglo, el `.env` habría sido decorativo para esas 3 funcionalidades — el
+> mismo tipo de trampa que los 3 archivos de env idénticos.
+
+**Limitación conocida que queda:** `next.config.ts` declara
+`hostname: 'api.moneroget.com'` en `images.remotePatterns`. Si se apunta a un backend de
+QA en otro host, `next/image` **bloqueará sus imágenes**. Hay que agregar ese host a los
+patrones cuando exista el entorno de QA.
+
+### Paso 33: los avisos de la consola, separados por origen
+
+El usuario trajo el volcado de la consola. La mitad **no era del proyecto**:
+
+| Mensaje | Origen |
+|---|---|
+| `cz-shortcut-listen="true"` en el hydration mismatch | extensión **ColorZilla** |
+| `DevTools extension 'React Developer Tools' already registered` | extensión duplicada |
+| `[Intervention] Images loaded lazily...` | intervención del navegador |
+| `Running with experiment IDs` | ruido del navegador |
+
+La otra mitad **sí era nuestra**, y se arregló:
+
+**1. Dos `console.log` en `NewProductsBody.tsx`** — uno de ellos volcaba la respuesta
+completa de la API a la consola. Quitados. El total del proyecto bajó de 62 a 58
+`console.*` (quedan 35 `console.error` legítimos, 14 `debug` y 3 `log` para revisar).
+
+**2. `onLoadingComplete` está deprecado** en `next/image` → migrado a `onLoad` en
+**6 componentes** (`OutfitPageDesktop`, `OutfitPageMobile`, `OutfitsGalleryItem`,
+`CategoryGalleryItem`, `GalleryItem`, `CartNavBarDialog`). Iba a dejar de funcionar en
+una versión futura de Next.
+
+**3. 🔴 Tres `<Image fill>` sin `sizes`** — el de más impacto real.
+
+Sin `sizes`, Next asume `100vw` y sirve la imagen más grande disponible. En una grilla
+donde cada imagen ocupa un cuarto del ancho, eso significa descargar **~4x más bytes de
+los necesarios**. Golpea directo el LCP, que es una de las métricas que Google usa para
+posicionar — justo lo que buscábamos mejorar en la Fase 4.
+
+| Componente | `sizes` aplicado | Por qué |
+|---|---|---|
+| `clothes/GalleryItem.tsx` | `(max-width: 768px) 50vw, 25vw` | grilla de 2 columnas en móvil, 4 en escritorio |
+| `outfits/OutfitsGalleryItem.tsx` | `(max-width: 768px) 50vw, 25vw` | misma grilla |
+| `information/page.tsx` | `100vw` | banner a todo el ancho |
+
+**Verificado:** de las **23** `<Image fill>` del proyecto, ahora **0** quedan sin
+`sizes`. El detector inicial solo encontró 1 de las 3 porque usaba un regex que no
+balanceaba llaves — se reescribió recorriendo el tag.
+
+### Decisión: qué va al `.env` y qué no (2026-10-13)
+
+El paso 32 movió **solo `NEXT_PUBLIC_API_URL`**. El usuario preguntó, con razón, por qué
+el resto de la configuración sigue desparramada. Se revisó el inventario completo y se
+decidió **dejarlo así por ahora**. El razonamiento queda acá para no rediscutirlo.
+
+**Aclaración que define el criterio:** todo lo que lleva `NEXT_PUBLIC_` **termina en el
+bundle del navegador**. La clave de Bugsnag, el ID de Clarity y el merchant ID de
+Cybersource ya son públicos hoy y lo seguirían siendo desde el `.env`. **No se mueven por
+seguridad.** Se mueven por una sola razón: poder tener otro valor en otro entorno.
+
+Entonces la pregunta no es *"¿esto es sensible?"* sino **"¿sería distinto en QA?"**
+
+| Valor | ¿Distinto en QA? | Estado |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | Sí | ✅ Hecho (paso 32) |
+| `comercioMid` + `metrixOrgId` de Cybersource | **Sí** — sandbox vs producción | Pendiente, atado a QA |
+| ID de Clarity (`layout.tsx:115`) | Sí — para no ensuciar las analíticas | Pendiente, atado a QA |
+| Clave de Bugsnag | Sí — para separar los errores | Pendiente, prioridad baja |
+| `SITE_URL` (`config/metadata.ts:4`) | Sí — otro dominio | Pendiente, prioridad baja |
+| `PAYMENT_VERIFICATION_INTERVAL` | No | **Se queda en el código** |
+| `QR_PAYMENT_DURATION_MINUTES` | No — regla de negocio | **Se queda** |
+| Precios de envío, `'guest@moneroget.com'` | No — datos del dominio | **Se queda** |
+| Redirects de `next.config.ts` | No — config de build | **Se queda** |
+
+**Por qué no se hizo ahora:** con un solo entorno, las demás variables no tienen a qué
+apuntar distinto. Moverlas sería trasladar valores sin ganar nada, y dejaría código que
+no se ejercita hasta que exista el otro entorno.
+
+> Un `.env` con 30 entradas que nadie sabe para qué sirven es tan malo como ninguno.
+
+**Cuándo retomarlo:** al crear el backend de QA. Las que harán falta de verdad son las de
+**Cybersource** — sin ellas habría que editar código para probar pagos contra el sandbox
+de Linkser y acordarse de no commitearlo, que es justo el accidente que un `.env` evita.
+Son ~20 minutos, con los valores de sandbox a mano.
+
+### Paso 34: verificación del cliente HTTP sin poder usar la app
+
+El paso 23 quedó 🚫 porque los flujos con auth no se pueden ejercitar en local. Antes de
+dejar la rama lista para producción se buscó la mejor sustitución posible: **ejecutar la
+lógica real del cliente** en vez de razonarla.
+
+**Método.** Se copió `client.ts` reemplazando solo sus dos imports por stubs
+(`API_URL` y `AuthStorage`), dejando **la lógica intacta**, se compiló con `tsc` y se
+corrió en node con un espía en `fetch`. Así se puede ver el request exacto que arma.
+
+**Resultado: los requests son idénticos a los originales.**
+
+| Caso | Request del cliente | ¿Igual al original? |
+|---|---|---|
+| `useAuthInit` | `GET customers/me`, headers `{Authorization: Bearer TKN}` | ✅ |
+| `sessionService` | `GET customers/me` con el token explícito | ✅ |
+| `addressService` | `POST addresses`, `Content-Type` + `Authorization`, body JSON | ✅ |
+| **sin token** (invitado) | `POST orders/online`, **solo `Content-Type`** | ✅ reproduce el `if (token)` |
+
+El último es el que más importaba: los originales guardaban el header con
+`if (token) headers['Authorization'] = ...`, así que un invitado no manda `Authorization`.
+El cliente lo reproduce con `if (bearer)`.
+
+**Mensajes de error, también verificados ejecutándolos:**
+
+| El servidor responde | Mensaje resultante |
+|---|---|
+| `{message: 'Direccion invalida'}` | `"Direccion invalida"` |
+| `{error: 'Pago rechazado'}` | `"Pago rechazado"` |
+| nada | `"Failed to create address: Not Found"` |
+| sin `errorMessage` | `"Internal Server Error"` |
+
+Reproduce exactamente `errorData.message || \`<prefijo>: ${statusText}\``, y además cubre
+el estilo `.error` que usaba `cybersourceService`.
+
+### 🐛 Bug encontrado al ejecutarlo (que el razonamiento no había detectado)
+
+Con un body de **`null` literal** —JSON válido— el cliente lanzaba:
+
+```
+Cannot read properties of null (reading 'message')
+```
+
+**El código original tenía el mismo bug:** `.catch(() => ({}))` atrapa JSON *inválido*,
+pero un `null` parsea bien y después `errorData.message` explota. En vez de un mensaje
+útil, el usuario habría visto un `TypeError`.
+
+Arreglado con `(await response.json().catch(() => null)) ?? {}`. Ahora ese caso devuelve
+`"Failed to create order: Bad Gateway"`.
+
+> **Esto es exactamente el beneficio del cliente central:** el bug estaba replicado en
+> los 5 sitios y se arregló **una vez**. Antes había que tocar cinco archivos.
+
+**Smoke test de producción:** las **23 rutas** del build responden `200` y el log del
+servidor no tiene errores (solo el aviso preexistente de Bugsnag).
 
 **Deriva pendiente, no resuelta:** `nixpacks.toml` usa `nodejs_20` pero local corre
 **Node 22.22.3**. Ambos cumplen `engines` (>=20.9.0), así que se dejó como está para no

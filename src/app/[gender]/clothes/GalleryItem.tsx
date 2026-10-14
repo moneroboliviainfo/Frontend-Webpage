@@ -133,12 +133,13 @@ const GalleryItem: React.FC<Props> = ({
           src={src}
           alt={name}
           fill
+          sizes="(max-width: 768px) 50vw, 25vw"
           style={{
             objectFit: 'cover',
             opacity: imageLoaded ? 1 : 0,
             transition: 'opacity 0.3s ease-in-out',
           }}
-          onLoadingComplete={() => setImageLoaded(true)}
+          onLoad={() => setImageLoaded(true)}
         />
       </div>
 

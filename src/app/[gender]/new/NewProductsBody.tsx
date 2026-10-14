@@ -87,9 +87,6 @@ export default function NewProductsBody({ gender }: NewProductsBodyProps) {
     async (page: number, append: boolean = false) => {
       // Prevent duplicate requests for the same page using the in-flight set
       if (pagesFetchingRef.current.has(page)) {
-        console.log(
-          `Already fetching page ${page}, skipping duplicate request`
-        );
         return;
       }
 
@@ -115,7 +112,6 @@ export default function NewProductsBody({ gender }: NewProductsBodyProps) {
         }
 
         const responseData: NewProductsResponse = await response.json();
-        console.log('New products API response:', responseData);
 
         // Filter products by gender
         const targetGender = normalizeGenderForFiltering(gender);
