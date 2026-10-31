@@ -1,7 +1,7 @@
 'use client';
 import React, { useMemo } from 'react';
-import { calculatePrice } from '@/utils/price';
-import useIsMobile from '@/hooks/useIsMobile';
+import { calculatePrice } from '@/shared/lib/price';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import GalleryItem from '@/app/[gender]/clothes/GalleryItem';
 import { DAYS_TO_CONSIDER_NEW } from '@/constants/clothes';
 

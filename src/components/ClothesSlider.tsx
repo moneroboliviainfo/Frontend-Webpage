@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import buildProductSlug from '../utils/buildProductSlug';
+import buildProductSlug from '@/shared/lib/buildProductSlug';
 import SkeletonLoader from './SkeletonLoader';
 import type { InterestItem } from '../hooks/useInterestRecommendations';
 import FireIcon from './FireIcon';

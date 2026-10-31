@@ -1,5 +1,5 @@
-import { API_URL } from '@/config/env';
-import { getCart, saveCart, removeFromCart } from './cartStorage';
+import { API_URL } from '@/shared/config/env';
+import { getCart, saveCart, removeFromCart } from '@/shared/storage/cartStorage';
 import type { Cart, CartItem } from '@/types/cart';
 
 export interface CartApiRequest {

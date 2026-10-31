@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import ProductsGallery, { Product } from '@/components/ProductsGallery';
 import ClothesPageNavBar from './ClothesPageNavBar';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 import {
   extractProductsFromCategory,
   CategoryResponse,

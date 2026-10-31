@@ -3,7 +3,7 @@ import NavBar from '@/components/nav/NavBar';
 import CompactSeasonalDiscountModalGate from '@/app/CompactSeasonalDiscountModalGate';
 import { AD_TYPES } from '@/constants/ads';
 import ClothesPageBody from './ClothesPageBody';
-import { createPageMetadata } from '@/config/metadata';
+import { createPageMetadata } from '@/shared/config/metadata';
 import Footer from '@/components/Footer';
 
 type Props = {

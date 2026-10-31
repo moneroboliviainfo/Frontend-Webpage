@@ -4,7 +4,7 @@ import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import SocialMediaLinks from '@/components/SocialMediaLinks';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 
 export default function AboutUsPage() {
   const isMobile = useIsMobile();

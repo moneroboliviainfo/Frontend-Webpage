@@ -6,7 +6,7 @@ import CategoriesPageNavBar from './CategoriesPageNavBar';
 import CategoriesGallery from './CategoriesGallery';
 import CompactSeasonalDiscountModalGate from '@/app/CompactSeasonalDiscountModalGate';
 import { AD_TYPES } from '@/constants/ads';
-import { createPageMetadata } from '@/config/metadata';
+import { createPageMetadata } from '@/shared/config/metadata';
 
 type Props = {
   params: Promise<{ gender: string }>;

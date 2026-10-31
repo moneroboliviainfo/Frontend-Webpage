@@ -9,13 +9,13 @@ import DeliveryMethodDisplay from '../DeliveryMethodDisplay';
 import DeliveryAddressDisplay from '../DeliveryAddressDisplay';
 import OrderProgressIndicator from '../OrderProgressIndicator';
 import NavBar from '@/components/nav/NavBar';
-import { API_URL } from '@/config/env';
-import { GenderStorage } from '@/utils/genderStorage';
-import { AuthStorage } from '@/utils/authStorage';
+import { API_URL } from '@/shared/config/env';
+import { GenderStorage } from '@/shared/storage/genderStorage';
+import { AuthStorage } from '@/shared/storage/authStorage';
 import { INVALID_CONFIRMATION_STATUSES } from '@/constants/orders';
 import { useAppSelector } from '@/store/hooks';
 import { selectClient } from '@/store/clientSlice';
-import { hasGuestOrderAccess } from '@/utils/guestOrderAccess';
+import { hasGuestOrderAccess } from '@/shared/storage/guestOrderAccess';
 
 interface OrderItem {
   id: number;

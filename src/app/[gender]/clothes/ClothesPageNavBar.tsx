@@ -1,5 +1,5 @@
 import PillsList from '@/components/PillsList';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import React, { useEffect, useRef, useState } from 'react';
 import './clothes.css';
 

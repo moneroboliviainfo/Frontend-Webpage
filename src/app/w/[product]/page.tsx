@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { API_URL } from '@/config/env';
-import { createPageMetadata, SITE_URL } from '@/config/metadata';
-import { calculatePrice, type DiscountShape } from '@/utils/price';
+import { API_URL } from '@/shared/config/env';
+import { createPageMetadata, SITE_URL } from '@/shared/config/metadata';
+import { calculatePrice, type DiscountShape } from '@/shared/lib/price';
 import ProductPageClient from './ProductPageClient';
 
 type Props = {

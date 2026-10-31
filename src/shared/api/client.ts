@@ -1,5 +1,5 @@
-import { API_URL } from '@/config/env';
-import { AuthStorage } from '@/utils/authStorage';
+import { API_URL } from '@/shared/config/env';
+import { AuthStorage } from '@/shared/storage/authStorage';
 
 export type ApiRequest = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

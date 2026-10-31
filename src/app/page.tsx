@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import CenteredButton from '@/components/CenteredButton';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import NavBar from '@/components/nav/NavBar';
-import useIsMobile from '@/hooks/useIsMobile';
-import { FEATURE_FLAGS } from '@/config/features';
+import useIsMobile from '@/shared/hooks/useIsMobile';
+import { FEATURE_FLAGS } from '@/shared/config/features';
 
 export default function Home() {
   const router = useRouter();

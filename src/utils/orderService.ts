@@ -1,7 +1,7 @@
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 import { apiFetch } from '@/shared/api/client';
-import { getCart } from './cartStorage';
-import { FEATURE_FLAGS } from '@/config/features';
+import { getCart } from '@/shared/storage/cartStorage';
+import { FEATURE_FLAGS } from '@/shared/config/features';
 import type { CartItem } from '@/types/cart';
 
 interface CreateOrderRequest {

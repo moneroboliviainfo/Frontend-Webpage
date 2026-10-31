@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { AuthStorage } from '@/utils/authStorage';
+import { AuthStorage } from '@/shared/storage/authStorage';
 import { GoogleAuthService } from '@/services/googleAuth';
 import './GoogleLoginButton.css';
 

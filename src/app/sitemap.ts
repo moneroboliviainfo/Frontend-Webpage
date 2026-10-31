@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
-import { API_URL } from '@/config/env';
-import { SITE_URL } from '@/config/metadata';
-import buildProductSlug from '@/utils/buildProductSlug';
+import { API_URL } from '@/shared/config/env';
+import { SITE_URL } from '@/shared/config/metadata';
+import buildProductSlug from '@/shared/lib/buildProductSlug';
 
 type ProductListResponse = {
   data?: Array<{

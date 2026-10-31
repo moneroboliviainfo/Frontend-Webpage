@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { API_URL } from '@/config/env';
-import { calculatePrice } from '@/utils/price';
+import { API_URL } from '@/shared/config/env';
+import { calculatePrice } from '@/shared/lib/price';
 import { formatBs } from '@/shared/lib/formatCurrency';
 import { Product } from '@/components/ProductsGallery';
 import type { RootState } from '@/store/store';

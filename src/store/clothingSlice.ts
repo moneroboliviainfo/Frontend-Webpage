@@ -1,4 +1,4 @@
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { ClothingApiService } from '@/services/clothingService';
 

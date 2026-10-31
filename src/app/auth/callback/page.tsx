@@ -3,9 +3,9 @@ import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setClient, type Client } from '@/store/clientSlice';
-import { AuthStorage } from '@/utils/authStorage';
+import { AuthStorage } from '@/shared/storage/authStorage';
 import { GoogleAuthService } from '@/services/googleAuth';
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 import { completeLoginWithToken } from '@/services/sessionService';
 
 function AuthCallbackContent() {

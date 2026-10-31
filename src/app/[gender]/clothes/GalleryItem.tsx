@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { formatBs } from '@/shared/lib/formatCurrency';
 import { useRouter } from 'next/navigation';
-import buildProductSlug from '@/utils/buildProductSlug';
-import { type ActiveDiscount, isDiscountActive } from '@/utils/price';
+import buildProductSlug from '@/shared/lib/buildProductSlug';
+import { type ActiveDiscount, isDiscountActive } from '@/shared/lib/price';
 import Image from 'next/image';
 import SkeletonLoader from '@/components/SkeletonLoader';
 

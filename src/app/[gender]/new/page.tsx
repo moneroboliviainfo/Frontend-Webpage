@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
 import CompactSeasonalDiscountModalGate from '@/app/CompactSeasonalDiscountModalGate';
-import { createPageMetadata } from '@/config/metadata';
+import { createPageMetadata } from '@/shared/config/metadata';
 import { notFound } from 'next/navigation';
 import NewProductsBody from './NewProductsBody';
 

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import './SeasonalDiscountModal.css';
-import type { DismissReason } from '@/utils/seasonalDiscountStorage';
+import type { DismissReason } from '@/shared/storage/seasonalDiscountStorage';
 
 type RemainingTime = {
   hours: string;

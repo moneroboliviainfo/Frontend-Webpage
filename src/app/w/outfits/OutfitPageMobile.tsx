@@ -8,8 +8,8 @@ import Image from 'next/image';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import FireIcon from '@/components/FireIcon';
 import { useRouter } from 'next/navigation';
-import buildProductSlug from '@/utils/buildProductSlug';
-import { addToCart } from '@/utils/cartStorage';
+import buildProductSlug from '@/shared/lib/buildProductSlug';
+import { addToCart } from '@/shared/storage/cartStorage';
 import type { CartItem } from '@/types/cart';
 
 type OutfitDetails = {

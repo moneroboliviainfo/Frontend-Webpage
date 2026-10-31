@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import NavBar from '@/components/nav/NavBar';
 import PageContainer from '../PageContainer';
 import Footer from '@/components/Footer';
-import { createPageMetadata } from '@/config/metadata';
+import { createPageMetadata } from '@/shared/config/metadata';
 import GenderPageDataLoader from './GenderPageDataLoader';
 import SeasonalDiscountModalGate from './SeasonalDiscountModalGate';
 

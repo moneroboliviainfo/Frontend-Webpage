@@ -4,14 +4,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { FiUser, FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { motion, useAnimation } from 'framer-motion';
-import { getCartItemCount } from '@/utils/cartStorage';
+import { getCartItemCount } from '@/shared/storage/cartStorage';
 import Link from 'next/link';
-import { GenderStorage } from '@/utils/genderStorage';
+import { GenderStorage } from '@/shared/storage/genderStorage';
 import NavBarLink from './NavBarLink';
 import NavBarIconText from './NavBarIconText';
 import NavBarDropdown from './NavBarDropdown';
 import { usePathname } from 'next/navigation';
-import { FEATURE_FLAGS } from '@/config/features';
+import { FEATURE_FLAGS } from '@/shared/config/features';
 import { selectClient } from '@/store/clientSlice';
 
 import HamburgerButton from './HamburgerButton';

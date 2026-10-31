@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GenderStorage } from '@/utils/genderStorage';
-import { API_URL, PAYMENT_VERIFICATION_INTERVAL } from '@/config/env';
+import { GenderStorage } from '@/shared/storage/genderStorage';
+import { API_URL, PAYMENT_VERIFICATION_INTERVAL } from '@/shared/config/env';
 import { QR_PAYMENT_DURATION_MINUTES } from '@/constants/qrPayment';
-import { clearCart } from '@/utils/cartStorage';
+import { clearCart } from '@/shared/storage/cartStorage';
 import './QRPaymentModal.css';
 
 interface QRPaymentModalProps {

@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import styles from './ProductPageDesktop.module.css';
-import { addToCart } from '@/utils/cartStorage';
+import { addToCart } from '@/shared/storage/cartStorage';
 import type { CartItem } from '@/types/cart';
 import {
   extractProductsFromCategory,
@@ -14,7 +14,7 @@ import {
   type CategoryResponse,
 } from '@/utils/categoryProducts';
 import { Product } from '@/components/ProductsGallery';
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 
 type ProductDetails = {
   multimedia: Array<{ image: string; label: string }>;

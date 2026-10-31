@@ -1,13 +1,13 @@
 'use client';
 import NavBar from '@/components/nav/NavBar';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import React, { useState, useEffect, Suspense } from 'react';
-import { calculatePrice } from '@/utils/price';
+import { calculatePrice } from '@/shared/lib/price';
 import { useRouter, useSearchParams } from 'next/navigation';
 import OutfitPageMobile from './OutfitPageMobile';
 import OutfitPageDesktop from './OutfitPageDesktop';
-import { API_URL } from '@/config/env';
-import buildProductSlug from '@/utils/buildProductSlug';
+import { API_URL } from '@/shared/config/env';
+import buildProductSlug from '@/shared/lib/buildProductSlug';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import { filterOutfitsByGender } from '@/utils/outfits';
 

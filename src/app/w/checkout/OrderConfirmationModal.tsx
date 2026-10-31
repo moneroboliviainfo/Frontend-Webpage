@@ -5,7 +5,7 @@ import Image from 'next/image';
 import OrderReviewSection from './OrderReviewSection';
 import { useAppSelector } from '@/store/hooks';
 import { QR_PAYMENT_DURATION_MINUTES } from '@/constants/qrPayment';
-import { GenderStorage } from '@/utils/genderStorage';
+import { GenderStorage } from '@/shared/storage/genderStorage';
 import TermsAndConditions from '@/components/TermsAndConditions';
 import PrivacyPolicy from '@/components/PrivacyPolicy';
 import QRPaymentModal from '@/components/QRPaymentModal';
@@ -24,9 +24,9 @@ import {
   generateQR,
   checkForWomenItems,
 } from '@/utils/orderService';
-import { FEATURE_FLAGS } from '@/config/features';
-import { getCart } from '@/utils/cartStorage';
-import { saveGuestOrderAccess } from '@/utils/guestOrderAccess';
+import { FEATURE_FLAGS } from '@/shared/config/features';
+import { getCart } from '@/shared/storage/cartStorage';
+import { saveGuestOrderAccess } from '@/shared/storage/guestOrderAccess';
 import { type CybersourceBilling } from '@/services/cybersourceService';
 import { buildCybersourceBilling } from '@/utils/cybersourcePayment';
 import { selectClient } from '@/store/clientSlice';

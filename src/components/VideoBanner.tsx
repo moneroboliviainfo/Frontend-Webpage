@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { API_URL } from '@/config/env';
-import useIsMobile from '@/hooks/useIsMobile';
+import { API_URL } from '@/shared/config/env';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import SectionHeader from './SectionHeader';
 import './VideoBanner.css';
 

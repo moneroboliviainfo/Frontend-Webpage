@@ -1,10 +1,10 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import CategoryGalleryItem from './CategoryGalleryItem';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import { CLOTHING_API_CONSTANTS } from '@/services/clothingService';
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 
 // Frontend gender constants to match route parameters
 const FRONTEND_GENDERS = {

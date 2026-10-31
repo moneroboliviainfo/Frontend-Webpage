@@ -3,12 +3,12 @@ import React, { useState, useRef } from 'react';
 import { formatBs } from '@/shared/lib/formatCurrency';
 import Image from 'next/image';
 import SkeletonLoader from '@/components/SkeletonLoader';
-import sortSizes from '@/utils/sizeSorter';
+import sortSizes from '@/shared/lib/sizeSorter';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
 import BasketConfirmation from '@/components/BasketConfirmation';
 import { useRouter } from 'next/navigation';
-import buildProductSlug from '@/utils/buildProductSlug';
-import { addToCart } from '@/utils/cartStorage';
+import buildProductSlug from '@/shared/lib/buildProductSlug';
+import { addToCart } from '@/shared/storage/cartStorage';
 import type { CartItem } from '@/types/cart';
 import FireIcon from '@/components/FireIcon';
 

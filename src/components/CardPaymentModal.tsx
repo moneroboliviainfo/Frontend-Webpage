@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GenderStorage } from '@/utils/genderStorage';
+import { GenderStorage } from '@/shared/storage/genderStorage';
 import { QR_PAYMENT_DURATION_MINUTES } from '@/constants/qrPayment';
 import {
   extractCardFirst4,

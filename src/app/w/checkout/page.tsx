@@ -44,8 +44,8 @@ import {
   formatAddressLabel,
   normalizePlaceName,
 } from '@/utils/addressService';
-import { getCart } from '@/utils/cartStorage';
-import { clearCart } from '@/utils/cartStorage';
+import { getCart } from '@/shared/storage/cartStorage';
+import { clearCart } from '@/shared/storage/cartStorage';
 import {
   createBackendCart,
   repriceCart,
@@ -60,15 +60,15 @@ import {
   checkForWomenItems,
 } from '@/utils/orderService';
 import { getFedexRates, buildFedexRecipient } from '@/utils/shippingRates';
-import { FEATURE_FLAGS } from '@/config/features';
-import { saveGuestOrderAccess } from '@/utils/guestOrderAccess';
+import { FEATURE_FLAGS } from '@/shared/config/features';
+import { saveGuestOrderAccess } from '@/shared/storage/guestOrderAccess';
 import { type CybersourceBilling } from '@/services/cybersourceService';
 import { buildCybersourceBilling } from '@/utils/cybersourcePayment';
 import type { CartItem } from '@/types/cart';
-import { API_URL } from '@/config/env';
-import { GenderStorage } from '@/utils/genderStorage';
+import { API_URL } from '@/shared/config/env';
+import { GenderStorage } from '@/shared/storage/genderStorage';
 import './checkout.css';
-import { AuthStorage } from '@/utils/authStorage';
+import { AuthStorage } from '@/shared/storage/authStorage';
 import { isBelowCheckoutDesktop } from '@/shared/lib/breakpoints';
 import { completeLoginWithToken } from '@/services/sessionService';
 

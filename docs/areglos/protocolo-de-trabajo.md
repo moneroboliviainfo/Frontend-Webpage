@@ -1045,6 +1045,48 @@ Arreglado con `(await response.json().catch(() => null)) ?? {}`. Ahora ese caso 
 **Smoke test de producción:** las **23 rutas** del build responden `200` y el log del
 servidor no tiene errores (solo el aviso preexistente de Bugsnag).
 
+### Fase 3 (arranque): mover estructura sin tocar lógica
+
+El usuario no puede probar login/checkout en local (depende del backend) y pidió seguir
+solo con movimientos de estructura, verificables con `tsc`/build sin necesitar runtime.
+
+**Lote 1 — `shared/storage`, `shared/lib`, `shared/hooks` (10 archivos):**
+
+| Archivo | Destino |
+|---|---|
+| `authStorage`, `cartStorage`, `genderStorage`, `guestOrderAccess`, `seasonalDiscountStorage` | `shared/storage/` |
+| `price`, `slugify`, `sizeSorter`, `buildProductSlug` | `shared/lib/` |
+| `useIsMobile` | `shared/hooks/` |
+
+Movidos con `git mv` (historial preservado). **49 archivos** actualizaron sus imports.
+Dos casos con import relativo detectados y corregidos a mano: `checkoutCart.ts` y
+`orderService.ts` importaban `cartStorage` como `'./cartStorage'`, y `ClothesSlider.tsx`
+importaba `buildProductSlug` como `'../utils/buildProductSlug'` — ninguno usaba el alias
+`@/`, así que el reemplazo automático por string no los habría tocado.
+
+**Lote 2 — `shared/config` (3 archivos):** `env`, `features`, `metadata` →
+**46 archivos** actualizados. `layout.tsx` los importaba con ruta relativa
+(`'../config/metadata'`), mismo caso que los anteriores. `src/config/` quedó vacío y se
+borró.
+
+**Verificado en cada lote:** `tsc` ✅ · `pnpm run build` ✅ (sigue generando las 23 rutas)
+· lint 116 → 116. Cero cambio de comportamiento: son los mismos archivos, mismo
+contenido, nueva ubicación.
+
+**Lo que queda de la Fase 3** (cada uno más delicado que el anterior, por eso se corta
+acá para que el usuario revise):
+- `components/` → dividir entre `shared/ui/` (genéricos: `ErrorModal`, `SkeletonLoader`,
+  `Footer`, `LoadingScreen/`...) y `features/checkout/components/` (`QRPaymentModal`,
+  `CardPaymentModal`, `InsufficientStockModal`, `BasketConfirmation` — específicos del
+  dominio). Esta clasificación requiere criterio, no es mecánica
+- `features/checkout/`, `catalog/`, `outfits/`, `auth/` — mover `api/`, `model/`, y los
+  ~13 componentes de `app/w/checkout/`
+- Eliminar `utils/` y `services/` una vez que su contenido se reparta en los features
+
+> ⚠️ Ya estaba anotado en el plan: **no mover los componentes del checkout antes de la
+> Fase 2b** (deduplicar el pago). Mover primero deja las dos copias en carpetas
+> distintas y más difíciles de comparar cuando llegue el momento de unificarlas.
+
 **Deriva pendiente, no resuelta:** `nixpacks.toml` usa `nodejs_20` pero local corre
 **Node 22.22.3**. Ambos cumplen `engines` (>=20.9.0), así que se dejó como está para no
 ampliar el alcance. Anotado como riesgo abierto.

@@ -1,4 +1,4 @@
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 import { AUTH_ENDPOINTS, DEFAULT_ROUTES } from '@/constants/auth';
 import type { Client } from '@/store/clientSlice';
 

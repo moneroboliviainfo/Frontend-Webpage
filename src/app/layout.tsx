@@ -4,7 +4,7 @@ import './globals.css';
 import ReduxProvider from '../store/Provider';
 import AuthProvider from '../components/AuthProvider';
 import BugsnagProvider from '../components/BugsnagProvider';
-import { baseMetadata } from '../config/metadata';
+import { baseMetadata } from '@/shared/config/metadata';
 
 import '@fontsource/space-grotesk';
 

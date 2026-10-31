@@ -2,11 +2,11 @@
 import React, { useEffect, useState } from 'react';
 // Image import removed: not used in apology fallback
 // import Image from 'next/image';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import OutfitsGalleryItem from './OutfitsGalleryItem';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import { useRouter } from 'next/navigation';
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 import { filterOutfitsByGender } from '@/utils/outfits';
 
 type OutfitCard = {

@@ -1,5 +1,5 @@
 'use client';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import React, { useEffect, useRef, useState } from 'react';
 import '../../[gender]/clothes/clothes.css';
 

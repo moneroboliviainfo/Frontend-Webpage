@@ -7,8 +7,8 @@ import NavBarImageButton from './NavBarImageButton';
 import SocialMediaLinks from '../SocialMediaLinks';
 import GoogleLoginButton from '../GoogleLoginButton';
 import { selectClient, logout } from '@/store/clientSlice';
-import { FEATURE_FLAGS } from '@/config/features';
-import { GenderStorage } from '@/utils/genderStorage';
+import { FEATURE_FLAGS } from '@/shared/config/features';
+import { GenderStorage } from '@/shared/storage/genderStorage';
 
 const iconSize = 26;
 

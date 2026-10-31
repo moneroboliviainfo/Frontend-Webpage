@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
 import PrivacyPolicy from '@/components/PrivacyPolicy';
-import { createPageMetadata } from '@/config/metadata';
+import { createPageMetadata } from '@/shared/config/metadata';
 
 export const metadata: Metadata = createPageMetadata({
   // This text is served identically under /men and /women, so both point at

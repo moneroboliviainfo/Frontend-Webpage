@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 
 interface SubscriptionSectionProps {
   isMobile: boolean;

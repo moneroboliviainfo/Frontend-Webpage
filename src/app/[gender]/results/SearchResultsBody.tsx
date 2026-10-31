@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 import ProductsGallery, { Product } from '@/components/ProductsGallery';
 import SearchResultsNavBar from './SearchResultsNavBar';
 

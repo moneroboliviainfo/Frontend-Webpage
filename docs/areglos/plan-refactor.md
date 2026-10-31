@@ -6,14 +6,20 @@ Cada fase es entregable por separado y está ordenada por relación valor/riesgo
 No hace falta completar una fase para empezar la siguiente, pero el orden recomendado
 es el numérico.
 
-| Fase | Qué | Riesgo | Valor | Estado |
-|---|---|---|---|---|
-| 0 | Limpieza y herramientas | Nulo | Inmediato | ⬜ Pendiente |
-| 1 | Cliente HTTP central | Bajo | **El más alto** | ⬜ Pendiente |
-| 2 | Descuartizar el checkout | Medio | Alto | ⬜ Pendiente |
-| 3 | Mover a `features/` + `shared/` | Bajo | Estructural | ⬜ Pendiente |
-| 4 | SEO de producto | Medio | Comercial | ⬜ Pendiente |
-| 5 | Unificar carrito y Mobile/Desktop | Medio | Mantenimiento | ⬜ Pendiente |
+| Fase | Qué | Estado |
+|---|---|---|
+| 0 | Limpieza y herramientas | ✅ **Completa** |
+| 1 | Cliente HTTP central | 🟡 Parcial — el cliente existe y los 5 sitios con auth están migrados; faltan los `fetch` de componentes y centralizar endpoints |
+| 2a | Preparación del checkout | ✅ **Completa** |
+| 2b | Deduplicar pago y formulario | ⬜ **Pendiente** — necesita entorno de prueba |
+| 2c | Extraer los hooks del checkout | ⬜ Pendiente |
+| 3 | Mover a `features/` + `shared/` | ⬜ Pendiente |
+| 4 | SEO de producto | 🟡 Parcial — producto, sitemap, JSON-LD y robots hechos; faltan outfits, `opengraph-image` y los links en el servidor |
+| 5 | Unificar Mobile/Desktop | 🟡 Parcial — carrito unificado; faltan `useIsMobile` en SSR y los pares Mobile/Desktop |
+
+> **Avance real: 34 pasos**, registrados uno por uno en la
+> [bitácora del protocolo](./protocolo-de-trabajo.md#bitácora-de-avance), que es la
+> fuente de verdad. Este archivo es el plan; la bitácora es lo ejecutado.
 
 ---
 
@@ -23,36 +29,36 @@ es el numérico.
 sobre un árbol limpio.
 
 ### Código muerto
-- [ ] Borrar los 7 archivos muertos → ver [codigo-muerto.md](./codigo-muerto.md#1-archivos-borrables-completos)
-- [ ] Quitar `cartSlice` y `adSlice` del reducer en `src/store/store.ts`
-- [ ] Borrar los **13 exports del Grupo A** → ver [codigo-muerto.md](./codigo-muerto.md#grupo-a--muertos-de-verdad-borrar-13)
-- [ ] Quitar la palabra `export` (sin borrar) de los **10 del Grupo B** — participan en
+- [x] Borrar los 7 archivos muertos → ver [codigo-muerto.md](./codigo-muerto.md#1-archivos-borrables-completos)
+- [x] Quitar `cartSlice` y `adSlice` del reducer en `src/store/store.ts`
+- [x] Borrar los **13 exports del Grupo A** → ver [codigo-muerto.md](./codigo-muerto.md#grupo-a--muertos-de-verdad-borrar-13)
+- [x] Quitar la palabra `export` (sin borrar) de los **10 del Grupo B** — participan en
       pagos y FedEx
-- [ ] Verificar con `pnpm run typecheck` después de cada tanda
+- [x] Verificar con `pnpm run typecheck` después de cada tanda
 
 > ⚠️ Los thunks del **Grupo C** se dejan para la Fase 3: borrarlos exige tocar
 > `extraReducers`, no es una limpieza de riesgo nulo.
 
 ### Herramientas
-- [ ] **Arreglar ESLint** — hoy crashea con `Converting circular structure to JSON`.
+- [x] **Arreglar ESLint** — hoy crashea con `Converting circular structure to JSON`.
       Migrar `eslint.config.mjs` a flat config nativa, sin `FlatCompat`
-- [ ] Elegir **un** gestor de paquetes y borrar el otro lockfile
+- [x] Elegir **un** gestor de paquetes y borrar el otro lockfile
       (`node_modules` real está en `.pnpm/`, pero `nixpacks.toml` usa `npm ci` → decidir y alinear)
-- [ ] Agregar Prettier + `.prettierrc`
-- [ ] Agregar script `typecheck: tsc --noEmit` a `package.json`
+- [x] Agregar Prettier + `.prettierrc`
+- [x] Agregar script `typecheck: tsc --noEmit` a `package.json`
 
 ### Peso y estilos
-- [ ] Quitar `autoprefixer` de `dependencies`
-- [ ] Quitar `@fontsource/poppins` (nunca se aplica)
-- [ ] Quitar `Geist` / `Geist_Mono` de `layout.tsx` (vars nunca referenciadas)
-- [ ] Borrar `tailwind.config.js` (Tailwind v4 lo ignora)
-- [ ] Arreglar `globals.css`: quitar el `@import 'tailwindcss/preflight'` duplicado de
+- [x] Quitar `autoprefixer` de `dependencies`
+- [x] Quitar `@fontsource/poppins` (nunca se aplica)
+- [x] Quitar `Geist` / `Geist_Mono` de `layout.tsx` (vars nunca referenciadas)
+- [x] Borrar `tailwind.config.js` (Tailwind v4 lo ignora)
+- [x] Arreglar `globals.css`: quitar el `@import 'tailwindcss/preflight'` duplicado de
       la línea 3 y los `--background`/`--foreground` muertos
 - [ ] Decidir la fuente real del `body` (hoy es Arial con 4 webfonts cargadas)
 
 ### Ruido
-- [ ] Quitar `console.log('isProduction:', ...)` de `src/app/layout.tsx`
-- [ ] Revisar los 62 `console.*` — dejar los `console.error` útiles, quitar los
+- [x] Quitar `console.log('isProduction:', ...)` de `src/app/layout.tsx`
+- [~] Revisar los `console.*` → de **62 a 58**. Quedan 14 `debug` y 3 `log`. Quitar los
       14 `console.debug` y 6 `console.log`
 
 ---
@@ -62,10 +68,12 @@ sobre un árbol limpio.
 **La fase de mayor retorno.** Ver diseño en
 [arquitectura-objetivo.md](./arquitectura-objetivo.md#el-cliente-http-central-sharedapiclientts).
 
-- [ ] Crear `src/shared/api/client.ts` que centralice: base URL, header
+- [x] Crear `src/shared/api/client.ts` que centralice: base URL, header
       `Authorization`, `Content-Type`, parseo de errores y tipado
-- [ ] Migrar los 10 sitios que duplican `Authorization: Bearer ${token}`
-- [ ] Migrar los `fetch` de `utils/` y `services/` (los 5 módulos de API)
+- [x] Migrar los sitios con `Authorization: Bearer` → **5 de 7**; `clientSlice`
+      (thunks muertos) y `order-confirmed` se saltearon con motivo (paso 23)
+- [x] Migrar los `fetch` de `utils/` y `services/` → los que lanzan; `repriceCart`,
+      `advertisementService` y `QRPaymentModal` conservan el suyo a propósito
 - [ ] Migrar los `fetch` embebidos en componentes (los que están dentro de
       `ProductPage*`, `OutfitsGallery`, `SearchNavBarDialog`, `SubscriptionSection`,
       `AccessoriesSlider`, `VideoBanner`, `*Body.tsx`)
@@ -85,12 +93,12 @@ Diagnóstico detallado de la carpeta en
 [componentes-checkout.md](./componentes-checkout.md).
 
 ### 2a — Preparación (riesgo nulo, se puede hacer ya)
-- [ ] Borrar `OrderStatusDisplay.tsx` (0 consumidores)
+- [x] Borrar `OrderStatusDisplay.tsx` (0 consumidores)
 - [x] ~~Borrar los 97 bloques JSX comentados~~ → **CANCELADO**: son etiquetas de
       sección, no código muerto. Ver el protocolo.
-- [ ] Extraer `formatBs()` a `shared/lib/formatCurrency.ts` y migrar las **37**
+- [x] Extraer `formatBs()` a `shared/lib/formatCurrency.ts` y migrar las **37**
       ocurrencias de `'Bs.'` + **18** de `.toFixed(2)`
-- [ ] Unificar el breakpoint: hoy el checkout usa `innerWidth < 1024` imperativo en
+- [x] Unificar el breakpoint: hoy el checkout usa `innerWidth < 1024` imperativo en
       7 lugares y `useIsMobile` usa 768. Llevar ambos a `shared/lib/breakpoints.ts`
 - [x] `OrderProgressIndicator`: usa `ORDER_STATUS` en vez de los literales
 
@@ -154,30 +162,32 @@ Mecánico y de bajo riesgo: `tsc` cubre cada movimiento. Ver tabla completa de m
 
 Hoy las fichas de producto no son indexables. Impacto comercial directo.
 
-- [ ] Convertir `w/[product]/page.tsx` a server component con `generateMetadata`
+- [x] Convertir `w/[product]/page.tsx` a server component con `generateMetadata`
       (mover lo interactivo a un componente cliente hijo)
 - [ ] Ídem para `w/outfits/page.tsx`
-- [ ] Hacer `sitemap.ts` dinámico: traer productos y outfits de la API
-- [ ] Corregir el `baseUrl` del sitemap a `https://www.moneroget.com` — hoy apunta a
+- [x] Hacer `sitemap.ts` dinámico: traer productos y outfits de la API
+- [x] Corregir el `baseUrl` del sitemap a `https://www.moneroget.com` — hoy apunta a
       `moneroget.com` y `next.config.ts` lo redirige con 301
-- [ ] Agregar JSON-LD `Product` en las fichas (hoy solo hay `ClothingStore` global)
+- [x] Agregar JSON-LD `Product` en las fichas (hoy solo hay `ClothingStore` global)
 - [ ] Agregar `opengraph-image` para que los productos se vean al compartirse
 
 ---
 
 ## Fase 5 — Unificar duplicaciones
 
-- [ ] Elegir una sola fuente de verdad para el carrito (hoy `cartSlice` muerto +
+- [x] Una sola fuente de verdad para el carrito → se borró `cartSlice` (paso 4).
+      *(era: hoy `cartSlice` muerto +*
       `cartStorage` vivo, ambos con `addToCart`/`removeFromCart` homónimos)
 - [ ] Arreglar `useIsMobile`: devuelve `false` en SSR → flash de layout desktop en
       móvil en 19 call sites. Resolver con CSS (`md:`) o con detección antes de pintar
 - [ ] Unificar `ProductPageMobile` (1077) + `ProductPageDesktop` (981): extraer la
       lógica común a un hook y dejar solo las diferencias de presentación
 - [ ] Ídem `OutfitPageMobile` (722) + `OutfitPageDesktop` (443)
-- [ ] Migrar los 3 env idénticos a `.env` + `NEXT_PUBLIC_*` y quitar los scripts
+- [x] Migrar los 3 env idénticos a `.env` + `NEXT_PUBLIC_*` y quitar los scripts
       `copy`/`cp` de `package.json` (hoy acoplados a plataforma: `copy` en Windows,
       `cp` en el build)
-- [ ] Destrackear `src/config/env.ts` de git (el build lo sobreescribe)
+- [x] ~~Destrackear `src/config/env.ts`~~ → ya no aplica: dejó de ser generado,
+      ahora es código fuente que lee `process.env`
 
 ---
 
@@ -198,7 +208,7 @@ No son deuda estructural: son bugs o riesgos que ya existen en producción.
       en `utils/cybersourcePayment.ts`, a variables de entorno
 
 ### Bugs latentes
-- [ ] `components/nav/SearchNavBarDialog.tsx:165` — URL hardcodeada a producción en
+- [x] `components/nav/SearchNavBarDialog.tsx:165` — URL hardcodeada a producción en
       lugar de `API_URL`
 - [ ] La detección de stock agotado parsea el **texto** del mensaje de error del backend
       (`/\[(\d+(?:,\s*\d+)*)\]/`). Pedir al backend un campo estructurado

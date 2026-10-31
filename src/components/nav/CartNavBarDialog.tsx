@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import NavBarDialog from './NavBarDialog';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import {
   getCart,
   updateCartItemQuantity,
   removeFromCart,
-} from '@/utils/cartStorage';
+} from '@/shared/storage/cartStorage';
 import type { CartItem } from '@/types/cart';
-import buildProductSlug from '@/utils/buildProductSlug';
+import buildProductSlug from '@/shared/lib/buildProductSlug';
 import { formatBs } from '@/shared/lib/formatCurrency';
 
 const CartNavBarDialog: React.FC<{

@@ -1,15 +1,15 @@
 'use client';
 import NavBar from '@/components/nav/NavBar';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import React, { Suspense, useState, useEffect } from 'react';
-import { calculatePrice, DiscountShape } from '@/utils/price';
-import buildProductSlug from '@/utils/buildProductSlug';
+import { calculatePrice, DiscountShape } from '@/shared/lib/price';
+import buildProductSlug from '@/shared/lib/buildProductSlug';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import ProductPageMobile from './ProductPageMobile';
 import ProductPageDesktop from './ProductPageDesktop';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
-import { API_URL } from '@/config/env';
-import sortSizes from '@/utils/sizeSorter';
+import { API_URL } from '@/shared/config/env';
+import sortSizes from '@/shared/lib/sizeSorter';
 
 // Local product details shape used by the page components
 type ProductDetails = {

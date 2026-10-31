@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import CompactSeasonalDiscountModalGate from '@/app/CompactSeasonalDiscountModalGate';
 import OutfitsPageNavBar from '../OutfitsPageNavBar';
 import OutfitsGallery from '../OutfitsGallery';
-import { createPageMetadata } from '@/config/metadata';
+import { createPageMetadata } from '@/shared/config/metadata';
 
 type Props = {
   params: Promise<{ gender: string }>;

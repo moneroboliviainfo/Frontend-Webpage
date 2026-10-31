@@ -30,8 +30,8 @@ import GenderCrossSellSection from '@/components/GenderCrossSellSection';
 import VideoBanner from '@/components/VideoBanner';
 import SubscriptionSection from '@/components/SubscriptionSection';
 import useInterestRecommendations from '@/hooks/useInterestRecommendations';
-import useIsMobile from '@/hooks/useIsMobile';
-import { FEATURE_FLAGS } from '@/config/features';
+import useIsMobile from '@/shared/hooks/useIsMobile';
+import { FEATURE_FLAGS } from '@/shared/config/features';
 
 // Frontend gender constants to match route parameters
 const FRONTEND_GENDERS = {

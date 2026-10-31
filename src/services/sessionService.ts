@@ -1,5 +1,5 @@
 import { apiFetch } from '@/shared/api/client';
-import { AuthStorage } from '@/utils/authStorage';
+import { AuthStorage } from '@/shared/storage/authStorage';
 import { setClient, type Client } from '@/store/clientSlice';
 
 type CustomerProfile = {

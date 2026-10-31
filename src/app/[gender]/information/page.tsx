@@ -4,7 +4,7 @@ import Image from 'next/image';
 import NavBar from '@/components/nav/NavBar';
 import Footer from '@/components/Footer';
 import TermsAndConditions from '@/components/TermsAndConditions';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 
 // Section divider component
 const SectionDivider: React.FC<{ title: string; id: string }> = ({

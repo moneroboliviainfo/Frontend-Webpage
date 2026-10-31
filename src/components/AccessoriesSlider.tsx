@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Product } from '@/components/ProductsGallery';
-import { API_URL } from '@/config/env';
-import buildProductSlug from '@/utils/buildProductSlug';
-import { isDiscountActive } from '@/utils/price';
+import { API_URL } from '@/shared/config/env';
+import buildProductSlug from '@/shared/lib/buildProductSlug';
+import { isDiscountActive } from '@/shared/lib/price';
 import { formatBs } from '@/shared/lib/formatCurrency';
 import './AccessoriesSlider.css';
 

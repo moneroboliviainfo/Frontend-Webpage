@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import SeasonalDiscountModal from '@/components/SeasonalDiscountModal';
 import { useSeasonalDiscountModal } from '@/hooks/useSeasonalDiscountModal';
-import type { DismissReason } from '@/utils/seasonalDiscountStorage';
+import type { DismissReason } from '@/shared/storage/seasonalDiscountStorage';
 
 type Props = {
   gender: string;

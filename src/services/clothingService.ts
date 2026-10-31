@@ -1,4 +1,4 @@
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 import type {
   Slider,
   Category,

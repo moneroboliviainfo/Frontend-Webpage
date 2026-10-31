@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setClient, type Client } from '@/store/clientSlice';
 import { apiFetch } from '@/shared/api/client';
-import { AuthStorage } from '@/utils/authStorage';
+import { AuthStorage } from '@/shared/storage/authStorage';
 
 type CustomerProfile = {
   id?: number | string;

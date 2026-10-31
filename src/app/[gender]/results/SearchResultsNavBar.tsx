@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 
 interface SearchResultsNavBarProps {
   gender: string;

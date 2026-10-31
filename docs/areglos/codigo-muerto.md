@@ -24,9 +24,9 @@ cada borrado.
       *(borrado 2026-10-08 · `tsc` ✅ · build ✅ · quitado de `store.ts`)*
 - [x] `src/store/adSlice.ts` — 0 consumidores
       *(borrado 2026-10-08 · `tsc` ✅ · build ✅ · quitado de `store.ts`)*
-- [ ] `tailwind.config.js` — Tailwind v4 lo ignora sin `@config`; sus colores tienen 0 usos
-- [ ] `src/config/env.qa.ts` — idéntico a `env.ts`
-- [ ] `src/config/env.prod.ts` — idéntico a `env.ts`
+- [x] `tailwind.config.js` — Tailwind v4 lo ignora sin `@config`; sus colores tienen 0 usos
+- [x] `src/config/env.qa.ts` — idéntico a `env.ts`
+- [x] `src/config/env.prod.ts` — idéntico a `env.ts`
 
 > **Nota sobre `cartSlice` / `adSlice`:** al borrarlos hay que quitarlos también del
 > `reducer` de [`src/store/store.ts`](../src/store/store.ts).
@@ -35,9 +35,9 @@ cada borrado.
 > la URL (`shipping/reprice/${fedexShippingToken}`). No hace falta migrarlo al nuevo
 > contrato de body — está muerto, se borra.
 
-> **Nota sobre los env:** antes de borrarlos hay que resolver el punto ⑭ del
-> diagnóstico (migrar a `.env` + `NEXT_PUBLIC_*`) y limpiar los scripts de
-> `package.json` que hacen `copy`/`cp`.
+> **Nota sobre los env:** ✅ resuelto en el paso 32. `env.ts` lee
+> `NEXT_PUBLIC_API_URL`, los dos archivos duplicados se borraron y los scripts quedaron
+> sin el `copy`/`cp` acoplado al sistema operativo.
 
 ---
 
@@ -144,9 +144,9 @@ también sus `addCase` y el estado asociado — por eso van aparte del Grupo A.
 
 ## 3. Dependencias de más
 
-- [ ] `autoprefixer` — 0 usos; Tailwind v4 ya lo aplica internamente
-- [ ] `@fontsource/poppins` — cargada en `layout.tsx`, **nunca aplicada** en ningún CSS
-- [ ] `Geist` / `Geist_Mono` (`next/font/google`) — variables inyectadas en `<html>`
+- [x] `autoprefixer` — 0 usos; Tailwind v4 ya lo aplica internamente
+- [x] `@fontsource/poppins` — cargada en `layout.tsx`, **nunca aplicada** en ningún CSS
+- [x] `Geist` / `Geist_Mono` (`next/font/google`) — variables inyectadas en `<html>`
       pero `var(--font-geist-sans)` no se referencia en ningún estilo
 
 > `@fontsource/space-grotesk` **sí se usa** (clase `.navbar-font`) — no borrar.
@@ -157,10 +157,10 @@ también sus `addCase` y el estado asociado — por eso van aparte del Grupo A.
 
 ## 4. CSS muerto
 
-- [ ] `--background` / `--foreground` en `globals.css` — 0 usos, incluido todo el bloque
+- [x] `--background` / `--foreground` en `globals.css` — 0 usos, incluido todo el bloque
       `@media (prefers-color-scheme: dark)`
-- [ ] `theme.extend.colors.primary` / `.secondary` en `tailwind.config.js` — 0 usos
-- [ ] `@import 'tailwindcss/preflight'` duplicado en `globals.css` línea 3 — ya viene
+- [x] `theme.extend.colors.primary` / `.secondary` → se fue con `tailwind.config.js`
+- [x] `@import 'tailwindcss/preflight'` duplicado en `globals.css` línea 3 — ya viene
       incluido en `@import 'tailwindcss'` de la línea 1, y al estar después de
       `theme.css` lo pisa
 

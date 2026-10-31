@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import CategorySlide from './CategorySlide';
-import useIsMobile from '@/hooks/useIsMobile';
+import useIsMobile from '@/shared/hooks/useIsMobile';
 import { CLOTHING_API_CONSTANTS } from '@/services/clothingService';
 import type { RootState } from '@/store/store';
 

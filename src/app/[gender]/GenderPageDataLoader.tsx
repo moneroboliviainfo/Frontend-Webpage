@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store/store';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
-import { GenderStorage } from '@/utils/genderStorage';
+import { GenderStorage } from '@/shared/storage/genderStorage';
 import {
   fetchSliders,
   fetchCategories,

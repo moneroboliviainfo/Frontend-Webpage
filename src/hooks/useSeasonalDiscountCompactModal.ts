@@ -1,14 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { API_URL } from '@/config/env';
+import { API_URL } from '@/shared/config/env';
 import { DISCOUNT_TYPE_SEASONAL } from '@/constants/discounts';
 import type { Discount } from '@/types/discount';
 import {
   shouldShowSeasonalModal,
   setSeasonalDiscountDismissal,
   type DismissReason,
-} from '@/utils/seasonalDiscountStorage';
+} from '@/shared/storage/seasonalDiscountStorage';
 
 type RemainingTime = {
   hours: string;
