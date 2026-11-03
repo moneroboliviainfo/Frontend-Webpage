@@ -66,30 +66,32 @@ es lo que mantiene el proyecto fuera del alcance PCI completo.
 >   consulta el género de **cada producto del carrito** (N requests) y lanza error si
 >   hay prendas de mujer. Ver punto 14.
 
-### 3. Creación de orden — ⚠️ implementada DOS veces
+### 3. Creación de orden — unificada (era doble)
 
-**Archivos:** `utils/orderService.ts` (`createOrder`) → `POST orders/online`
+**Archivos:** `utils/confirmOrder.ts` (`confirmOrder`) → `utils/orderService.ts`
+(`createOrder`) → `POST web-page/orders/online`
 
-Payload: `items` (cart token), `name`, `phone`, `shipment`, `address`,
-`selectedServiceType`, `payment_type` (`'qr' | 'card_online'`), `email`, `billing`.
+Payload: `items` (cart token), **`branchId`**, `name`, `phone`, `shipment`,
+`address`, `selectedServiceType`, `payment_type` (`'qr' | 'card_online'`),
+`email`, `billing`.
 
-> 🔴 **Lo más importante de este documento:** el flujo de creación de orden y pago está
-> **duplicado por viewport**:
+> ✅ **Actualizado (03/11/2026)**: la lógica ya **no** está duplicada.
+> `confirmOrder()` concentra los guards, el payload, y el parseo de errores, y
+> devuelve un resultado (`card` / `qr` / `out-of-stock` / `session-expired` /
+> `blocked` / `error`) que cada pantalla mapea a sus propios modales.
 >
 > | | Desktop (`≥1024px`) | Mobile (`<1024px`) |
 > |---|---|---|
 > | Archivo | `app/w/checkout/page.tsx` | `app/w/checkout/OrderConfirmationModal.tsx` |
-> | Handler | `handleConfirmOrder()` — 95 líneas | `handlePayOrder()` — 95 líneas |
-> | Modales de pago | `showDesktopQRModal` / `showDesktopCardModal` | sus propios `<QRPaymentModal>` / `<CardPaymentModal>` |
+> | Handler | `handleConfirmOrder()` — solo mapea el resultado | `handlePayOrder()` — ídem |
 >
-> Ambos importan y usan `createOrder`, `generateQR`, `buildCybersourceBilling`,
-> `saveGuestOrderAccess` y `checkForWomenItems`.
+> Los dos `switch` tienen una guarda `const unhandled: never`, así que **agregar
+> un caso nuevo al resultado no compila** hasta que las dos pantallas lo
+> manejen. Eso es lo que antes fallaba en silencio.
 >
-> **Cualquier cambio en el pago hay que aplicarlo en los dos archivos**, o queda roto
-> en una de las dos pantallas. Al verificar un fix, probarlo en ambos anchos.
->
-> Análisis y plan de unificación en
-> [componentes-checkout.md](./componentes-checkout.md).
+> **Lo que sigue duplicado es el formulario** de dirección y facturación, no el
+> pago. Ver [componentes-checkout.md](./componentes-checkout.md) y el ítem C9 de
+> [../update/00-plan-frontend.md](../update/00-plan-frontend.md).
 
 > ⚠️ **Trampa:** `items` es el **cart token (JWT)**, no un array de productos. El nombre
 > engaña. Ver punto 9.

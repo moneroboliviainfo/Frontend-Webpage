@@ -16,6 +16,8 @@ import { INVALID_CONFIRMATION_STATUSES } from '@/constants/orders';
 import { useAppSelector } from '@/store/hooks';
 import { selectClient } from '@/store/clientSlice';
 import { hasGuestOrderAccess } from '@/shared/storage/guestOrderAccess';
+import { isGuestEmail } from '@/shared/auth/guestSession';
+import PaymentIssueNotice, { type PaymentIssue } from './PaymentIssueNotice';
 
 interface OrderItem {
   id: number;
@@ -82,6 +84,16 @@ const OrderConfirmedContent: React.FC = () => {
   const orderId = searchParams.get('orderId');
   const client = useAppSelector(selectClient);
 
+  // The card callback returns to this same route whatever happened, with
+  // `paymentStatus=confirmed|rejected|review`. Showing "compra confirmada"
+  // without reading it tells the customer their money went through when it did
+  // not. The QR flow never sets it, so it stays on the confirmed path.
+  const paymentStatus = searchParams.get('paymentStatus');
+  const paymentIssue: PaymentIssue | null =
+    paymentStatus === 'rejected' || paymentStatus === 'review'
+      ? paymentStatus
+      : null;
+
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [cartItems, setCartItems] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +101,13 @@ const OrderConfirmedContent: React.FC = () => {
 
   useEffect(() => {
     const fetchOrderData = async () => {
+      if (paymentIssue) {
+        // Nothing to load: the notice is self-contained, and a `rejected`
+        // order is still `pending` (the redirect below would bounce the
+        // customer home) while a `review` one may already be cancelled.
+        setIsLoading(false);
+        return;
+      }
       if (!orderId) {
         setError('No se encontró el ID del pedido');
         setIsLoading(false);
@@ -106,9 +125,10 @@ const OrderConfirmedContent: React.FC = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${API_URL}customers/order/${orderId}`, {
-          headers,
-        });
+        const response = await fetch(
+          `${API_URL}web-page/customers/order/${orderId}`,
+          { headers },
+        );
 
         if (!response.ok) {
           throw new Error('No se pudo cargar la información del pedido');
@@ -117,7 +137,7 @@ const OrderConfirmedContent: React.FC = () => {
         const data = await response.json();
 
         // Determine if this order was created by the guest placeholder account
-        const isGuestOrder = data?.customer?.email === 'guest@moneroget.com';
+        const isGuestOrder = isGuestEmail(data?.customer?.email);
         // If it's a guest order and the current browser/user is not a logged-in non-guest,
         // require the previously saved local access key for this order.
         if (isGuestOrder) {
@@ -126,7 +146,7 @@ const OrderConfirmedContent: React.FC = () => {
             const isLoggedInNonGuest = !!(
               client &&
               client.email &&
-              client.email !== 'guest@moneroget.com'
+              !isGuestEmail(client.email)
             );
             if (!isLoggedInNonGuest && !localAllowed) {
               setError('No autorizado para ver este pedido');
@@ -229,7 +249,11 @@ const OrderConfirmedContent: React.FC = () => {
     };
 
     fetchOrderData();
-  }, [orderId, client]);
+  }, [orderId, client, paymentIssue]);
+
+  if (paymentIssue) {
+    return <PaymentIssueNotice issue={paymentIssue} orderId={orderId} />;
+  }
 
   if (isLoading) {
     return (

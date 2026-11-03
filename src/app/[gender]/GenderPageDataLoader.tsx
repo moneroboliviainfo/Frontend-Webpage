@@ -46,32 +46,32 @@ const GenderPageDataLoader: React.FC<GenderPageDataLoaderProps> = ({
 
   // Selectors for loading states
   const slidersLoading = useSelector(
-    (state: RootState) => state.clothing.slidersLoading
+    (state: RootState) => state.clothing.slidersLoading,
   );
   const categoriesLoading = useSelector(
-    (state: RootState) => state.clothing.categoriesLoading
+    (state: RootState) => state.clothing.categoriesLoading,
   );
 
   // Selectors for data
   const sliders = useSelector((state: RootState) => state.clothing.sliders);
   const categories = useSelector(
-    (state: RootState) => state.clothing.categories
+    (state: RootState) => state.clothing.categories,
   );
 
   // Check if we have data for this gender
   const hasSliderData = sliders.some((slider) => slider.gender === apiGender);
   const hasCategoryData = categories.some(
-    (category) => category.gender === apiGender
+    (category) => category.gender === apiGender,
   );
 
   // Trigger API calls on mount - only run once per gender
   useEffect(() => {
     // Check current state
     const currentHasSliderData = sliders.some(
-      (slider) => slider.gender === apiGender
+      (slider) => slider.gender === apiGender,
     );
     const currentHasCategoryData = categories.some(
-      (category) => category.gender === apiGender
+      (category) => category.gender === apiGender,
     );
 
     const needSliders =
@@ -86,7 +86,7 @@ const GenderPageDataLoader: React.FC<GenderPageDataLoaderProps> = ({
     }
 
     if (needCategories) {
-      dispatch(fetchCategories(apiGender));
+      dispatch(fetchCategories());
       dispatchedRef.current.categories.add(apiGender);
     }
 

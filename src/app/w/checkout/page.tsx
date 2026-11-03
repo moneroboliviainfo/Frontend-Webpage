@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import CheckoutCostSummary from './CheckoutCostSummary';
 import OrderConfirmationModal from './OrderConfirmationModal';
@@ -17,6 +17,7 @@ import PaymentMethodSelectionSection, {
 } from './PaymentMethodSelectionSection';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectClient, type UserAddress } from '@/store/clientSlice';
+import { selectBranchStatus, selectSelectedBranch } from '@/store/branchSlice';
 import {
   setCheckoutFormData,
   setSelectedPlace,
@@ -27,6 +28,8 @@ import {
   setRepriceData,
   setFedexRates,
   setSelectedFedexService,
+  clearAddressId,
+  clearFedexRates,
   selectSelectedPlace,
   selectSelectedShipment,
   selectAddressId,
@@ -54,16 +57,15 @@ import {
   removeOutOfStockVariants,
   getAvailableCartItems,
 } from '@/utils/checkoutCart';
-import {
-  createOrder,
-  generateQR,
-  checkForWomenItems,
-} from '@/utils/orderService';
 import { getFedexRates, buildFedexRecipient } from '@/utils/shippingRates';
-import { FEATURE_FLAGS } from '@/shared/config/features';
+import { confirmOrder } from '@/utils/confirmOrder';
+import {
+  isGuestEmail,
+  isSessionExpired,
+  requestGuestToken,
+} from '@/shared/auth/guestSession';
 import { saveGuestOrderAccess } from '@/shared/storage/guestOrderAccess';
 import { type CybersourceBilling } from '@/services/cybersourceService';
-import { buildCybersourceBilling } from '@/utils/cybersourcePayment';
 import type { CartItem } from '@/types/cart';
 import { API_URL } from '@/shared/config/env';
 import { GenderStorage } from '@/shared/storage/genderStorage';
@@ -433,7 +435,10 @@ const CheckoutPage: React.FC = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const client = useAppSelector(selectClient);
-  const isGuestUser = client?.email === 'guest@moneroget.com';
+  const branchStatus = useAppSelector(selectBranchStatus);
+  const selectedBranch = useAppSelector(selectSelectedBranch);
+  const branchId = selectedBranch?.id ?? null;
+  const isGuestUser = isGuestEmail(client?.email);
   const selectedPlace = useAppSelector(selectSelectedPlace);
   const selectedShipment = useAppSelector(selectSelectedShipment);
   const addressId = useAppSelector(selectAddressId);
@@ -548,6 +553,10 @@ const CheckoutPage: React.FC = () => {
   const [availableItems, setAvailableItems] = useState<CartItem[]>([]);
   const [hasRemainingItems, setHasRemainingItems] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  // Explains the jump back to step 1 after a branch change dropped the quote.
+  const [showRequoteNotice, setShowRequoteNotice] = useState(false);
+  // Explains why the address has to be entered again after a session renewal.
+  const [sessionRenewedNotice, setSessionRenewedNotice] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isCreatingAddress, setIsCreatingAddress] = useState(false);
   const [isFetchingShippingRates, setIsFetchingShippingRates] = useState(false);
@@ -576,7 +585,6 @@ const CheckoutPage: React.FC = () => {
   const [cybersourceOrderId, setCybersourceOrderId] = useState<number | null>(
     null,
   );
-  const [cardPaymentAmount, setCardPaymentAmount] = useState<string>('0.00');
   const [cardBilling, setCardBilling] = useState<CybersourceBilling | null>(
     null,
   );
@@ -703,7 +711,7 @@ const CheckoutPage: React.FC = () => {
     const fetchDepartments = async () => {
       try {
         setIsLoadingDepartments(true);
-        const response = await fetch(`${API_URL}places`);
+        const response = await fetch(`${API_URL}web-page/places`);
         const data: Place[] = await response.json();
         setDepartments(data);
       } catch (error) {
@@ -766,8 +774,23 @@ const CheckoutPage: React.FC = () => {
     setIsLoadingCountries(false);
   }, []);
 
-  // Validate cart on component mount
+  // Validate cart on mount, and again whenever the shopper switches branch:
+  // stock, prices and the cart token are all branch-specific.
   useEffect(() => {
+    // An online reprice without branchId is a 400, so wait for the branch to
+    // resolve rather than firing a request that cannot succeed.
+    if (branchStatus === 'idle' || branchStatus === 'loading') return;
+
+    const branchToValidate = branchId;
+    if (!branchToValidate) {
+      setIsValidatingCart(false);
+      setErrorMessage(
+        'No pudimos conectar con la tienda para revisar tu carrito. Recarga la página e intenta de nuevo.',
+      );
+      setShowErrorModal(true);
+      return;
+    }
+
     const validateCart = async () => {
       try {
         setIsValidatingCart(true);
@@ -792,8 +815,11 @@ const CheckoutPage: React.FC = () => {
         // Step 1: Create cart in backend
         const cartResponse = await createBackendCart(cartApiRequest.items);
 
-        // Step 2: Get repricing and validate stock
-        const repriceResponse = await repriceCart(cartResponse.token);
+        // Step 2: Get repricing and validate stock in the chosen branch
+        const repriceResponse = await repriceCart(
+          cartResponse.token,
+          branchToValidate,
+        );
 
         // Check if there's insufficient stock
         if (isRepriceError(repriceResponse)) {
@@ -829,14 +855,35 @@ const CheckoutPage: React.FC = () => {
         console.error('Cart validation error:', error);
         setIsValidatingCart(false);
         setErrorMessage(
-          'Unable to validate your cart. Please check your connection and try again.',
+          'No pudimos validar tu carrito. Revisá tu conexión e intentá de nuevo.',
         );
         setShowErrorModal(true);
       }
     };
 
     validateCart();
-  }, [router, dispatch]);
+  }, [router, dispatch, branchStatus, branchId]);
+
+  // A FedEx quote belongs to the branch it was asked for, so switching branch
+  // invalidates it. Without this the stale `fedexShippingToken` stays in Redux
+  // and `handleConfirmOrder` sends it (`fedexShippingToken || cartToken`)
+  // alongside the NEW branchId: shipping priced against the wrong store.
+  const previousBranchIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    const previous = previousBranchIdRef.current;
+    previousBranchIdRef.current = branchId;
+
+    // Nothing to invalidate on the first resolve, or when nothing was quoted.
+    if (previous === null || previous === branchId) return;
+    if (!fedexShippingToken) return;
+
+    dispatch(clearFedexRates());
+    // The quote is gone, so step 2 would only offer a placeholder option that
+    // leads nowhere. Send them back to the address step, which is the only
+    // place that can quote, and say why.
+    goToStep(1);
+    setShowRequoteNotice(true);
+  }, [branchId, dispatch, fedexShippingToken, goToStep]);
 
   // Handle proceeding without out-of-stock items
   const handleProceedWithoutOutOfStock = () => {
@@ -868,25 +915,10 @@ const CheckoutPage: React.FC = () => {
     try {
       AuthStorage.storeRedirectUrl(window.location.href);
 
-      const res = await fetch(`${API_URL}auth/guest`, {
-        method: 'POST',
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setShowErrorModal(true);
-        setErrorMessage('No se pudo continuar como invitado');
-        return;
-      }
-
-      if (data.token) {
-        await completeLoginWithToken(data.token, dispatch);
-        const redirectUrl = AuthStorage.getAndClearRedirectUrl() || '/';
-        router.push(redirectUrl);
-      } else {
-        setShowErrorModal(true);
-        setErrorMessage('Respuesta inválida del servidor');
-      }
+      const token = await requestGuestToken();
+      await completeLoginWithToken(token, dispatch);
+      const redirectUrl = AuthStorage.getAndClearRedirectUrl() || '/';
+      router.push(redirectUrl);
     } catch (err) {
       console.error('Guest login error:', err);
       setShowErrorModal(true);
@@ -895,6 +927,46 @@ const CheckoutPage: React.FC = () => {
       setIsGuestLoading(false);
     }
   };
+
+  /**
+   * Recovers from a rejected session (`401`) in the middle of the checkout.
+   *
+   * A guest gets a brand-new session, which is the only way forward — but every
+   * call opens a *new* one, so the address created under the dead token is gone
+   * too (`404`). Hence the address is dropped and the customer goes back to
+   * step 1 to enter it again; silently retrying would fail at order creation.
+   *
+   * Someone with a real account cannot be recovered automatically: the stored
+   * token is cleared and the page falls back to its login screen.
+   */
+  const handleSessionExpired = useCallback(async () => {
+    const wasGuest = isGuestEmail(client?.email);
+
+    dispatch(clearAddressId());
+    dispatch(clearFedexRates());
+    goToStep(1);
+
+    if (!wasGuest) {
+      AuthStorage.clearToken();
+      setErrorMessage(
+        'Tu sesión expiró. Volvé a iniciar sesión para continuar con tu compra.',
+      );
+      setShowErrorModal(true);
+      return;
+    }
+
+    try {
+      const token = await requestGuestToken();
+      await completeLoginWithToken(token, dispatch);
+      setSessionRenewedNotice(true);
+    } catch (err) {
+      console.error('Could not open a new guest session:', err);
+      setErrorMessage(
+        'Tu sesión de invitado expiró y no pudimos abrir una nueva. Recargá la página e intentá de nuevo.',
+      );
+      setShowErrorModal(true);
+    }
+  }, [client?.email, dispatch, goToStep]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -1103,6 +1175,7 @@ const CheckoutPage: React.FC = () => {
 
           // Store address ID in Redux
           dispatch(setAddressId(addressResponse.id));
+          setSessionRenewedNotice(false);
           console.debug('handleContinue: address created', addressResponse.id);
         }
 
@@ -1118,9 +1191,15 @@ const CheckoutPage: React.FC = () => {
           }
           setIsFetchingShippingRates(true);
           console.debug('handleContinue: fetching FedEx rates');
+          if (!branchId) {
+            throw new Error(
+              'No se encontró la tienda seleccionada. Por favor recarga la página.',
+            );
+          }
           const ratesResponse = await getFedexRates(
             cartToken,
             buildFedexRecipient(formData),
+            branchId,
           );
           console.debug('handleContinue: fetched FedEx rates', {
             token: ratesResponse.fedexShippingToken,
@@ -1132,6 +1211,7 @@ const CheckoutPage: React.FC = () => {
               services: ratesResponse.services,
             }),
           );
+          setShowRequoteNotice(false);
           setIsFetchingShippingRates(false);
           console.debug('handleContinue: setIsFetchingShippingRates(false)');
         }
@@ -1146,10 +1226,19 @@ const CheckoutPage: React.FC = () => {
         }
       } catch (error) {
         console.error('Error preparing shipping step:', error);
+
+        // Creating the address and quoting FedEx both run authenticated, so a
+        // dead session surfaces here too — and it needs a new session, not the
+        // generic error modal.
+        if (isSessionExpired(error)) {
+          await handleSessionExpired();
+          return;
+        }
+
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : 'Unable to save your address. Please try again.',
+            : 'No pudimos guardar tu dirección. Intentá de nuevo.',
         );
         setShowErrorModal(true);
       } finally {
@@ -1232,95 +1321,70 @@ const CheckoutPage: React.FC = () => {
 
   const handleConfirmOrder = async () => {
     if (!hasAcceptedTerms) return;
-    if (!addressId || (!cartToken && !fedexShippingToken)) {
-      setOrderError('Missing required order information. Please try again.');
-      return;
-    }
 
-    // Prevent order creation if women's section is disabled and cart has women's items
-    if (!FEATURE_FLAGS.WOMEN_ENABLED) {
-      try {
-        const cart = getCart();
-        const hasWomen = await checkForWomenItems(cart.items);
-        if (hasWomen) {
-          setOrderError(
-            'La compra está temporalmente deshabilitada para prendas de categoría mujeres.',
-          );
-          return;
-        }
-      } catch (e) {
-        // ignore errors and continue
-      }
-    }
+    setIsCreatingOrder(true);
+    setOrderError('');
 
     try {
-      setIsCreatingOrder(true);
-      setOrderError('');
-
-      // Step 1: Create the order
-      const orderResponse = await createOrder({
-        items: fedexShippingToken || cartToken || '',
-        name: formData.name,
-        phone: `${formData.countryCode} ${formData.phone}`,
-        payment_type: selectedPaymentMethod === 'card' ? 'card_online' : 'qr',
-        selectedServiceType: selectedFedexService
-          ? selectedFedexService.serviceType
-          : undefined,
-        email: formData.email,
-        billing: {
-          ci: formData.billingCI,
-          name: formData.billingName,
-          phone: `${formData.countryCode} ${formData.phone}`,
-          email: formData.email,
-          complemento: formData.billingComplemento || undefined,
-          codigoTipoDocumentoIdentidad: 1,
-        },
-        shipment: selectedShipment ? selectedShipment.id : undefined,
-        address: addressId,
+      const result = await confirmOrder({
+        branchStatus,
+        branchId,
+        addressId,
+        cartToken,
+        fedexShippingToken,
+        formData,
+        paymentMethod: selectedPaymentMethod === 'card' ? 'card' : 'qr',
+        selectedShipment,
+        selectedFedexService,
+        selectedCountry,
+        isLoggedIn: !!client && !isGuestUser,
       });
 
-      setCreatedOrderId(orderResponse.id);
+      switch (result.status) {
+        case 'card':
+          setCreatedOrderId(result.orderId);
+          setCybersourceOrderId(result.orderId);
+          setCardBilling(result.billing);
+          setShowDesktopCardModal(true);
+          break;
 
-      if (selectedPaymentMethod === 'card') {
-        // Card flow: reuse the store order as the Cybersource reference (same backend now, no separate reservation call)
-        const total =
-          (repriceData ? parseFloat(repriceData.total || '0') : 0) +
-          (selectedFedexService
-            ? selectedFedexService.amountBOB
-            : parseFloat(selectedShipment?.price || '0'));
-        const totalPrice = total.toFixed(2);
+        case 'qr':
+          setCreatedOrderId(result.orderId);
+          setQrImageBase64(result.qr);
+          setQrGloss(result.gloss);
+          setShowDesktopQRModal(true);
+          break;
 
-        const billing = buildCybersourceBilling({
-          name: formData.name,
-          email: formData.email,
-          selectedCountry,
-          detailedAddress: formData.detailedAddress,
-          cityProvince: formData.cityProvince,
-          departamento: formData.departamento,
-          city: formData.city,
-          streetNumber: formData.streetNumber,
-          postalCode: formData.postalCode,
-          isLoggedIn: !!client && !isGuestUser,
-        });
+        case 'out-of-stock': {
+          // Reuse the modal the cart validation already shows, so the customer
+          // can drop those garments and keep going.
+          const outOfStock = getCart().items.filter((item) =>
+            result.variantIds.includes(item.variantId),
+          );
+          const stillAvailable = getAvailableCartItems(result.variantIds);
+          setOutOfStockItems(outOfStock);
+          setAvailableItems(stillAvailable);
+          setHasRemainingItems(stillAvailable.length > 0);
+          setShowInsufficientStockModal(true);
+          break;
+        }
 
-        setCybersourceOrderId(orderResponse.id);
-        setCardPaymentAmount(totalPrice);
-        setCardBilling(billing);
-        setShowDesktopCardModal(true);
-      } else {
-        // QR flow: generate the QR code for the store order
-        const qrResponse = await generateQR(orderResponse.id);
-        setQrImageBase64(qrResponse.qr);
-        setQrGloss(qrResponse.gloss || '');
-        setShowDesktopQRModal(true);
+        case 'session-expired':
+          await handleSessionExpired();
+          break;
+
+        case 'blocked':
+        case 'error':
+          setOrderError(result.message);
+          break;
+
+        default: {
+          // Keeps this switch honest: a new ConfirmOrderResult variant fails to
+          // compile here instead of falling through silently.
+          const unhandled: never = result;
+          throw new Error(`Unhandled confirm order result: ${unhandled}`);
+        }
       }
-    } catch (error) {
-      console.error('Error creating order or preparing payment:', error);
-      setOrderError(
-        error instanceof Error
-          ? error.message
-          : 'Unable to create order. Please try again.',
-      );
     } finally {
       setIsCreatingOrder(false);
     }
@@ -1358,6 +1422,108 @@ const CheckoutPage: React.FC = () => {
     <>
       {/* Loading Screen */}
       {isValidatingCart && <LoadingScreen />}
+
+      {/* A renewed guest session left the old address unreachable */}
+      {sessionRenewedNotice && (
+        <div
+          role="status"
+          className="fixed left-0 right-0 flex justify-center"
+          style={{ top: 'calc(var(--nav-height, 60px) + 0.75rem)', zIndex: 46 }}
+        >
+          <div
+            className="flex items-start"
+            style={{
+              gap: '0.75rem',
+              margin: '0 1rem',
+              maxWidth: '32rem',
+              padding: '0.75rem 1rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #fcd34d',
+              backgroundColor: '#fffbeb',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.875rem',
+                color: '#92400e',
+                lineHeight: 1.4,
+              }}
+            >
+              Tu sesión expiró y abrimos una nueva. Tu carrito sigue intacto,
+              pero necesitamos que vuelvas a ingresar tu dirección.
+            </p>
+            <button
+              type="button"
+              aria-label="Cerrar aviso"
+              onClick={() => setSessionRenewedNotice(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#92400e',
+                fontSize: '1.1rem',
+                lineHeight: 1,
+                padding: 0,
+              }}
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Branch change invalidated the FedEx quote */}
+      {showRequoteNotice && (
+        <div
+          role="status"
+          className="fixed left-0 right-0 flex justify-center"
+          style={{ top: 'calc(var(--nav-height, 60px) + 0.75rem)', zIndex: 45 }}
+        >
+          <div
+            className="flex items-start"
+            style={{
+              gap: '0.75rem',
+              margin: '0 1rem',
+              maxWidth: '32rem',
+              padding: '0.75rem 1rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #fcd34d',
+              backgroundColor: '#fffbeb',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.875rem',
+                color: '#92400e',
+                lineHeight: 1.4,
+              }}
+            >
+              Cambiaste de tienda, así que el costo de envío internacional quedó
+              sin validez. Confirmá tu dirección para cotizarlo de nuevo.
+            </p>
+            <button
+              type="button"
+              aria-label="Cerrar aviso"
+              onClick={() => setShowRequoteNotice(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#92400e',
+                fontSize: '1.1rem',
+                lineHeight: 1,
+                padding: 0,
+              }}
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Error Modal */}
       <ErrorModal
@@ -3046,6 +3212,7 @@ const CheckoutPage: React.FC = () => {
             selectedDeliveryMethod={selectedDeliveryMethod}
             formData={formData}
             paymentMethod={selectedPaymentMethod ?? 'qr'}
+            onSessionExpired={handleSessionExpired}
           />
 
           {/* Desktop QR Payment Modal */}

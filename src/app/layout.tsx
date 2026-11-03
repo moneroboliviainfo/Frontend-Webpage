@@ -3,6 +3,7 @@ import Script from 'next/script';
 import './globals.css';
 import ReduxProvider from '../store/Provider';
 import AuthProvider from '../components/AuthProvider';
+import BranchProvider from '../components/BranchProvider';
 import BugsnagProvider from '../components/BugsnagProvider';
 import { baseMetadata } from '@/shared/config/metadata';
 
@@ -139,7 +140,9 @@ export default function RootLayout({
         )}
         <ReduxProvider>
           <BugsnagProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <BranchProvider>{children}</BranchProvider>
+            </AuthProvider>
           </BugsnagProvider>
         </ReduxProvider>
       </body>

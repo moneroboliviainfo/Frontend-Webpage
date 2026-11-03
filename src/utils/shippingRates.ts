@@ -54,12 +54,13 @@ export const buildFedexRecipient = (
 export async function getFedexRates(
   cartToken: string,
   recipient: FedexRecipient,
+  branchId: number,
 ): Promise<FedexRatesResponse> {
   const data = await apiFetch<FedexRatesResponse>('shipping/rates', {
     method: 'POST',
-    body: { items: cartToken, recipient },
+    body: { items: cartToken, recipient, branchId },
     auth: true,
-    errorMessage: 'Failed to fetch shipping rates',
+    errorMessage: 'No pudimos cotizar el envío',
   });
 
   if (!data.success || !data.services || data.services.length === 0) {

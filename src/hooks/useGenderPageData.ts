@@ -25,19 +25,19 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
   // Selectors for different data types
   const sliders = useSelector((state: RootState) => state.clothing.sliders);
   const categories = useSelector(
-    (state: RootState) => state.clothing.categories
+    (state: RootState) => state.clothing.categories,
   );
   const outfits = useSelector((state: RootState) => state.clothing.outfits);
 
   // Loading states
   const slidersLoading = useSelector(
-    (state: RootState) => state.clothing.slidersLoading
+    (state: RootState) => state.clothing.slidersLoading,
   );
   const categoriesLoading = useSelector(
-    (state: RootState) => state.clothing.categoriesLoading
+    (state: RootState) => state.clothing.categoriesLoading,
   );
   const outfitsLoading = useSelector(
-    (state: RootState) => state.clothing.outfitsLoading
+    (state: RootState) => state.clothing.outfitsLoading,
   );
 
   // Error state
@@ -46,7 +46,7 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
   // Filter data for current gender (outfits are now global, no gender filtering needed)
   const genderSliders = sliders.filter((slider) => slider.gender === gender);
   const genderCategories = categories.filter(
-    (category) => category.gender === gender && category.enabled
+    (category) => category.gender === gender && category.enabled,
   );
   // Outfits are now global - no gender filtering since API doesn't support it
   const allOutfits = outfits;
@@ -67,7 +67,7 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
 
     if (needsCategories) {
       loadingInitiated.current.categories.add(gender);
-      dispatch(fetchCategories(gender));
+      dispatch(fetchCategories());
     }
   }, [dispatch, gender, sliders, categories]);
 
@@ -111,11 +111,11 @@ export const useGenderPageData = (gender: 'male' | 'female') => {
  */
 export const useSlidersData = (
   gender?: 'male' | 'female',
-  sliderType?: 'desktop' | 'mobile'
+  sliderType?: 'desktop' | 'mobile',
 ) => {
   const sliders = useSelector((state: RootState) => state.clothing.sliders);
   const slidersLoading = useSelector(
-    (state: RootState) => state.clothing.slidersLoading
+    (state: RootState) => state.clothing.slidersLoading,
   );
 
   // Filter sliders

@@ -139,6 +139,30 @@ const checkoutSlice = createSlice({
     setSelectedFedexService: (state, action: PayloadAction<FedexService>) => {
       state.selectedFedexService = action.payload;
     },
+    /**
+     * Drops a FedEx quote without touching the rest of the checkout.
+     *
+     * A quote belongs to the branch it was asked for: the token carries the
+     * cart and the price comes from that branch's stock. Once the customer
+     * switches branch the quote is wrong, and `handleConfirmOrder` would send
+     * the stale token (`fedexShippingToken || cartToken`) with the new
+     * `branchId`.
+     */
+    /**
+     * Forgets the stored address id without touching the cart.
+     *
+     * Needed when a guest session dies: the address was created under that
+     * session and answers 404 afterwards, while the cart token is a signed
+     * cart and stays valid.
+     */
+    clearAddressId: (state) => {
+      state.addressId = null;
+    },
+    clearFedexRates: (state) => {
+      state.fedexShippingToken = null;
+      state.fedexServices = [];
+      state.selectedFedexService = null;
+    },
     clearCheckoutData: (state) => {
       state.formData = null;
       state.selectedPlace = null;
@@ -164,6 +188,8 @@ export const {
   setRepriceData,
   setFedexRates,
   setSelectedFedexService,
+  clearAddressId,
+  clearFedexRates,
   clearCheckoutData,
 } = checkoutSlice.actions;
 

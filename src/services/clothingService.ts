@@ -26,7 +26,7 @@ export class ClothingApiService {
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch sliders: ${response.status} ${response.statusText}`
+        `Failed to fetch sliders: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -36,19 +36,22 @@ export class ClothingApiService {
   }
 
   /**
-   * Fetch categories from the API
-   * @param gender Optional gender filter
-   * @returns Promise<Category[]>
+   * Fetch categories from the public storefront API.
+   *
+   * `web-page/categories` returns every category, for both genders, and takes
+   * no query parameters — the `?gender=` this used to send was not declared by
+   * the backend and was ignored. Callers already narrow by gender off the
+   * store (see `useGenderPageData`), so one request covers both.
+   *
+   * The plain `/categories` route it used to call is the admin CRUD and
+   * answers 401 without a staff token.
    */
-  static async fetchCategories(
-    gender?: 'male' | 'female'
-  ): Promise<Category[]> {
-    const params = gender ? `?gender=${gender}` : '';
-    const response = await fetch(`${this.baseUrl}categories${params}`);
+  static async fetchCategories(): Promise<Category[]> {
+    const response = await fetch(`${this.baseUrl}web-page/categories`);
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch categories: ${response.status} ${response.statusText}`
+        `Failed to fetch categories: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -56,15 +59,18 @@ export class ClothingApiService {
   }
 
   /**
-   * Fetch outfits from the API
-   * @returns Promise<Outfit[]>
+   * Fetch outfits from the public storefront API.
+   *
+   * Plain `/outfits` is the admin CRUD and answers 401. The listing has no
+   * gender filter by design, so it is applied in the front
+   * (`filterOutfitsByGender`).
    */
   static async fetchOutfits(): Promise<Outfit[]> {
-    const response = await fetch(`${this.baseUrl}outfits`);
+    const response = await fetch(`${this.baseUrl}web-page/outfits`);
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch outfits: ${response.status} ${response.statusText}`
+        `Failed to fetch outfits: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -80,7 +86,7 @@ export class ClothingApiService {
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch most searched: ${response.status} ${response.statusText}`
+        `Failed to fetch most searched: ${response.status} ${response.statusText}`,
       );
     }
 

@@ -10,6 +10,9 @@ import { API_URL } from '@/shared/config/env';
 import buildProductSlug from '@/shared/lib/buildProductSlug';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import { filterOutfitsByGender } from '@/utils/outfits';
+import { useAppSelector } from '@/store/hooks';
+import { selectBranchId, selectBranchStatus } from '@/store/branchSlice';
+import { branchQuery } from '@/shared/api/branchQuery';
 
 // API response shape (partial)
 type DiscountShape = {
@@ -201,6 +204,8 @@ const allOutfitsData = [
 
 const OutfitsPageContent = () => {
   const isMobile = useIsMobile();
+  const branchId = useAppSelector(selectBranchId);
+  const branchStatus = useAppSelector(selectBranchStatus);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -255,6 +260,10 @@ const OutfitsPageContent = () => {
 
   // Fetch outfit by id parsed from the `outfit` query param (e.g. Semi-Elegante-8)
   useEffect(() => {
+    // Same reasoning as the product detail: the outfit itself is the same in
+    // every branch, only the stock per size changes.
+    if (branchStatus === 'idle' || branchStatus === 'loading') return;
+
     const raw = currentOutfitId || '';
     const match = raw.match(/-(\d+)$/);
     if (!match) {
@@ -266,7 +275,7 @@ const OutfitsPageContent = () => {
     let mounted = true;
     setLoading(true);
 
-    fetch(`${API_URL}web-page/outfits/${id}`)
+    fetch(`${API_URL}web-page/outfits/${id}${branchQuery(branchId)}`)
       .then((res) => {
         if (!res.ok) throw new Error('network');
         return res.json();
@@ -360,7 +369,7 @@ const OutfitsPageContent = () => {
     return () => {
       mounted = false;
     };
-  }, [currentOutfitId]);
+  }, [currentOutfitId, branchId, branchStatus]);
 
   // Limit swipable outfits to the same gender when possible
   const swipableOutfits = (

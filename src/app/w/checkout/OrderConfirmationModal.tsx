@@ -19,17 +19,14 @@ import {
   selectFedexShippingToken,
   selectSelectedFedexService,
 } from '@/store/checkoutSlice';
-import {
-  createOrder,
-  generateQR,
-  checkForWomenItems,
-} from '@/utils/orderService';
-import { FEATURE_FLAGS } from '@/shared/config/features';
 import { getCart } from '@/shared/storage/cartStorage';
+import { describeOutOfStockItems } from '@/utils/insufficientStock';
+import { confirmOrder } from '@/utils/confirmOrder';
 import { saveGuestOrderAccess } from '@/shared/storage/guestOrderAccess';
 import { type CybersourceBilling } from '@/services/cybersourceService';
-import { buildCybersourceBilling } from '@/utils/cybersourcePayment';
 import { selectClient } from '@/store/clientSlice';
+import { isGuestEmail } from '@/shared/auth/guestSession';
+import { selectBranchStatus, selectSelectedBranch } from '@/store/branchSlice';
 
 interface OrderConfirmationModalProps {
   isOpen: boolean;
@@ -38,6 +35,12 @@ interface OrderConfirmationModalProps {
   selectedCountry: string;
   selectedDeliveryMethod: string;
   paymentMethod?: 'qr' | 'card';
+  /**
+   * Called when the session is rejected mid-payment. The parent owns the
+   * recovery (new guest session, address discarded, back to step 1) because
+   * this sheet cannot move the checkout between steps.
+   */
+  onSessionExpired?: () => void | Promise<void>;
   formData: {
     name: string;
     email: string;
@@ -64,6 +67,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   selectedDeliveryMethod,
   formData,
   paymentMethod = 'qr',
+  onSessionExpired,
 }) => {
   const router = useRouter();
   const selectedShipment = useAppSelector(selectSelectedShipment);
@@ -74,7 +78,9 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   const cartItems = useAppSelector(selectCheckoutCartItems);
   const repriceData = useAppSelector(selectRepriceData);
   const client = useAppSelector(selectClient);
-  const isGuestUser = client?.email === 'guest@moneroget.com';
+  const branchStatus = useAppSelector(selectBranchStatus);
+  const selectedBranch = useAppSelector(selectSelectedBranch);
+  const isGuestUser = isGuestEmail(client?.email);
 
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [showQRPayment, setShowQRPayment] = useState(false);
@@ -91,102 +97,79 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   const [cybersourceOrderId, setCybersourceOrderId] = useState<number | null>(
     null,
   );
-  const [cardAmount, setCardAmount] = useState<string>('0.00');
   const [cardBilling, setCardBilling] = useState<CybersourceBilling | null>(
     null,
   );
 
   const handlePayOrder = async () => {
     if (!hasAcceptedTerms) return;
-    if (!addressId || (!cartToken && !fedexShippingToken)) {
-      setOrderError('Missing required order information. Please try again.');
-      return;
-    }
 
-    // Prevent order creation if women's section is disabled and cart has women's items
-    if (!FEATURE_FLAGS.WOMEN_ENABLED) {
-      try {
-        const cart = getCart();
-        const hasWomen = await checkForWomenItems(cart.items);
-        if (hasWomen) {
-          setOrderError(
-            'La compra está temporalmente deshabilitada para prendas de categoría mujeres.',
-          );
-          return;
-        }
-      } catch (e) {
-        // ignore errors and continue
-      }
-    }
+    setIsCreatingOrder(true);
+    setOrderError('');
 
     try {
-      setIsCreatingOrder(true);
-      setOrderError('');
-
-      // Step 1: Create the order
-      const orderResponse = await createOrder({
-        items: fedexShippingToken || cartToken || '',
-        name: formData.name,
-        phone: `${formData.countryCode} ${formData.phone}`,
-        email: formData.email,
-        payment_type: paymentMethod === 'card' ? 'card_online' : 'qr',
-        selectedServiceType: selectedFedexService
-          ? selectedFedexService.serviceType
-          : undefined,
-        billing: {
-          ci: formData.billingCI,
-          name: formData.billingName,
-          phone: `${formData.countryCode} ${formData.phone}`,
-          email: formData.email,
-          complemento: formData.billingComplemento || undefined,
-          codigoTipoDocumentoIdentidad: 1,
-        },
-        shipment: selectedShipment ? selectedShipment.id : undefined,
-        address: addressId,
+      const result = await confirmOrder({
+        branchStatus,
+        branchId: selectedBranch?.id ?? null,
+        addressId,
+        cartToken,
+        fedexShippingToken,
+        formData,
+        paymentMethod: paymentMethod === 'card' ? 'card' : 'qr',
+        selectedShipment,
+        selectedFedexService,
+        selectedCountry,
+        isLoggedIn: !!client && !isGuestUser,
       });
 
-      setCreatedOrderId(orderResponse.id);
+      switch (result.status) {
+        case 'card':
+          setCreatedOrderId(result.orderId);
+          setCybersourceOrderId(result.orderId);
+          setCardBilling(result.billing);
+          setShowCardPayment(true);
+          break;
 
-      if (paymentMethod === 'card') {
-        // Card flow: reuse the store order as the Cybersource reference (same backend now, no separate reservation call)
-        const total =
-          (repriceData ? parseFloat(repriceData.total || '0') : 0) +
-          (selectedFedexService
-            ? selectedFedexService.amountBOB
-            : parseFloat(selectedShipment?.price || '0'));
-        const totalPrice = total.toFixed(2);
+        case 'qr':
+          setCreatedOrderId(result.orderId);
+          setQrImageBase64(result.qr);
+          setQrGloss(result.gloss);
+          setShowQRPayment(true);
+          break;
 
-        const billing = buildCybersourceBilling({
-          name: formData.name,
-          email: formData.email,
-          selectedCountry,
-          detailedAddress: formData.detailedAddress,
-          cityProvince: formData.cityProvince,
-          departamento: formData.departamento,
-          city: formData.city,
-          streetNumber: formData.streetNumber,
-          postalCode: formData.postalCode,
-          isLoggedIn: !!client && !isGuestUser,
-        });
+        case 'out-of-stock': {
+          // This sheet has no out-of-stock modal, so name the garments in the
+          // message instead of showing the raw backend text.
+          const names = describeOutOfStockItems(
+            result.variantIds,
+            getCart().items,
+          );
+          setOrderError(
+            names
+              ? `Se quedaron sin stock: ${names}. Quitalas del carrito para continuar.`
+              : 'Una de las prendas se quedó sin stock. Revisá tu carrito e intentá de nuevo.',
+          );
+          break;
+        }
 
-        setCybersourceOrderId(orderResponse.id);
-        setCardAmount(totalPrice);
-        setCardBilling(billing);
-        setShowCardPayment(true);
-      } else {
-        // Step 2: Generate QR code
-        const qrResponse = await generateQR(orderResponse.id);
-        setQrImageBase64(qrResponse.qr);
-        setQrGloss(qrResponse.gloss || '');
-        setShowQRPayment(true);
+        case 'session-expired':
+          setOrderError(
+            'Tu sesión expiró. Volvé a ingresar tu dirección para continuar.',
+          );
+          await onSessionExpired?.();
+          break;
+
+        case 'blocked':
+        case 'error':
+          setOrderError(result.message);
+          break;
+
+        default: {
+          // Same exhaustiveness guard as the desktop flow.
+          const unhandled: never = result;
+          throw new Error(`Unhandled confirm order result: ${unhandled}`);
+        }
       }
-    } catch (error) {
-      console.error('Error creating order or preparing payment:', error);
-      setOrderError(
-        error instanceof Error
-          ? error.message
-          : 'Unable to create order. Please try again.',
-      );
     } finally {
       setIsCreatingOrder(false);
     }
@@ -210,7 +193,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     // Redirect to order confirmation page with order ID
     if (orderId) {
       try {
-        if (client?.email === 'guest@moneroget.com') {
+        if (isGuestEmail(client?.email)) {
           saveGuestOrderAccess(orderId);
         }
       } catch (e) {

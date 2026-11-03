@@ -18,11 +18,42 @@ export type ApiRequest = {
 };
 
 /**
+ * A non-2xx response from the API.
+ *
+ * Extends `Error` so the existing `error instanceof Error ? error.message`
+ * call sites keep working untouched; what it adds is the `status`, which some
+ * decisions genuinely depend on. Clearing the stored token, for one, is only
+ * correct on a `401` — doing it on any failure logs the customer out over a
+ * network blip.
+ */
+export class ApiError extends Error {
+  readonly status: number;
+  /** The parsed error body, when there was one. */
+  readonly body: unknown;
+
+  constructor(message: string, status: number, body: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
+  }
+}
+
+/** Whether a thrown value is an API response with this status. */
+export const isApiStatus = (error: unknown, status: number): boolean =>
+  error instanceof ApiError && error.status === status;
+
+/**
  * Single entry point for calls to the Monero API.
  *
- * Throws on a non-2xx response, which is what most callers expect. The few that
- * treat a failure as a value instead — the stock check in repriceCart, the
- * advertisement cache, the QR payment poller — keep their own `fetch` on purpose.
+ * Throws `ApiError` on a non-2xx response, which is what most callers expect.
+ * The few that treat a failure as a value instead — the stock check in
+ * repriceCart, the advertisement cache, the QR payment poller — keep their own
+ * `fetch` on purpose.
+ *
+ * A failed request (offline, DNS, timeout) rejects with the browser's own
+ * `TypeError`, not an `ApiError`: there is no status to report, and callers
+ * must not treat it as a verdict from the server.
  */
 export async function apiFetch<T>(
   path: string,
@@ -48,7 +79,11 @@ export async function apiFetch<T>(
     const fallback = errorMessage
       ? `${errorMessage}: ${response.statusText}`
       : response.statusText;
-    throw new Error(data.message || data.error || fallback);
+    throw new ApiError(
+      data.message || data.error || fallback,
+      response.status,
+      data,
+    );
   }
 
   return response.json();

@@ -7,6 +7,9 @@ import { API_URL } from '@/shared/config/env';
 import buildProductSlug from '@/shared/lib/buildProductSlug';
 import { isDiscountActive } from '@/shared/lib/price';
 import { formatBs } from '@/shared/lib/formatCurrency';
+import { useAppSelector } from '@/store/hooks';
+import { selectBranchId } from '@/store/branchSlice';
+import { branchQuery } from '@/shared/api/branchQuery';
 import './AccessoriesSlider.css';
 
 interface AccessoriesSliderProps {
@@ -65,6 +68,7 @@ export default function AccessoriesSlider({
   onAddToCart,
 }: AccessoriesSliderProps) {
   const router = useRouter();
+  const branchId = useAppSelector(selectBranchId);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [productWithSizes, setProductWithSizes] =
@@ -96,7 +100,9 @@ export default function AccessoriesSlider({
 
     try {
       // Fetch full product details with sizes
-      const response = await fetch(`${API_URL}web-page/products/${product.id}`);
+      const response = await fetch(
+        `${API_URL}web-page/products/${product.id}${branchQuery(branchId)}`,
+      );
       if (response.ok) {
         const data: ProductWithSizes = await response.json();
         setProductWithSizes(data);

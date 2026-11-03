@@ -6,6 +6,9 @@ import type { CartItem } from '@/types/cart';
 
 interface CreateOrderRequest {
   items: string; // cart token
+  // Branch the sale is taken from: stock is reserved there and the SIAT
+  // invoice is issued by it. Must be the same one used to reprice/quote.
+  branchId: number;
   name: string;
   phone: string;
   shipment?: number;
@@ -43,7 +46,7 @@ export const createOrder = (
     method: 'POST',
     body: orderData,
     auth: true,
-    errorMessage: 'Failed to create order',
+    errorMessage: 'No pudimos crear la orden',
   });
 
 /**
@@ -105,6 +108,6 @@ export const generateQR = async (
     method: 'POST',
     body: { orderId },
     auth: true,
-    errorMessage: 'Failed to generate QR',
+    errorMessage: 'No pudimos generar el QR',
   });
 };

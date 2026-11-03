@@ -1,17 +1,9 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setClient, type Client } from '@/store/clientSlice';
-import { apiFetch } from '@/shared/api/client';
+import { setClient } from '@/store/clientSlice';
 import { AuthStorage } from '@/shared/storage/authStorage';
-
-type CustomerProfile = {
-  id?: number | string;
-  name?: string;
-  email?: string;
-  address?: unknown;
-  phone?: string;
-  orders?: unknown;
-};
+import { isApiStatus } from '@/shared/api/client';
+import { fetchCustomerProfile, toClient } from '@/services/customerProfile';
 
 export const useAuthInit = () => {
   const dispatch = useDispatch();
@@ -31,23 +23,18 @@ export const useAuthInit = () => {
       if (!token) return;
 
       try {
-        // customers/me doubles as the token check: a rejected token throws here
-        const profile = await apiFetch<CustomerProfile>('customers/me', {
-          auth: true,
-        });
-
-        const client: Client = {
-          clientId: String(profile.id ?? ''),
-          name: profile.name ?? '',
-          email: profile.email ?? '',
-          address: Array.isArray(profile.address) ? profile.address : undefined,
-          phone: profile.phone ?? undefined,
-          orders: Array.isArray(profile.orders) ? profile.orders : undefined,
-        };
-        dispatch(setClient(client));
+        // This doubles as the token check: a rejected token throws here.
+        const profile = await fetchCustomerProfile();
+        dispatch(setClient(toClient(profile)));
       } catch (err) {
         console.error('Error verifying token/profile:', err);
-        AuthStorage.clearToken();
+        // Only an actually rejected token ends the session. A network blip, a
+        // 500 or a timeout must leave it alone — dropping it there logs the
+        // customer out for something that was never their session's fault, and
+        // there is no refresh token, so getting back in means logging in again.
+        if (isApiStatus(err, 401)) {
+          AuthStorage.clearToken();
+        }
       }
     };
 

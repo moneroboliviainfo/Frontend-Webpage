@@ -10,6 +10,9 @@ import ProductPageDesktop from './ProductPageDesktop';
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import { API_URL } from '@/shared/config/env';
 import sortSizes from '@/shared/lib/sizeSorter';
+import { useAppSelector } from '@/store/hooks';
+import { selectBranchId, selectBranchStatus } from '@/store/branchSlice';
+import { branchQuery } from '@/shared/api/branchQuery';
 
 // Local product details shape used by the page components
 type ProductDetails = {
@@ -226,6 +229,8 @@ function transformApiProduct(
 // App Router requirement.
 const ProductPageContent = () => {
   const isMobile = useIsMobile();
+  const branchId = useAppSelector(selectBranchId);
+  const branchStatus = useAppSelector(selectBranchStatus);
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -283,6 +288,12 @@ const ProductPageContent = () => {
   }, [currentSlug]);
 
   useEffect(() => {
+    // Hold the fetch until the branch resolves: asking without branchId returns
+    // stock summed across every store, which would briefly offer sizes that
+    // cannot actually be bought here. On failure branchId stays null and the
+    // product is still browsable with that aggregate number.
+    if (branchStatus === 'idle' || branchStatus === 'loading') return;
+
     const match = currentSlug.match(/-(\d+)$/);
     if (!match) {
       setFetchedProduct(null);
@@ -295,7 +306,7 @@ const ProductPageContent = () => {
     // show loader while fetching
     setLoading(true);
 
-    fetch(`${API_URL}web-page/products/${id}`)
+    fetch(`${API_URL}web-page/products/${id}${branchQuery(branchId)}`)
       .then((res) => {
         if (!res.ok) throw new Error('network');
         return res.json();
@@ -334,7 +345,7 @@ const ProductPageContent = () => {
     return () => {
       mounted = false;
     };
-  }, [currentSlug]);
+  }, [currentSlug, branchId, branchStatus]);
 
   return (
     <>

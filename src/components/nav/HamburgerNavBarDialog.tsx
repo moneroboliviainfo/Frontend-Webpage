@@ -7,6 +7,7 @@ import NavBarImageButton from './NavBarImageButton';
 import SocialMediaLinks from '../SocialMediaLinks';
 import GoogleLoginButton from '../GoogleLoginButton';
 import { selectClient, logout } from '@/store/clientSlice';
+import { isGuestEmail } from '@/shared/auth/guestSession';
 import { FEATURE_FLAGS } from '@/shared/config/features';
 import { GenderStorage } from '@/shared/storage/genderStorage';
 
@@ -19,7 +20,7 @@ const HamburgerNavBarDialog: React.FC<{
   const client = useSelector(selectClient);
   const dispatch = useDispatch();
   const currentGender = GenderStorage.getGender();
-  const isGuest = client?.email === 'guest@moneroget.com';
+  const isGuest = isGuestEmail(client?.email);
 
   return (
     <NavBarDialog open={open} setOpen={setOpen}>

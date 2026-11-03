@@ -1,4 +1,5 @@
 import { API_URL } from '@/shared/config/env';
+import { parseInsufficientStockVariantIds } from './insufficientStock';
 import { getCart, saveCart, removeFromCart } from '@/shared/storage/cartStorage';
 import type { Cart, CartItem } from '@/types/cart';
 
@@ -96,29 +97,21 @@ export async function createBackendCart(
  * Get repricing for cart items
  */
 export async function repriceCart(
-  token: string
+  token: string,
+  branchId: number,
 ): Promise<RepriceSuccessResponse | RepriceErrorResponse> {
   const response = await fetch(`${API_URL}orders/reprice`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ items: token, type: 'online' }),
+    body: JSON.stringify({ items: token, type: 'online', branchId }),
   });
 
   const data = await response.json();
 
   if (!response.ok) {
-    // Parse variant IDs from message: "Insufficient stock for variants: [643, 644]"
-    let variants: number[] = [];
-    if (data.message && typeof data.message === 'string') {
-      const match = data.message.match(/\[(\d+(?:,\s*\d+)*)\]/);
-      if (match && match[1]) {
-        variants = match[1]
-          .split(',')
-          .map((id: string) => parseInt(id.trim(), 10));
-      }
-    }
+    const variants = parseInsufficientStockVariantIds(data?.message);
     return { ...data, variants } as RepriceErrorResponse;
   }
 

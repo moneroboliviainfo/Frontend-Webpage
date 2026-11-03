@@ -34,9 +34,26 @@ export const getCybersourceCheckoutParams = async (
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    // This call renews the order and its stock reservation before the charge,
+    // so its failures are about time running out, not about the card.
+    // 409: the renewal cap was reached and under 5 minutes are left.
+    // 404: the order expired or is no longer PENDING.
+    if (response.status === 409) {
+      throw new Error(
+        'Se agotó el tiempo para pagar esta orden. Volvé a armar tu compra.',
+      );
+    }
+    if (response.status === 404) {
+      throw new Error(
+        'Tu orden venció o ya no está disponible. Volvé a armar tu compra.',
+      );
+    }
+
+    const errorData = await response.json().catch(() => null);
     throw new Error(
-      errorData.error || `Failed to prepare payment: ${response.statusText}`,
+      errorData?.error ||
+        errorData?.message ||
+        `No se pudo preparar el pago: ${response.statusText}`,
     );
   }
 

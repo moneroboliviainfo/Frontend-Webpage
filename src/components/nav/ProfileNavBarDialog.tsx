@@ -13,7 +13,9 @@ import {
 import NavBarDialog from './NavBarDialog';
 import GoogleLoginButton from '../GoogleLoginButton';
 import { selectClient, logout } from '@/store/clientSlice';
+import { isGuestEmail } from '@/shared/auth/guestSession';
 import { normalizePlaceName } from '@/utils/addressService';
+import { resolveOrderStatus } from '@/utils/orderStatus';
 
 interface Order {
   id: number;
@@ -55,7 +57,7 @@ const ProfileNavBarDialog: React.FC<{
     client?.address && Array.isArray(client.address) ? client.address : [];
 
   // If user is not logged in or is a guest account, show only Google login button
-  const isGuest = client?.email === 'guest@moneroget.com';
+  const isGuest = isGuestEmail(client?.email);
   if (!client || isGuest) {
     return (
       <NavBarDialog open={open} setOpen={setOpen}>
@@ -201,52 +203,70 @@ const ProfileNavBarDialog: React.FC<{
           >
             <div style={{ paddingTop: '16px' }}>
               {orders.length > 0 ? (
-                orders.map((order) => (
-                  <button
-                    key={order.id}
-                    className="flex items-center w-full text-left hover:bg-gray-100 transition-colors"
-                    style={{
-                      gap: '12px',
-                      marginBottom: '16px',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => handleOrderClick(order.id.toString())}
-                  >
-                    <FiShoppingCart size={18} className="text-gray-400" />
-                    <div className="flex-1">
-                      <p className="text-black font-medium text-sm">
-                        N° de pedido: {order.id}
-                      </p>
-                      {order.createdAt && (
+                orders.map((order) => {
+                  const status = resolveOrderStatus(
+                    order.status,
+                    order.expiresAt,
+                  );
+                  // The detail page refuses expired orders and bounces home,
+                  // so don't offer a click that goes nowhere.
+                  const canOpen = status !== 'expired';
+                  return (
+                    <button
+                      key={order.id}
+                      disabled={!canOpen}
+                      className={
+                        canOpen
+                          ? 'flex items-center w-full text-left hover:bg-gray-100 transition-colors'
+                          : 'flex items-center w-full text-left'
+                      }
+                      style={{
+                        gap: '12px',
+                        marginBottom: '16px',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: canOpen ? 'pointer' : 'default',
+                      }}
+                      onClick={
+                        canOpen
+                          ? () => handleOrderClick(order.id.toString())
+                          : undefined
+                      }
+                    >
+                      <FiShoppingCart size={18} className="text-gray-400" />
+                      <div className="flex-1">
+                        <p className="text-black font-medium text-sm">
+                          N° de pedido: {order.id}
+                        </p>
+                        {order.createdAt && (
+                          <p
+                            className="text-gray-500"
+                            style={{
+                              fontSize: '12px',
+                              marginTop: '2px',
+                            }}
+                          >
+                            {new Date(order.createdAt).toLocaleDateString(
+                              'es-ES',
+                            )}
+                          </p>
+                        )}
                         <p
-                          className="text-gray-500"
                           style={{
                             fontSize: '12px',
-                            marginTop: '2px',
+                            marginTop: '4px',
+                            color: getOrderStatusColor(status),
+                            fontWeight: '500',
                           }}
                         >
-                          {new Date(order.createdAt).toLocaleDateString(
-                            'es-ES',
-                          )}
+                          {getOrderStatusLabel(status)}
                         </p>
-                      )}
-                      <p
-                        style={{
-                          fontSize: '12px',
-                          marginTop: '4px',
-                          color: getOrderStatusColor(order.status),
-                          fontWeight: '500',
-                        }}
-                      >
-                        {getOrderStatusLabel(order.status)}
-                      </p>
-                    </div>
-                  </button>
-                ))
+                      </div>
+                    </button>
+                  );
+                })
               ) : (
                 <p
                   className="text-gray-500"

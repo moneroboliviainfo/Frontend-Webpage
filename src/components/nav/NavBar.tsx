@@ -10,9 +10,11 @@ import { GenderStorage } from '@/shared/storage/genderStorage';
 import NavBarLink from './NavBarLink';
 import NavBarIconText from './NavBarIconText';
 import NavBarDropdown from './NavBarDropdown';
+import BranchSelector from './BranchSelector';
 import { usePathname } from 'next/navigation';
 import { FEATURE_FLAGS } from '@/shared/config/features';
 import { selectClient } from '@/store/clientSlice';
+import { isGuestEmail } from '@/shared/auth/guestSession';
 
 import HamburgerButton from './HamburgerButton';
 import HamburgerNavBarDialog from './HamburgerNavBarDialog';
@@ -39,7 +41,7 @@ export default function NavBar({
   const [cartLength, setCartLength] = useState(0);
   const client = useSelector(selectClient);
   const clientName = client?.name || null;
-  const isGuest = client?.email === 'guest@moneroget.com';
+  const isGuest = isGuestEmail(client?.email);
   const displayUserText = isGuest
     ? 'INICIA SESIÓN'
     : (clientName ?? client?.email ?? '');
@@ -201,6 +203,10 @@ export default function NavBar({
         </div>
         {/* Right: Icons and text */}
         <div className="flex items-center gap-7">
+          <BranchSelector
+            iconsSize={iconsSize}
+            iconsStrokeWidth={iconsStrokeWidth}
+          />
           <NavBarIconText
             icon={<FiSearch size={iconsSize} strokeWidth={iconsStrokeWidth} />}
             text="BUSCA AQUÍ"

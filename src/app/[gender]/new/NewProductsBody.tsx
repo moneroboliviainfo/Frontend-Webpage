@@ -104,7 +104,7 @@ export default function NewProductsBody({ gender }: NewProductsBodyProps) {
         setError(null);
 
         const response = await fetch(
-          `${API_URL}products?days=${DAYS_TO_CONSIDER_NEW}&page=${page}`
+          `${API_URL}web-page/products?days=${DAYS_TO_CONSIDER_NEW}&page=${page}`,
         );
 
         if (!response.ok) {
@@ -119,7 +119,7 @@ export default function NewProductsBody({ gender }: NewProductsBodyProps) {
           (product) =>
             product.subcategory?.category?.gender === targetGender &&
             product.enabled &&
-            product.productColors.length > 0
+            product.productColors.length > 0,
         );
 
         if (append) {
@@ -127,7 +127,7 @@ export default function NewProductsBody({ gender }: NewProductsBodyProps) {
             // Create a Set of existing product IDs to avoid duplicates
             const existingIds = new Set(prev.map((product) => product.id));
             const newUniqueProducts = filteredProducts.filter(
-              (product) => !existingIds.has(product.id)
+              (product) => !existingIds.has(product.id),
             );
             return [...prev, ...newUniqueProducts];
           });
@@ -149,7 +149,7 @@ export default function NewProductsBody({ gender }: NewProductsBodyProps) {
         pagesFetchingRef.current.delete(page);
       }
     },
-    [gender]
+    [gender],
   );
 
   // Initial load

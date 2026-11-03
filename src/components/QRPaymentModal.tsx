@@ -30,14 +30,20 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
   const [timeLeft, setTimeLeft] = useState<number>(DURATION_SECONDS);
   const [endTimestamp, setEndTimestamp] = useState<number | null>(null);
   const [showDownloadToast, setShowDownloadToast] = useState(false);
+  // Set when `verify` answers 404: the order expired, was cancelled, or is not
+  // a QR order. The QR in the customer's hands is dead from that moment.
+  const [orderExpired, setOrderExpired] = useState(false);
 
   // Initialize end timestamp when modal opens (or orderId changes).
   useEffect(() => {
     if (!isOpen) {
       setEndTimestamp(null);
       setTimeLeft(DURATION_SECONDS);
+      setOrderExpired(false);
       return;
     }
+
+    setOrderExpired(false);
 
     // Set a new end timestamp for the countdown
     const now = Date.now();
@@ -62,13 +68,21 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
   }, [isOpen, endTimestamp]);
 
   useEffect(() => {
-    if (!isOpen || !orderId) return;
+    if (!isOpen || !orderId || orderExpired) return;
 
     const verifyPayment = async () => {
       try {
         const url = `${API_URL}payments/verify/${orderId}`;
 
         const response = await fetch(url);
+
+        // 404 means the order expired, was cancelled, or is not a QR order.
+        // Polling can never succeed from here, and the QR must stop being
+        // shown so nobody pays one that the bank already voided.
+        if (response.status === 404) {
+          setOrderExpired(true);
+          return;
+        }
 
         if (!response.ok) {
           console.error(
@@ -104,11 +118,11 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
     return () => {
       clearInterval(pollingInterval);
     };
-  }, [isOpen, orderId, onPaymentConfirmed]);
+  }, [isOpen, orderId, onPaymentConfirmed, orderExpired]);
 
   // Redirect to last gender page when timer expires
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || orderExpired) return;
     if (timeLeft <= 0) {
       const lastGender = GenderStorage.getGender();
       try {
@@ -117,7 +131,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
         // ignore
       }
     }
-  }, [timeLeft, isOpen, router]);
+  }, [timeLeft, isOpen, router, orderExpired]);
 
   // Format time display (MM:SS)
   const formatTime = (seconds: number) => {
@@ -129,6 +143,83 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
   };
 
   if (!isOpen) return null;
+
+  if (orderExpired) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="bg-white rounded-lg text-center"
+          style={{
+            width: '90%',
+            maxWidth: '500px',
+            padding: '2rem',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            style={{ fontSize: '3rem', lineHeight: 1, marginBottom: '1rem' }}
+            aria-hidden="true"
+          >
+            &#9203;
+          </div>
+          <p
+            style={{
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: '#111827',
+              margin: 0,
+              marginBottom: '0.75rem',
+            }}
+          >
+            La orden venci&oacute;
+          </p>
+          <p
+            style={{
+              color: '#4b5563',
+              fontSize: '0.95rem',
+              margin: 0,
+              marginBottom: '1.5rem',
+            }}
+          >
+            Este QR ya no se puede pagar. Si ya pagaste, contactanos con tu
+            n&uacute;mero de pedido <strong>#{orderId}</strong> y lo
+            resolvemos.
+          </p>
+          <div
+            className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center"
+            style={{ gap: '0.75rem' }}
+          >
+            <button
+              type="button"
+              onClick={() => router.push('/contact')}
+              className="bg-black text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+              style={{ padding: '0.75rem 1.5rem', cursor: 'pointer' }}
+            >
+              Contactanos
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+              style={{
+                padding: '0.75rem 1.5rem',
+                cursor: 'pointer',
+                border: '1px solid #d1d5db',
+                background: 'none',
+                color: '#111827',
+              }}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

@@ -110,15 +110,16 @@ export const fetchSliders = createAsyncThunk(
   'clothing/fetchSliders',
   async (gender?: 'male' | 'female') => {
     return await ClothingApiService.fetchSliders(gender);
-  }
+  },
 );
 
 // Async thunk to fetch categories
 export const fetchCategories = createAsyncThunk(
   'clothing/fetchCategories',
-  async (gender?: 'male' | 'female') => {
-    return await ClothingApiService.fetchCategories(gender);
-  }
+  async () => {
+    // One request returns both genders; consumers filter off the store.
+    return await ClothingApiService.fetchCategories();
+  },
 );
 
 // Async thunk to fetch outfits (lower priority)
@@ -126,7 +127,7 @@ export const fetchOutfits = createAsyncThunk(
   'clothing/fetchOutfits',
   async () => {
     return await ClothingApiService.fetchOutfits();
-  }
+  },
 );
 
 // Legacy async thunk to fetch categories and subcategories (for backwards compatibility)
@@ -142,7 +143,7 @@ export const fetchCategoriesAndSubcategories = createAsyncThunk(
       categories: LegacyCategory[];
       subcategories: LegacySubcategory[];
     }>;
-  }
+  },
 );
 
 // Async thunk to fetch most searched items
@@ -156,7 +157,7 @@ export const fetchMostSearched = createAsyncThunk(
     }
     // Expected response: MostSearchedItem[] or { mostSearched: MostSearchedItem[] }
     return response.json();
-  }
+  },
 );
 
 // Async thunk to fetch search recommendations
@@ -169,7 +170,7 @@ export const fetchSearchRecommendations = createAsyncThunk(
       throw new Error('Failed to fetch search recommendations');
     }
     return response.json() as Promise<SearchRecommendation[]>;
-  }
+  },
 );
 
 const clothingSlice = createSlice({
