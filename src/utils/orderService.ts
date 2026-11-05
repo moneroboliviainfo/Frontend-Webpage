@@ -42,7 +42,7 @@ interface GenerateQRResponse {
 export const createOrder = (
   orderData: CreateOrderRequest,
 ): Promise<CreateOrderResponse> =>
-  apiFetch<CreateOrderResponse>('orders/online', {
+  apiFetch<CreateOrderResponse>('web-page/orders/online', {
     method: 'POST',
     body: orderData,
     auth: true,

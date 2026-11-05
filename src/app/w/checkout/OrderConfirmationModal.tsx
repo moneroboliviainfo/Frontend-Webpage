@@ -146,15 +146,15 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           );
           setOrderError(
             names
-              ? `Se quedaron sin stock: ${names}. Quitalas del carrito para continuar.`
-              : 'Una de las prendas se quedó sin stock. Revisá tu carrito e intentá de nuevo.',
+              ? `Se quedaron sin stock: ${names}. Quítalas del carrito para continuar.`
+              : 'Una de las prendas se quedó sin stock. Revisa tu carrito e intenta de nuevo.',
           );
           break;
         }
 
         case 'session-expired':
           setOrderError(
-            'Tu sesión expiró. Volvé a ingresar tu dirección para continuar.',
+            'Tu sesión expiró. Vuelve a ingresar tu dirección para continuar.',
           );
           await onSessionExpired?.();
           break;

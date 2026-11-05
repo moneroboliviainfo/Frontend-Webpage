@@ -1,5 +1,6 @@
 'use client';
 import BasketConfirmation from '@/components/BasketConfirmation';
+import OutOfStockNotice from './OutOfStockNotice';
 import { formatBs } from '@/shared/lib/formatCurrency';
 import AccessoriesSlider from '@/components/AccessoriesSlider';
 import React, { useState, useEffect, useRef } from 'react';
@@ -109,7 +110,9 @@ const ProductPageDesktop: React.FC<Props> = ({
             ? ACCESSORIES_CATEGORY_IDS.men
             : ACCESSORIES_CATEGORY_IDS.women;
 
-        const response = await fetch(`${API_URL}web-page/categories/${categoryId}`);
+        const response = await fetch(
+          `${API_URL}web-page/categories/${categoryId}`,
+        );
         if (!response.ok) return;
 
         const categoryData: CategoryResponse = await response.json();
@@ -654,24 +657,12 @@ const ProductPageDesktop: React.FC<Props> = ({
               })}
             </div>
 
-            {/* Size availability info */}
-            {/* <div className="mt-2">
-              <span
-                style={{
-                  fontSize: '12px',
-                  color: '#dc2626',
-                  fontWeight: '400',
-                }}
-              >
-                {!isColorAvailable(selectedColorIndex)
-                  ? '¡COLOR AGOTADO!'
-                  : selectedSizeIndex !== null
-                  ? `Disponibles: ${
-                      getCurrentSizes()[selectedSizeIndex]?.availability || 0
-                    }`
-                  : ''}
-              </span>
-            </div> */}
+            {/* Nothing in this colour can be bought here */}
+            {!isColorAvailable(selectedColorIndex) && (
+              <div style={{ marginTop: '0.75rem' }}>
+                <OutOfStockNotice />
+              </div>
+            )}
           </div>
 
           {/* Description section */}

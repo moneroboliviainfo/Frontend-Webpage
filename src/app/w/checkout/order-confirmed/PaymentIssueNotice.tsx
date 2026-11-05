@@ -65,8 +65,8 @@ const PaymentIssueNotice: React.FC<PaymentIssueNoticeProps> = ({
 
           <p className="text-gray-600" style={{ marginBottom: '1.5rem' }}>
             {rejected
-              ? 'El banco no aprobó el pago, así que no se te cobró nada. Podés intentarlo de nuevo mientras tu orden siga vigente.'
-              : 'Se cobró el pago, pero no pudimos confirmar la compra. Escribinos con tu número de orden y lo resolvemos.'}
+              ? 'El banco no aprobó el pago, así que no se te cobró nada. Puedes intentarlo de nuevo mientras tu orden siga vigente.'
+              : 'Se cobró el pago, pero no pudimos confirmar la compra. Escríbenos con tu número de orden y lo resolvemos.'}
           </p>
 
           {orderId && (

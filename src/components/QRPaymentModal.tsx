@@ -185,7 +185,7 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
               marginBottom: '1.5rem',
             }}
           >
-            Este QR ya no se puede pagar. Si ya pagaste, contactanos con tu
+            Este QR ya no se puede pagar. Si ya pagaste, contáctanos con tu
             n&uacute;mero de pedido <strong>#{orderId}</strong> y lo
             resolvemos.
           </p>

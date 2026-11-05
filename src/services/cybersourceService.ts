@@ -40,12 +40,12 @@ export const getCybersourceCheckoutParams = async (
     // 404: the order expired or is no longer PENDING.
     if (response.status === 409) {
       throw new Error(
-        'Se agotó el tiempo para pagar esta orden. Volvé a armar tu compra.',
+        'Se agotó el tiempo para pagar esta orden. Vuelve a armar tu compra.',
       );
     }
     if (response.status === 404) {
       throw new Error(
-        'Tu orden venció o ya no está disponible. Volvé a armar tu compra.',
+        'Tu orden venció o ya no está disponible. Vuelve a armar tu compra.',
       );
     }
 

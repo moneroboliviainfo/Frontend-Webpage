@@ -119,7 +119,7 @@ export async function confirmOrder(
     return {
       status: 'blocked',
       message:
-        'Faltan datos de tu pedido. Recargá la página e intentá de nuevo.',
+        'Faltan datos de tu pedido. Recarga la página e intenta de nuevo.',
     };
   }
 
@@ -207,7 +207,7 @@ export async function confirmOrder(
 
     return {
       status: 'error',
-      message: message || 'No se pudo crear la orden. Intentá de nuevo.',
+      message: message || 'No se pudo crear la orden. Intenta de nuevo.',
     };
   }
 }

@@ -1,5 +1,6 @@
 'use client';
 import ImageSlider from '@/components/ImageSlider/ImageSlider';
+import OutOfStockNotice from './OutOfStockNotice';
 import { formatBs } from '@/shared/lib/formatCurrency';
 import BottomSheet from '@/components/BottomSheet/BottomSheet';
 import BasketConfirmation from '@/components/BasketConfirmation';
@@ -288,7 +289,9 @@ const ProductPageMobile: React.FC<Props> = ({
             ? ACCESSORIES_CATEGORY_IDS.men
             : ACCESSORIES_CATEGORY_IDS.women;
 
-        const response = await fetch(`${API_URL}web-page/categories/${categoryId}`);
+        const response = await fetch(
+          `${API_URL}web-page/categories/${categoryId}`,
+        );
         if (!response.ok) return;
 
         const categoryData: CategoryResponse = await response.json();
@@ -894,36 +897,18 @@ const ProductPageMobile: React.FC<Props> = ({
             </div>
           )}
 
-          {/* size availability - only visible when sheet is expanded and size is selected */}
-          {/* {sheetExpanded && (
+          {/* Nothing in this colour can be bought here */}
+          {sheetExpanded && !isColorAvailable(selectedColorIndex) && (
             <div
-              className="flex items-center justify-center"
               style={{
                 marginTop: '0.75rem',
                 paddingLeft: '1rem',
                 paddingRight: '1rem',
               }}
             >
-              <span
-                style={{
-                  fontSize: '12px',
-                  color: '#dc2626', // red color
-                  fontWeight: '400',
-                  display: 'block',
-                  maxHeight: 'calc(2 * 1.1em)', // 2 lines with line-height
-                  lineHeight: '1.1em',
-                }}
-              >
-                {!isColorAvailable(selectedColorIndex)
-                  ? '¡COLOR AGOTADO!'
-                  : selectedSizeIndex !== null
-                  ? `Disponibles: ${
-                      getCurrentSizes()[selectedSizeIndex]?.availability || 0
-                    }`
-                  : ''}
-              </span>
+              <OutOfStockNotice />
             </div>
-          )} */}
+          )}
 
           {/* third row: centered CTA button */}
           <div className="flex justify-center" style={{ marginTop: '1rem' }}>

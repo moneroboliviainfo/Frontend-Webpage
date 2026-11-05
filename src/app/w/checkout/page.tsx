@@ -855,7 +855,7 @@ const CheckoutPage: React.FC = () => {
         console.error('Cart validation error:', error);
         setIsValidatingCart(false);
         setErrorMessage(
-          'No pudimos validar tu carrito. Revisá tu conexión e intentá de nuevo.',
+          'No pudimos validar tu carrito. Revisa tu conexión e intenta de nuevo.',
         );
         setShowErrorModal(true);
       }
@@ -949,7 +949,7 @@ const CheckoutPage: React.FC = () => {
     if (!wasGuest) {
       AuthStorage.clearToken();
       setErrorMessage(
-        'Tu sesión expiró. Volvé a iniciar sesión para continuar con tu compra.',
+        'Tu sesión expiró. Vuelve a iniciar sesión para continuar con tu compra.',
       );
       setShowErrorModal(true);
       return;
@@ -962,7 +962,7 @@ const CheckoutPage: React.FC = () => {
     } catch (err) {
       console.error('Could not open a new guest session:', err);
       setErrorMessage(
-        'Tu sesión de invitado expiró y no pudimos abrir una nueva. Recargá la página e intentá de nuevo.',
+        'Tu sesión de invitado expiró y no pudimos abrir una nueva. Recarga la página e intenta de nuevo.',
       );
       setShowErrorModal(true);
     }
@@ -1238,7 +1238,7 @@ const CheckoutPage: React.FC = () => {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : 'No pudimos guardar tu dirección. Intentá de nuevo.',
+            : 'No pudimos guardar tu dirección. Intenta de nuevo.',
         );
         setShowErrorModal(true);
       } finally {
@@ -1503,7 +1503,7 @@ const CheckoutPage: React.FC = () => {
               }}
             >
               Cambiaste de tienda, así que el costo de envío internacional quedó
-              sin validez. Confirmá tu dirección para cotizarlo de nuevo.
+              sin validez. Confirma tu dirección para cotizarlo de nuevo.
             </p>
             <button
               type="button"
