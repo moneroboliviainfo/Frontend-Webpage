@@ -1,7 +1,11 @@
 'use client';
-import React from 'react';
-import { useAppSelector } from '@/store/hooks';
-import { selectBranches, selectSelectedBranch } from '@/store/branchSlice';
+import React, { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  selectBranches,
+  selectSelectedBranch,
+  setBranchAttention,
+} from '@/store/branchSlice';
 
 /**
  * Shown when every size of the selected colour is out of stock.
@@ -19,6 +23,7 @@ import { selectBranches, selectSelectedBranch } from '@/store/branchSlice';
  * all.
  */
 const OutOfStockNotice: React.FC = () => {
+  const dispatch = useAppDispatch();
   const branch = useAppSelector(selectSelectedBranch);
   const branches = useAppSelector(selectBranches);
 
@@ -26,6 +31,17 @@ const OutOfStockNotice: React.FC = () => {
   // store the hint would send the customer looking for a selector that offers
   // nothing. It starts appearing on its own the day a second store opens.
   const canSwitchStores = branches.length > 1;
+
+  // While this is on screen, the branch selector is the way out — so it draws
+  // attention to itself. Tied to this component's lifetime so it switches off
+  // by itself when the customer picks an available colour or leaves the page.
+  useEffect(() => {
+    if (!canSwitchStores) return;
+    dispatch(setBranchAttention(true));
+    return () => {
+      dispatch(setBranchAttention(false));
+    };
+  }, [canSwitchStores, dispatch]);
 
   return (
     <div
@@ -65,7 +81,6 @@ const OutOfStockNotice: React.FC = () => {
             lineHeight: 1.35,
           }}
         >
-         
           {canSwitchStores && (
             <>
               {' '}

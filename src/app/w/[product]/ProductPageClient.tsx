@@ -256,7 +256,13 @@ const ProductPageContent = () => {
   const [fetchedProduct, setFetchedProduct] = useState<ProductDetails | null>(
     null,
   );
-  const [loading, setLoading] = useState<boolean>(false);
+  // Starts true on purpose. `allProductsData` below is demo data kept only so
+  // product-to-product navigation has something to hold on to; rendering it
+  // while the real product loads showed the customer a garment that does not
+  // exist ("Chaqueta Derby", Bs. 129). The wait got longer once the fetch had
+  // to hold for the branch, so the loader has to cover that too — and starting
+  // it up front does that without another setState inside the effect.
+  const [loading, setLoading] = useState<boolean>(true);
 
   let currentProduct: ProductDetails = allProductsData[currentProductIndex];
   if (fetchedProduct) {

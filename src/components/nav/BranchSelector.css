@@ -1,0 +1,44 @@
+/* Branch selector: the pill trigger in the navbar and its one-time nudge. */
+
+/*
+ * A slow, shallow beat. Big enough to catch the eye in peripheral vision,
+ * small enough not to read as a glitch — the callout is a tip, not an alarm.
+ */
+@keyframes branch-hint-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes branch-dot-beat {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.75;
+  }
+}
+
+.branch-hint {
+  animation: branch-hint-beat 1.8s ease-in-out infinite;
+  transform-origin: top right;
+}
+
+.branch-dot {
+  animation: branch-dot-beat 1.8s ease-in-out infinite;
+}
+
+/* Motion is decoration here: everything still reads without it. */
+@media (prefers-reduced-motion: reduce) {
+  .branch-hint,
+  .branch-dot {
+    animation: none;
+  }
+}

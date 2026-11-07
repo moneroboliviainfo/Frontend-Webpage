@@ -163,6 +163,17 @@ const ProductPageDesktop: React.FC<Props> = ({
     );
   };
 
+  /**
+   * Whether this colour's sizes are actually known.
+   *
+   * "Every size sold out" and "the sizes have not loaded" both come back as
+   * `isColorAvailable === false`, and announcing the first when it is really
+   * the second tells the customer a garment is gone while it is still loading
+   * — or when the request simply failed.
+   */
+  const hasKnownSizes = (colorIndex: number) =>
+    (productDetails.colorsWithSizes[colorIndex]?.sizes.length ?? 0) > 0;
+
   const getCurrentSizes = () => {
     return productDetails.colorsWithSizes[selectedColorIndex]?.sizes || [];
   };
@@ -658,11 +669,12 @@ const ProductPageDesktop: React.FC<Props> = ({
             </div>
 
             {/* Nothing in this colour can be bought here */}
-            {!isColorAvailable(selectedColorIndex) && (
-              <div style={{ marginTop: '0.75rem' }}>
-                <OutOfStockNotice />
-              </div>
-            )}
+            {hasKnownSizes(selectedColorIndex) &&
+              !isColorAvailable(selectedColorIndex) && (
+                <div style={{ marginTop: '0.75rem' }}>
+                  <OutOfStockNotice />
+                </div>
+              )}
           </div>
 
           {/* Description section */}

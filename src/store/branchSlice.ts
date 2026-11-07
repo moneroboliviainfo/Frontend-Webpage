@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { apiFetch } from '@/shared/api/client';
 import { BranchStorage } from '@/shared/storage/branchStorage';
+import { DEFAULT_BRANCH_ID } from '@/shared/config/branches';
 import type { RootState } from './store';
 
 /** `GET /web-page/branches` returns only these two fields. */
@@ -16,12 +17,19 @@ interface BranchState {
   branches: Branch[];
   selectedId: number | null;
   status: BranchStatus;
+  /**
+   * Something on screen depends on changing store — today, a product whose
+   * every size is sold out here. The selector draws attention to itself while
+   * this is on, which is the only moment the control is worth interrupting for.
+   */
+  needsAttention: boolean;
 }
 
 const initialState: BranchState = {
   branches: [],
   selectedId: null,
   status: 'idle',
+  needsAttention: false,
 };
 
 /**
@@ -41,7 +49,11 @@ const branchSlice = createSlice({
     selectBranch: (state, action: PayloadAction<number>) => {
       if (!state.branches.some((b) => b.id === action.payload)) return;
       state.selectedId = action.payload;
+      state.needsAttention = false;
       BranchStorage.setSelectedId(action.payload);
+    },
+    setBranchAttention: (state, action: PayloadAction<boolean>) => {
+      state.needsAttention = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -53,11 +65,17 @@ const branchSlice = createSlice({
         state.branches = action.payload;
         state.status = 'ready';
 
-        // Keep the remembered branch only while it is still sellable: it can
-        // drop off the list if it gets deactivated or loses SIAT billing.
+        // Preference order: what this visitor last chose, then the branch
+        // configured as the default, then whatever came first. Each step only
+        // counts if that branch is still in the list — it can drop off when it
+        // is deactivated or loses SIAT billing, and keeping a stale id would
+        // make every later request fail.
         const remembered = BranchStorage.getSelectedId();
+        const byId = (id: number | null) =>
+          id === null ? undefined : action.payload.find((b) => b.id === id);
+
         const resolved =
-          action.payload.find((b) => b.id === remembered) ?? action.payload[0];
+          byId(remembered) ?? byId(DEFAULT_BRANCH_ID) ?? action.payload[0];
 
         state.selectedId = resolved?.id ?? null;
         if (resolved && resolved.id !== remembered) {
@@ -72,11 +90,13 @@ const branchSlice = createSlice({
   },
 });
 
-export const { selectBranch } = branchSlice.actions;
+export const { selectBranch, setBranchAttention } = branchSlice.actions;
 
 export const selectBranches = (state: RootState) => state.branch.branches;
 export const selectBranchStatus = (state: RootState) => state.branch.status;
 export const selectBranchId = (state: RootState) => state.branch.selectedId;
+export const selectBranchNeedsAttention = (state: RootState) =>
+  state.branch.needsAttention;
 
 export const selectSelectedBranch = (state: RootState): Branch | null =>
   state.branch.branches.find((b) => b.id === state.branch.selectedId) ?? null;

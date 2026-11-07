@@ -1,6 +1,5 @@
 const BRANCH_KEY = 'selected_branch_id';
 
-
 export const BranchStorage = {
   getSelectedId(): number | null {
     if (typeof window === 'undefined') return null;

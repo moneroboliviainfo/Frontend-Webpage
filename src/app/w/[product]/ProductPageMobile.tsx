@@ -70,6 +70,17 @@ const ProductPageMobile: React.FC<Props> = ({
     );
   };
 
+  /**
+   * Whether this colour's sizes are actually known.
+   *
+   * "Every size sold out" and "the sizes have not loaded" both come back as
+   * `isColorAvailable === false`, and announcing the first when it is really
+   * the second tells the customer a garment is gone while it is still loading
+   * — or when the request simply failed.
+   */
+  const hasKnownSizes = (colorIndex: number) =>
+    (productDetails.colorsWithSizes[colorIndex]?.sizes.length ?? 0) > 0;
+
   // Get sizes for currently selected color
   const getCurrentSizes = () => {
     return productDetails.colorsWithSizes[selectedColorIndex]?.sizes || [];
@@ -898,17 +909,19 @@ const ProductPageMobile: React.FC<Props> = ({
           )}
 
           {/* Nothing in this colour can be bought here */}
-          {sheetExpanded && !isColorAvailable(selectedColorIndex) && (
-            <div
-              style={{
-                marginTop: '0.75rem',
-                paddingLeft: '1rem',
-                paddingRight: '1rem',
-              }}
-            >
-              <OutOfStockNotice />
-            </div>
-          )}
+          {sheetExpanded &&
+            hasKnownSizes(selectedColorIndex) &&
+            !isColorAvailable(selectedColorIndex) && (
+              <div
+                style={{
+                  marginTop: '0.75rem',
+                  paddingLeft: '1rem',
+                  paddingRight: '1rem',
+                }}
+              >
+                <OutOfStockNotice />
+              </div>
+            )}
 
           {/* third row: centered CTA button */}
           <div className="flex justify-center" style={{ marginTop: '1rem' }}>
